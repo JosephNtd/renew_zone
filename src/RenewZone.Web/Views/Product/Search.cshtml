@@ -1,0 +1,64 @@
+@model SearchViewModel
+@{
+    var hasKeyword = !string.IsNullOrWhiteSpace(Model.Keyword);
+    ViewData["Title"] = hasKeyword ? $"Tìm kiếm: {Model.Keyword}" : "Tìm kiếm";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/product.css" asp-append-version="true" />
+}
+
+@await Html.PartialAsync("_Breadcrumb", new BreadcrumbViewModel { Items = new[] { new Crumb("Tìm kiếm") } })
+
+<div class="container">
+    <header class="cat-head reveal">
+        <h1 class="cat-title">
+            @if (hasKeyword)
+            {
+                @:Kết quả cho “@Model.Keyword”
+            }
+            else
+            {
+                @:Tìm kiếm sản phẩm
+            }
+        </h1>
+        @if (hasKeyword)
+        {
+            <span class="cat-count">@Model.Results.TotalItems kết quả</span>
+        }
+    </header>
+
+    @if (!hasKeyword)
+    {
+        <div class="rz-empty">
+            <i class="bi bi-search"></i>
+            <p>Nhập từ khóa vào ô tìm kiếm phía trên để tìm sản phẩm.</p>
+        </div>
+    }
+    else if (Model.Results.Items.Count == 0)
+    {
+        <div class="rz-empty">
+            <i class="bi bi-emoji-frown"></i>
+            <p>Không tìm thấy sản phẩm nào khớp với “<strong>@Model.Keyword</strong>”.</p>
+            <a class="btn-rz btn-brand" href="/san-pham">Xem tất cả sản phẩm</a>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-lg-4">
+            @foreach (var p in Model.Results.Items)
+            {
+                <div class="col reveal">
+                    @await Html.PartialAsync("_ProductCard", p)
+                </div>
+            }
+        </div>
+
+        @await Html.PartialAsync("_Pagination", new PaginationViewModel
+        {
+            Page = Model.Results.Page,
+            TotalPages = Model.Results.TotalPages,
+            Url = Model.PageUrl
+        })
+    }
+</div>

@@ -1,0 +1,56 @@
+@model NewsDetail
+@{
+    var a = Model.Article;
+    ViewData["Title"] = a.Title;
+    ViewData["MetaDescription"] = a.Excerpt;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/product.css" asp-append-version="true" />
+}
+
+@await Html.PartialAsync("_Breadcrumb", new BreadcrumbViewModel { Items = new[] { new Crumb("Tin công nghệ", "/tin-tuc"), new Crumb(a.Title) } })
+
+<div class="container">
+    <article class="news-detail reveal">
+        @if (!string.IsNullOrWhiteSpace(a.CategoryTag))
+        {
+            <span class="news-tag">@a.CategoryTag</span>
+        }
+        <h1 class="news-detail-title">@a.Title</h1>
+        <div class="news-detail-meta">
+            <i class="bi bi-calendar3"></i> @a.PublishedAt.ToString("HH:mm - dd/MM/yyyy")
+            <span class="news-detail-views"><i class="bi bi-eye"></i> @a.ViewCount lượt xem</span>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(a.Excerpt))
+        {
+            <p class="news-detail-excerpt">@a.Excerpt</p>
+        }
+        <div class="prose news-detail-body">@Html.Raw(a.ContentHtml)</div>
+    </article>
+
+    @if (Model.Related.Count > 0)
+    {
+        <section class="news-related reveal">
+            @await Html.PartialAsync("_SectionHeader", new SectionHeader("Bài viết liên quan", "Đọc thêm"))
+            <div class="news-related-grid">
+                @foreach (var r in Model.Related)
+                {
+                    <a class="news-related-card" href="/@r.Slug">
+                        <div class="news-related-thumb">
+                            <img src="@(r.ThumbnailUrl ?? "/images/placeholder-news.svg")" alt="@r.Title" loading="lazy" />
+                        </div>
+                        <div class="news-related-body">
+                            @if (!string.IsNullOrWhiteSpace(r.CategoryTag))
+                            {
+                                <span class="news-related-tag">@r.CategoryTag</span>
+                            }
+                            <h3 class="news-related-title">@r.Title</h3>
+                            <time class="news-related-date">@r.PublishedAt.ToString("dd/MM/yyyy")</time>
+                        </div>
+                    </a>
+                }
+            </div>
+        </section>
+    }
+</div>

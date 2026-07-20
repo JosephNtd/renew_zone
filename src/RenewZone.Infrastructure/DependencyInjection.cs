@@ -43,6 +43,9 @@ public static class DependencyInjection
         services.AddMemoryCache();
         services.AddScoped<ISiteContentService, SiteContentService>();
         services.AddScoped<IHomeQueryService, HomeQueryService>();
+        services.AddScoped<ISlugResolver, SlugResolver>();
+        services.AddScoped<IContentQueryService, ContentQueryService>();
+        services.AddScoped<ICatalogQueryService, CatalogQueryService>();
 
         return services;
     }

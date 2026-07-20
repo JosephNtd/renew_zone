@@ -1,0 +1,194 @@
+@model ProductDetail
+@inject RenewZone.Domain.Interfaces.ISiteContentService SiteContent
+@{
+    var p = Model.Product;
+    ViewData["Title"] = p.Name;
+    ViewData["MetaDescription"] = p.ShortDescription;
+
+    var images = p.Images.Count > 0
+        ? p.Images.ToList()
+        : new List<ProductImage> { new() { Url = "/images/placeholder-product.svg", IsMain = true } };
+    var mainImg = images.FirstOrDefault(i => i.IsMain) ?? images[0];
+
+    var settings = await SiteContent.GetSettingsAsync();
+    var hotline = settings.GetValueOrDefault(SettingKeys.Hotline) ?? "";
+    var hotlineTel = "tel:" + hotline.Replace(".", "").Replace(" ", "");
+
+    int? discountPct = p.HasDiscount
+        ? (int)Math.Round((1 - (double)(p.SalePrice!.Value / p.OriginalPrice)) * 100)
+        : null;
+
+    var crumbs = new List<Crumb> { new("Sản phẩm", "/san-pham") };
+    if (Model.ParentCategory is not null)
+    {
+        crumbs.Add(new Crumb(Model.ParentCategory.Name, $"/{Model.ParentCategory.Slug}"));
+    }
+    crumbs.Add(new Crumb(p.Name));
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/lib/swiper/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="~/css/product.css" asp-append-version="true" />
+}
+
+@await Html.PartialAsync("_Breadcrumb", new BreadcrumbViewModel { Items = crumbs })
+
+<div class="container">
+    <div class="pdp-grid">
+        @* ---------- GALLERY ---------- *@
+        <div class="pdp-gallery reveal">
+            <div class="pdp-stage">
+                <img id="pdpMainImg" src="@mainImg.Url" alt="@p.Name" />
+            </div>
+            @if (images.Count > 1)
+            {
+                <div class="pdp-thumbs">
+                    @foreach (var img in images)
+                    {
+                        <button type="button" class="pdp-thumb @(img == mainImg ? "is-active" : "")" data-src="@img.Url" aria-label="Ảnh @p.Name">
+                            <img src="@img.Url" alt="@p.Name" loading="lazy" />
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+
+        @* ---------- MUA HÀNG ---------- *@
+        <div class="pdp-buy reveal">
+            <h1 class="pdp-name">@p.Name</h1>
+
+            <div class="pdp-meta">
+                @if (p.IsInstallment0Percent)
+                {
+                    <span class="badge-installment">Trả góp 0%</span>
+                }
+                @if (discountPct is > 0)
+                {
+                    <span class="badge-off">-@discountPct%</span>
+                }
+            </div>
+
+            @if (p.IsContactPrice)
+            {
+                <div class="pdp-price-box">
+                    <span class="badge-contact pdp-contact">Liên hệ</span>
+                </div>
+                <a class="btn-rz btn-buy btn-lg pdp-call" href="@hotlineTel"><i class="bi bi-telephone-fill"></i> Gọi @hotline để được tư vấn</a>
+            }
+            else
+            {
+                <div class="pdp-price-box" data-price-base="@p.DisplayPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                    @if (p.HasDiscount)
+                    {
+                        <span class="pdp-price-old">@p.OriginalPrice.ToVnd()</span>
+                    }
+                    <span class="pdp-price-now" id="pdpPrice">@p.DisplayPrice.ToVnd()</span>
+                </div>
+
+                @* ---------- VARIANT SELECTOR ---------- *@
+                @if (p.OptionGroups.Count > 0)
+                {
+                    <div class="pdp-options">
+                        @foreach (var g in p.OptionGroups)
+                        {
+                            var defaultVal = g.Values.FirstOrDefault(v => v.IsDefault) ?? g.Values.FirstOrDefault();
+                            <div class="pdp-optgroup" data-group="@g.Name">
+                                <span class="pdp-optlabel">@g.Name</span>
+                                <div class="pdp-optvalues" role="group" aria-label="@g.Name">
+                                    @foreach (var v in g.Values)
+                                    {
+                                        <button type="button"
+                                                class="pdp-opt @(v == defaultVal ? "is-active" : "")"
+                                                data-adjust="@v.PriceAdjustment.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                data-value="@v.Value">
+                                            @v.Value
+                                            @if (v.PriceAdjustment != 0)
+                                            {
+                                                <span class="pdp-opt-delta">@(v.PriceAdjustment > 0 ? "+" : "")@v.PriceAdjustment.ToVnd()</span>
+                                            }
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="pdp-actions">
+                    <button type="button" class="btn-rz btn-cart-outline btn-lg pdp-addcart"
+                            data-product-id="@p.Id" data-product-name="@p.Name">
+                        <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                    </button>
+                    <button type="button" class="btn-rz btn-buy btn-lg pdp-buynow"
+                            data-product-id="@p.Id" data-product-name="@p.Name">
+                        Mua ngay
+                    </button>
+                </div>
+
+                <a class="pdp-hotline-line" href="@hotlineTel">
+                    <i class="bi bi-headset"></i> Tư vấn nhanh: <strong>@hotline</strong>
+                </a>
+            }
+
+            @* ---------- CAM KẾT ---------- *@
+            <ul class="pdp-commit">
+                <li><i class="bi bi-patch-check-fill"></i> Hàng chính hãng, nguyên seal / đúng mô tả</li>
+                <li><i class="bi bi-arrow-repeat"></i> Thu cũ đổi mới, thu giá cao</li>
+                <li><i class="bi bi-shield-check"></i> Bảo hành dài hạn, 1 đổi 1</li>
+                <li><i class="bi bi-truck"></i> Giao nhanh nội thành, kiểm tra khi nhận</li>
+            </ul>
+        </div>
+    </div>
+
+    @* ---------- TABS NỘI DUNG ---------- *@
+    <div class="pdp-tabs reveal">
+        <div class="pdp-tabbar" role="tablist">
+            @if (!string.IsNullOrWhiteSpace(p.SpecsHtml))
+            {
+                <button type="button" class="pdp-tab is-active" data-tab="specs" role="tab">Thông số kỹ thuật</button>
+            }
+            @if (!string.IsNullOrWhiteSpace(p.DescriptionHtml))
+            {
+                <button type="button" class="pdp-tab @(string.IsNullOrWhiteSpace(p.SpecsHtml) ? "is-active" : "")" data-tab="desc" role="tab">Mô tả sản phẩm</button>
+            }
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(p.SpecsHtml))
+        {
+            <div class="pdp-panel prose is-active" data-panel="specs">@Html.Raw(p.SpecsHtml)</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(p.DescriptionHtml))
+        {
+            <div class="pdp-panel prose @(string.IsNullOrWhiteSpace(p.SpecsHtml) ? "is-active" : "")" data-panel="desc">@Html.Raw(p.DescriptionHtml)</div>
+        }
+        @if (string.IsNullOrWhiteSpace(p.SpecsHtml) && string.IsNullOrWhiteSpace(p.DescriptionHtml))
+        {
+            <p class="pdp-noinfo">Thông tin chi tiết đang được cập nhật.</p>
+        }
+    </div>
+
+    @* ---------- SẢN PHẨM LIÊN QUAN ---------- *@
+    @if (Model.Related.Count > 0)
+    {
+        <section class="pdp-related reveal">
+            @await Html.PartialAsync("_SectionHeader", new SectionHeader("Sản phẩm liên quan", "Có thể bạn quan tâm"))
+            <div class="swiper related-swiper">
+                <div class="swiper-wrapper">
+                    @foreach (var rp in Model.Related)
+                    {
+                        <div class="swiper-slide">
+                            @await Html.PartialAsync("_ProductCard", rp)
+                        </div>
+                    }
+                </div>
+                <button class="carousel-nav related-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
+                <button class="carousel-nav related-next" type="button" aria-label="Sau"><i class="bi bi-chevron-right"></i></button>
+            </div>
+        </section>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/lib/swiper/swiper-bundle.min.js"></script>
+    <script src="~/js/product.js" asp-append-version="true"></script>
+}

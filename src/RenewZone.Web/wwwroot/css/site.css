@@ -810,6 +810,72 @@ img { max-width: 100%; }
   .p-card-name a:hover { color: var(--brand-600); }
 }
 
+/* Tiêu đề section (partial _SectionHeader, DESIGN 3.7) — dùng chung mọi trang */
+.section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.section-kicker {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--brand-500);
+}
+.section-title {
+  margin: 6px 0 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--ink-900);
+}
+.section-title::after {
+  content: "";
+  display: block;
+  width: 48px; height: 4px;
+  margin-top: 10px;
+  border-radius: var(--r-pill);
+  background: var(--grad-brand);
+}
+.section-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: .875rem;
+  color: var(--brand-600);
+  white-space: nowrap;
+}
+.section-more .bi { transition: transform var(--t-base) var(--ease-out); }
+.section-more:hover .bi { transform: translateX(4px); }
+
+/* Nút điều hướng carousel — dùng chung trang chủ (bán chạy) + trang chi tiết (liên quan).
+   Vị trí trái/phải do class riêng của từng carousel đặt (vd .bs-prev / .related-prev). */
+.carousel-nav {
+  position: absolute;
+  top: 42%;
+  z-index: 10;
+  width: 42px; height: 42px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  color: var(--brand-600);
+  font-size: 1.1rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: var(--sh-md);
+  transition: background var(--t-base), color var(--t-base), border-color var(--t-base);
+}
+.carousel-nav:hover { background: var(--brand-500); color: #fff; border-color: var(--brand-500); }
+.carousel-nav.swiper-button-disabled { opacity: .3; pointer-events: none; }
+
 /* =========================== 15. RESPONSIVE =========================== */
 @media (max-width: 991.98px) {
   :root { --header-h: 64px; --header-h-shrink: 58px; }

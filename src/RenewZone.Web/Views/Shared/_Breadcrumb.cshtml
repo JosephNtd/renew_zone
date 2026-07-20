@@ -1,0 +1,19 @@
+@model BreadcrumbViewModel
+<nav class="rz-breadcrumb" aria-label="Breadcrumb">
+    <div class="container">
+        <ol>
+            <li><a href="/"><i class="bi bi-house-door"></i> Trang chủ</a></li>
+            @foreach (var c in Model.Items)
+            {
+                if (c.Url is not null)
+                {
+                    <li><a href="@c.Url">@c.Text</a></li>
+                }
+                else
+                {
+                    <li aria-current="page">@c.Text</li>
+                }
+            }
+        </ol>
+    </div>
+</nav>

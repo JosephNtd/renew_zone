@@ -1,0 +1,68 @@
+@model CategoryViewModel
+@{
+    var data = Model.Data;
+    var parent = data.Parent;
+    ViewData["Title"] = data.ActiveSeries?.Name ?? parent.Name;
+
+    var crumbs = new List<Crumb> { new("Sản phẩm", "/san-pham") };
+    if (data.ActiveSeries is not null)
+    {
+        crumbs.Add(new Crumb(parent.Name, $"/{parent.Slug}"));
+        crumbs.Add(new Crumb(data.ActiveSeries.Name));
+    }
+    else
+    {
+        crumbs.Add(new Crumb(parent.Name));
+    }
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/product.css" asp-append-version="true" />
+}
+
+@await Html.PartialAsync("_Breadcrumb", new BreadcrumbViewModel { Items = crumbs })
+
+<div class="container">
+    <header class="cat-head reveal">
+        <h1 class="cat-title">@(data.ActiveSeries?.Name ?? parent.Name)</h1>
+        <span class="cat-count">@data.Products.TotalItems sản phẩm</span>
+    </header>
+
+    @if (data.Series.Count > 0)
+    {
+        <nav class="series-tabs reveal" aria-label="Lọc theo dòng máy">
+            <a class="series-tab @(data.ActiveSeries is null ? "is-active" : "")" href="@Model.SeriesUrl(null)">Tất cả</a>
+            @foreach (var s in data.Series)
+            {
+                <a class="series-tab @(Model.IsActiveSeries(s) ? "is-active" : "")" href="@Model.SeriesUrl(s)">@s.Name</a>
+            }
+        </nav>
+    }
+
+    @if (data.Products.Items.Count == 0)
+    {
+        <div class="rz-empty">
+            <i class="bi bi-inbox"></i>
+            <p>Chưa có sản phẩm nào trong danh mục này.</p>
+            <a class="btn-rz btn-brand" href="/san-pham">Xem tất cả sản phẩm</a>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-lg-4">
+            @foreach (var p in data.Products.Items)
+            {
+                <div class="col reveal">
+                    @await Html.PartialAsync("_ProductCard", p)
+                </div>
+            }
+        </div>
+
+        @await Html.PartialAsync("_Pagination", new PaginationViewModel
+        {
+            Page = data.Products.Page,
+            TotalPages = data.Products.TotalPages,
+            Url = Model.PageUrl
+        })
+    }
+</div>

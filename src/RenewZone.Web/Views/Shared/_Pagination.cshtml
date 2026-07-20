@@ -1,0 +1,44 @@
+@model PaginationViewModel
+@{
+    if (Model.TotalPages <= 1)
+    {
+        return; // 1 trang thì khỏi hiện thanh phân trang
+    }
+    var window = Model.Window().ToList();
+}
+<nav class="rz-pager" aria-label="Phân trang">
+    @if (Model.Page > 1)
+    {
+        <a class="rz-pager-btn" href="@Model.Url(1)" aria-label="Trang đầu"><i class="bi bi-chevron-double-left"></i></a>
+        <a class="rz-pager-btn" href="@Model.Url(Model.Page - 1)" aria-label="Trang trước"><i class="bi bi-chevron-left"></i></a>
+    }
+
+    @if (window.First() > 1)
+    {
+        <span class="rz-pager-gap">…</span>
+    }
+
+    @foreach (var p in window)
+    {
+        if (p == Model.Page)
+        {
+            <span class="rz-pager-btn is-active" aria-current="page">@p</span>
+        }
+        else
+        {
+            <a class="rz-pager-btn" href="@Model.Url(p)">@p</a>
+        }
+    }
+
+    @if (window.Last() < Model.TotalPages)
+    {
+        <span class="rz-pager-gap">…</span>
+    }
+
+    @if (Model.Page < Model.TotalPages)
+    {
+        <a class="rz-pager-btn" href="@Model.Url(Model.Page + 1)" aria-label="Trang sau"><i class="bi bi-chevron-right"></i></a>
+        <a class="rz-pager-btn" href="@Model.Url(Model.TotalPages)" aria-label="Trang cuối"><i class="bi bi-chevron-double-right"></i></a>
+    }
+</nav>
+<p class="rz-pager-info">Trang @Model.Page / @Model.TotalPages</p>

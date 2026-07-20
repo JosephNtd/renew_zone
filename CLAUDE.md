@@ -9,8 +9,8 @@
 
 - **Mục tiêu:** Sao chép (clone) lại website **https://renewzone.vn/** bằng ASP.NET — đây là dự án học tập (thư mục `d:\Learn\lam_viec\renew_zone`).
 - **Website gốc:** Cửa hàng bán lẻ sản phẩm Apple (mới & đã qua sử dụng) tại TP.HCM: iPhone, MacBook, iPad, Apple Watch, AirPods, hàng thanh lý. Kèm dịch vụ **thu cũ đổi mới (trade-in)**, **sửa chữa**, trả góp 0%, bảo hành dài hạn.
-- **Trạng thái hiện tại:** Đã xong **Giai đoạn 0 + 1 + 2** — database `RenewZoneClone` đầy đủ 13 bảng + Identity, seed & verify xong; layout hoàn chỉnh; **trang chủ đã dựng đủ 7 section** (hero/danh mục/sản phẩm theo danh mục/ưu đãi/bán chạy/testimonials/tin tức) với 3 carousel Swiper. Tiếp theo: **Giai đoạn 3** (SlugController + fallback routing → trang danh mục & chi tiết sản phẩm) — hiện mọi link `/{slug}` còn 404 cho tới khi làm route này.
-- Đã là git repository (`git init` xong, chưa commit lần nào).
+- **Trạng thái hiện tại:** Đã xong **Giai đoạn 0 + 1 + 2 + 3** — database `RenewZoneClone` đầy đủ 13 bảng + Identity; trang chủ 7 section; **SlugController + fallback routing chạy tốt**: trang danh mục (tab series, phân trang), chi tiết sản phẩm (gallery, variant đổi giá, tabs, liên quan), tìm kiếm `/tim-kiem`, `/san-pham`, trang tĩnh + tin chi tiết render qua slug. Tiếp theo: **Giai đoạn 4** (Giỏ hàng & Đặt hàng — nút PDP hiện mới là placeholder). Link còn 404 (đúng kế hoạch): `/tin-tuc` (listing, Giai đoạn 5), `/sua-chua` + `/sua-chua-phan-cung` (chưa seed StaticPage), `/gio-hang` + `/lien-he` (Giai đoạn 4/5).
+- Đã là git repository — đã commit Giai đoạn 0-2 (1 commit) + Giai đoạn 3.
 - **Tài khoản admin seed sẵn:** username `admin` / mật khẩu `Admin@123` (email `admin@renewzone-demo.local`).
 
 ## 2. Stack công nghệ (ĐÃ CHỐT với user — không hỏi lại)
@@ -167,10 +167,11 @@ renew_zone/
 
 ### 4.3 Routing slug phẳng (quyết định kiến trúc quan trọng)
 
-Bám theo site gốc: slug nằm ngay root. Cách làm:
-1. Đăng ký route tĩnh trước: `/`, `/gio-hang`, `/lien-he`, `/tin-tuc`, `/san-pham`, `/tim-kiem`, `/dat-hang`...
-2. **Fallback route `{slug}`** → `SlugController.Resolve(slug)`: tra lần lượt Category → Product → NewsArticle → StaticPage; khớp loại nào render view loại đó; không khớp → 404.
-3. Slug phải **unique xuyên suốt 4 bảng** — validate khi tạo/sửa trong Admin (viết service check chung).
+Bám theo site gốc: slug nằm ngay root. **ĐÃ TRIỂN KHAI (Giai đoạn 3):**
+1. Route tĩnh 1 segment dùng **attribute routing** để thắng fallback slug nhờ độ ưu tiên (literal > tham số): `/san-pham` + `/tim-kiem` (`ProductController`). Route `/`, `/admin/...` giữ conventional. Các route tĩnh còn lại (`/gio-hang`, `/lien-he`, `/tin-tuc`, `/dat-hang`) sẽ thêm ở giai đoạn sau.
+2. **Fallback route `{slug}`** (đăng ký CUỐI trong Program.cs, 1 segment nên không nuốt `/admin/x`) → `SlugController.Resolve(slug, series?, page?)`. Tra qua `ISlugResolver` — nạp toàn bộ map slug→(loại,Id) của 4 bảng vào Dictionary + cache `IMemoryCache` 5 phút (không query 4 bảng mỗi request rác). Khớp loại nào render view loại đó; không khớp → 404. Admin sửa slug phải gọi `ISlugResolver.Invalidate()`.
+3. Slug phải **unique xuyên suốt 4 bảng** — validate khi tạo/sửa trong Admin (viết service check chung). `SlugResolver` `TryAdd` theo thứ tự ưu tiên Category→Product→News→StaticPage nên kể cả lỡ trùng vẫn tất định.
+4. Query catalog: `ICatalogQueryService` (danh mục/chi tiết/tìm kiếm/tất cả SP, KHÔNG cache) + `IContentQueryService` (StaticPage/NewsDetail). PDP dùng `AsSplitQuery()` khi Include 2 collection (Images + OptionGroups) — tránh cartesian + cảnh báo EF.
 
 ### 4.4 Thiết kế UI (ĐÃ CHỐT — xem chi tiết `docs/DESIGN.md`)
 
@@ -210,11 +211,12 @@ Bản design system đầy đủ nằm ở **`docs/DESIGN.md`** — Giai đoạn
 - [x] Trang chủ đủ 7 section theo mục 3.2: hero (Swiper fade + 2 banner phụ) · khối 6 tile danh mục · section sản phẩm theo từng danh mục cha · ưu đãi đặc biệt (IsFeatured, nền `--brand-50`) · bán chạy (Swiper carousel) · testimonials (Swiper) · tin công nghệ (4 bài mới). Dữ liệu qua `IHomeQueryService`/`HomeContent` → `HomeIndexViewModel`
 - [x] Partial `_ProductCard.cshtml` (dùng chung, CSS card trong site.css mục 14 — reuse ở Giai đoạn 3) + `_SectionHeader.cshtml`; card dùng Bootstrap `.stretched-link` (tránh lồng `<a>`), sản phẩm "Liên hệ" chỉ có nút gọi hotline, không giá/không thêm giỏ
 
-### Giai đoạn 3 — Trang sản phẩm
-- [ ] SlugController + fallback routing (mục 4.3)
-- [ ] Trang danh mục: breadcrumb, tab series, grid, phân trang số
-- [ ] Trang chi tiết: gallery + thumbnails, bộ chọn variants (đổi giá theo option), tabs thông số/mô tả, sản phẩm liên quan, khối cam kết
-- [ ] Tìm kiếm theo tên (`/tim-kiem?q=`) + ô search ở header
+### Giai đoạn 3 — Trang sản phẩm ✅ (xong 2026-07-21)
+- [x] SlugController + fallback routing (mục 4.3): `ISlugResolver` (cache map slug→loại 5 phút) → route `{slug}` cuối cùng trong Program.cs; tra Category→Product→News→StaticPage, không khớp 404
+- [x] Trang danh mục (`Views/Slug/Category.cshtml`): breadcrumb, tab series (lọc `?series=`), grid tái dùng `_ProductCard`, phân trang số (`_Pagination`, 12 SP/trang)
+- [x] Trang chi tiết (`Views/Slug/Product.cshtml`): gallery + thumbnails, bộ chọn variants đổi giá realtime (product.js), tabs thông số/mô tả, carousel liên quan (Swiper), khối cam kết. SP "Liên hệ" chỉ có nút gọi hotline
+- [x] Tìm kiếm theo tên (`/tim-kiem?q=`, `ProductController.Search`) + `/san-pham` (tất cả SP) — attribute routing, khớp trước fallback slug. Ô search header đã trỏ đúng
+- [x] Trang tĩnh + tin chi tiết render qua slug (`StaticPage.cshtml` + `NewsDetail.cshtml`) — làm sẵn vì SlugController cần (chồng sang Giai đoạn 5)
 
 ### Giai đoạn 4 — Giỏ hàng & Đặt hàng
 - [ ] `CartService` (session JSON): thêm/sửa số lượng/xóa; item phân biệt theo product + variants đã chọn
@@ -223,8 +225,8 @@ Bản design system đầy đủ nằm ở **`docs/DESIGN.md`** — Giai đoạn
 - [ ] Nút "Mua ngay" ở trang chi tiết (thêm giỏ + chuyển thẳng giỏ hàng)
 
 ### Giai đoạn 5 — Tin tức, trang tĩnh, liên hệ
-- [ ] `/tin-tuc`: khối nổi bật + danh sách (theo mục 3.6), chi tiết bài viết + bài liên quan
-- [ ] Render StaticPage theo slug (giới thiệu + các trang chính sách)
+- [ ] `/tin-tuc`: khối nổi bật + danh sách (theo mục 3.6) — CÒN LẠI (listing chưa có, link header đang 404). Chi tiết bài viết + bài liên quan ĐÃ xong ở Giai đoạn 3 (`NewsDetail.cshtml`)
+- [x] Render StaticPage theo slug (giới thiệu + các trang chính sách) — xong ở Giai đoạn 3 (`StaticPage.cshtml`). CÒN THIẾU 2 trang seed `/sua-chua` + `/sua-chua-phan-cung` (menu đang trỏ tới → 404)
 - [ ] `/lien-he`: thông tin cửa hàng, form liên hệ (đủ field, upload file vào `wwwroot/uploads`, validate), map embed
 
 ### Giai đoạn 6 — Admin panel (Area `Admin`, route `/admin`)
@@ -248,6 +250,7 @@ Bản design system đầy đủ nằm ở **`docs/DESIGN.md`** — Giai đoạn
 3. **Variants quyết định giá:** giá hiển thị = SalePrice + tổng PriceAdjustment của các option đã chọn; OrderItem lưu snapshot mô tả variant dạng text.
 4. **Slug unique toàn cục** (4 bảng: Category/Product/NewsArticle/StaticPage) — bắt buộc validate ở Admin, nếu không fallback route sẽ nhập nhằng.
 5. **Sản phẩm "Liên hệ"**: không cho thêm vào giỏ, chỉ hiện nút gọi hotline.
+5b. **Nút "Thêm giỏ"/"Mua ngay" ở PDP hiện là placeholder** (product.js chỉ báo toast "Giỏ hàng đang được hoàn thiện") — nối vào `CartService` thật khi làm Giai đoạn 4.
 6. Migrations (DbContext nằm ở Infrastructure, startup project là Web — phải chỉ rõ cả 2):
    `dotnet ef migrations add <Name> -p src/RenewZone.Infrastructure -s src/RenewZone.Web -o Data/Migrations`
    `dotnet ef database update -p src/RenewZone.Infrastructure -s src/RenewZone.Web`
@@ -276,3 +279,5 @@ Bản design system đầy đủ nằm ở **`docs/DESIGN.md`** — Giai đoạn
 | 2026-07-20 | **Chốt thiết kế UI** — tạo `docs/DESIGN.md` (theme tokens, 19 components, 10 animations, quy tắc a11y, cấu trúc file css/js). Đã trích xuất token màu/font THẬT từ CSS site gốc làm căn cứ (`--color-main #d78dba`, `--color-red #ec2d3f`, Nunito Sans/Mulish/Pacifico, Owl+Slick+Nivo → ta thay bằng Swiper duy nhất). Cập nhật mục 4.4. |
 | 2026-07-20 | **Xong Giai đoạn 1.** 13 entities + 3 enums + 13 configurations (delete behaviors: Restrict/Cascade/SetNull có chủ đích — xem 4.2), migration `InitialCreate`, `DbInitializer` migrate+seed idempotent khi app start. Seed 22 SP/18 danh mục/8 bài viết/12 trang tĩnh/banners/testimonials/settings + admin `admin`/`Admin@123`. Verify sqlcmd OK. Bổ sung `ProductOptionValue.IsDefault`. dotnet-ef 10.0.8 global dùng được với EF 9. |
 | 2026-07-21 | **Xong Giai đoạn 2 (trang chủ).** Thêm `IHomeQueryService`/`HomeQueryService` (cache IMemoryCache TTL **2 phút** — ngắn hơn SiteContentService 5 phút vì dữ liệu cấp trang đổi thường xuyên hơn) trả `HomeContent` (Domain/Models mới). Tải toàn bộ SP active 1 query rồi chia nhóm trong bộ nhớ (catalog nhỏ ⇒ tránh N+1) để dựng section theo danh mục + featured + bestseller. `HomeController.Index` async map sang `HomeIndexViewModel`. Dựng đủ 7 section + partial `_ProductCard`/`_SectionHeader`; card dùng `.stretched-link`. Thêm Swiper 11.2.10 (local `wwwroot/lib/swiper`) cho 3 carousel; `home.css` + `home.js` (tắt autoplay khi `prefers-reduced-motion`). CSS card đặt ở site.css (mục 14) vì Giai đoạn 3 dùng lại. Reveal-on-scroll đặt class thẳng trong markup (site.js quét `.reveal` lúc load, TRƯỚC home.js). Build 0 lỗi/0 cảnh báo; curl `/` = 200, đúng thứ tự 7 section, 34 card (SP "Liên hệ" iphone-17-pro-max hiện 2 lần ở iPhone + Ưu đãi, chỉ có nút gọi hotline). Ghi chú: 2 file Domain lúc đầu bị ghi nhầm vào `wwwroot/lib/src/` do dùng đường dẫn tương đối sau khi `cd` — đã chuyển về đúng chỗ. |
+| 2026-07-21 | **Commit lần đầu** toàn bộ Giai đoạn 0-2 (161 file, `.gitignore` chặn sạch obj/bin). Lưu ý viết commit message qua Bash tool: KHÔNG dùng here-string PowerShell `@'...'@` (bị lọt ký tự `@` vào message), dùng heredoc `git commit -F - <<'EOF'`. |
+| 2026-07-21 | **Xong Giai đoạn 3.** Thêm `ISlugResolver` (cache map slug→loại 5 phút, Dictionary OrdinalIgnoreCase, `TryAdd` theo thứ tự ưu tiên) + `ICatalogQueryService` (danh mục/PDP/search/all — không cache) + `IContentQueryService` (StaticPage/NewsDetail). `SlugController.Resolve(slug, series?, page?)` điều phối 4 loại; route `{slug}` đăng ký cuối Program.cs. `/san-pham` + `/tim-kiem` dùng attribute routing (thắng fallback). Views: `Slug/Category` (breadcrumb + tab series + grid + `_Pagination`), `Slug/Product` (gallery đổi ảnh, variant→giá realtime, tabs, related Swiper, cam kết), `Slug/StaticPage`, `Slug/NewsDetail`, `Product/All`, `Product/Search`. Partial mới `_Pagination`/`_Breadcrumb`. `product.css` + `product.js`. Chuyển `.section-head` + `.carousel-nav` từ home.css → site.css (dùng chung). Nút giỏ PDP mới là placeholder toast (Lưu ý 5b). PDP thêm `AsSplitQuery()` — đã verify hết warning MultipleCollectionInclude. Smoke test: `/iphone` `/macbook` `/hang-thanh-ly` `/san-pham` `/tim-kiem?q=` `/gioi-thieu` `/chinh-sach-bao-hanh` + slug SP/tin = 200; `/iphone?series=` lọc đúng, `/san-pham` 2 trang; URL rác + `/tin-tuc` = 404 đúng; `/admin` vẫn 200. Build 0 lỗi/0 cảnh báo. |

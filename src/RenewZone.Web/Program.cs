@@ -69,7 +69,12 @@ app.MapControllerRoute(
         pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-// TODO (Giai đoạn 3): fallback route "{slug}" → SlugController.Resolve
-// (tra Category → Product → NewsArticle → StaticPage, không khớp thì 404)
+// Slug phẳng ở root (CLAUDE.md mục 4.3) — PHẢI đăng ký CUỐI CÙNG để mọi route tĩnh
+// phía trên được ưu tiên. Chỉ khớp 1 segment nên "/admin/..." không lọt vào đây.
+app.MapControllerRoute(
+        name: "slug",
+        pattern: "{slug}",
+        defaults: new { controller = "Slug", action = "Resolve" })
+    .WithStaticAssets();
 
 app.Run();

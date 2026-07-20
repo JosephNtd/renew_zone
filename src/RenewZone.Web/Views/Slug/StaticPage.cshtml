@@ -1,0 +1,18 @@
+@model StaticPage
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/product.css" asp-append-version="true" />
+}
+
+@await Html.PartialAsync("_Breadcrumb", new BreadcrumbViewModel { Items = new[] { new Crumb(Model.Title) } })
+
+<div class="container">
+    <article class="static-page reveal">
+        <h1 class="static-title">@Model.Title</h1>
+        <div class="prose static-body">@Html.Raw(Model.ContentHtml)</div>
+        <p class="static-updated">Cập nhật lần cuối: @((Model.UpdatedAt ?? Model.CreatedAt).ToString("dd/MM/yyyy"))</p>
+    </article>
+</div>
