@@ -1,0 +1,11 @@
+@model SectionHeader
+<div class="section-head reveal">
+    <div class="section-head-text">
+        <span class="section-kicker">@Model.Kicker</span>
+        <h2 class="section-title">@Model.Title</h2>
+    </div>
+    @if (Model.LinkUrl is not null)
+    {
+        <a class="section-more" href="@Model.LinkUrl">@Model.LinkText <i class="bi bi-arrow-right"></i></a>
+    }
+</div>

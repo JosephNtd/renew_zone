@@ -1,0 +1,269 @@
+/* home.css — style riêng trang chủ (hero, danh mục, ưu đãi, bán chạy, testimonials, tin tức).
+   Tokens/khối dùng chung nằm ở site.css; file này chỉ nạp trên trang chủ. */
+
+/* Khung section */
+.home-section { padding: 40px 0; }
+@media (min-width: 992px) {
+  .home-section { padding: 56px 0; }
+}
+
+/* Tiêu đề section (partial _SectionHeader, DESIGN 3.7) */
+.section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.section-kicker {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--brand-500);
+}
+.section-title {
+  margin: 6px 0 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--ink-900);
+}
+.section-title::after {
+  content: "";
+  display: block;
+  width: 48px; height: 4px;
+  margin-top: 10px;
+  border-radius: var(--r-pill);
+  background: var(--grad-brand);
+}
+.section-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: .875rem;
+  color: var(--brand-600);
+  white-space: nowrap;
+}
+.section-more .bi { transition: transform var(--t-base) var(--ease-out); }
+.section-more:hover .bi { transform: translateX(4px); }
+
+/* Hero */
+.home-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 20px 0 10px;
+  background: var(--grad-hero);
+}
+.home-hero::before,
+.home-hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: .45;
+  pointer-events: none;
+}
+.home-hero::before { width: 340px; height: 340px; top: -120px; left: -60px; background: var(--brand-500); }
+.home-hero::after { width: 300px; height: 300px; bottom: -150px; right: 8%; background: var(--brand-700); }
+
+.hero-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+@media (min-width: 992px) {
+  .hero-grid { grid-template-columns: 7fr 3fr; }
+}
+.hero-main { min-width: 0; }
+.hero-swiper {
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--sh-lg);
+}
+.hero-slide { display: block; aspect-ratio: 1400 / 450; background: #0e0b12; }
+.hero-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.hero-side { flex-direction: column; gap: 14px; }
+.hero-side-card {
+  flex: 1;
+  min-height: 0;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: #0e0b12;
+  box-shadow: var(--sh-md);
+}
+.hero-side-card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform var(--t-slow) var(--ease-out); }
+@media (hover: hover) {
+  .hero-side-card:hover img { transform: scale(1.05); }
+}
+
+.hero-swiper .swiper-pagination { bottom: 14px; }
+.hero-swiper .swiper-pagination-bullet {
+  width: 8px; height: 8px;
+  background: #fff;
+  opacity: .55;
+  border-radius: var(--r-pill);
+  transition: width var(--t-base) var(--ease-out), opacity var(--t-base);
+}
+.hero-swiper .swiper-pagination-bullet-active { width: 24px; opacity: 1; }
+
+.hero-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 10;
+  width: 42px; height: 42px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, .8);
+  backdrop-filter: blur(6px);
+  color: var(--ink-900);
+  font-size: 1.1rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--t-base), background var(--t-base);
+}
+.hero-prev { left: 14px; }
+.hero-next { right: 14px; }
+.hero-main:hover .hero-nav { opacity: 1; }
+.hero-nav:hover { background: #fff; }
+@media (hover: none) {
+  .hero-nav { opacity: 1; }
+}
+
+/* Khối 6 tile danh mục */
+.home-cats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+@media (min-width: 768px) {
+  .home-cats { grid-template-columns: repeat(6, 1fr); gap: 16px; }
+}
+.cat-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 10px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  text-align: center;
+  transition: border-color var(--t-base), background var(--t-base), box-shadow var(--t-base);
+}
+.cat-tile-img { width: 64px; height: 64px; display: grid; place-items: center; }
+.cat-tile-img img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform var(--t-base) var(--ease-spring); }
+.cat-tile-name { font-family: var(--font-display); font-weight: 600; font-size: .82rem; color: var(--ink-700); }
+@media (hover: hover) {
+  .cat-tile:hover { border-color: var(--brand-300); background: var(--brand-50); box-shadow: var(--sh-md); }
+  .cat-tile:hover .cat-tile-img img { transform: rotate(-4deg) scale(1.08); }
+  .cat-tile:hover .cat-tile-name { color: var(--brand-700); }
+}
+
+/* Ưu đãi đặc biệt */
+.home-special {
+  background: var(--brand-50);
+  border-block: 1px solid var(--brand-100);
+}
+
+/* Carousel bán chạy */
+.bestseller-swiper { position: relative; }
+.bestseller-swiper .swiper-slide { height: auto; }
+.carousel-nav {
+  position: absolute;
+  top: 42%;
+  z-index: 10;
+  width: 42px; height: 42px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  color: var(--brand-600);
+  font-size: 1.1rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: var(--sh-md);
+  transition: background var(--t-base), color var(--t-base), border-color var(--t-base);
+}
+.carousel-nav:hover { background: var(--brand-500); color: #fff; border-color: var(--brand-500); }
+.bs-prev { left: -6px; }
+.bs-next { right: -6px; }
+.carousel-nav.swiper-button-disabled { opacity: .3; pointer-events: none; }
+
+/* Testimonials */
+.home-testimonials { background: var(--page); }
+.testimonial-swiper { padding-bottom: 40px; }
+.testimonial-swiper .swiper-slide { height: auto; }
+.tm-card {
+  position: relative;
+  height: 100%;
+  margin: 0;
+  padding: 28px 24px 24px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-sm);
+}
+.tm-quote { position: absolute; top: 14px; right: 18px; font-size: 2.6rem; line-height: 1; color: var(--brand-200); }
+.tm-content { margin: 0 0 18px; font-style: italic; color: var(--ink-700); font-size: .95rem; line-height: 1.7; }
+.tm-foot { display: flex; align-items: center; gap: 12px; }
+.tm-avatar { width: 48px; height: 48px; border-radius: var(--r-pill); object-fit: cover; border: 2px solid var(--brand-100); }
+.tm-meta { display: flex; flex-direction: column; }
+.tm-name { font-family: var(--font-display); font-weight: 700; font-size: .9rem; color: var(--ink-900); }
+.tm-stars { color: var(--warning); font-size: .78rem; letter-spacing: 1px; }
+.testimonial-swiper .swiper-pagination { bottom: 6px; }
+.testimonial-swiper .swiper-pagination-bullet { background: var(--brand-300); opacity: .5; }
+.testimonial-swiper .swiper-pagination-bullet-active { background: var(--brand-500); opacity: 1; }
+
+/* Tin công nghệ */
+.news-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: transform var(--t-base) var(--ease-out), box-shadow var(--t-base), border-color var(--t-base);
+}
+.news-thumb { position: relative; aspect-ratio: 2 / 1; overflow: hidden; background: var(--line); }
+.news-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--t-slow) var(--ease-out); }
+.news-tag {
+  position: absolute;
+  top: 10px; left: 10px;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  background: var(--brand-500);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .68rem;
+}
+.news-body { display: flex; flex-direction: column; gap: 6px; padding: 14px; }
+.news-date { display: flex; align-items: center; gap: 6px; color: var(--ink-400); font-size: .75rem; }
+.news-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: .92rem;
+  line-height: 1.45;
+  color: var(--ink-900);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color var(--t-fast);
+}
+@media (hover: hover) {
+  .news-card:hover { transform: translateY(-4px); box-shadow: var(--sh-lg); border-color: var(--brand-200); }
+  .news-card:hover .news-thumb img { transform: scale(1.05); }
+  .news-card:hover .news-title { color: var(--brand-600); }
+}

@@ -1,0 +1,193 @@
+@model HomeIndexViewModel
+@{
+    ViewData["Title"] = null;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/lib/swiper/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+}
+
+@* 1. HERO: slider chính (trái) + 2 banner phụ xếp dọc (phải) *@
+<section class="home-hero">
+    <div class="container">
+        <div class="hero-grid">
+            <div class="hero-main">
+                <div class="swiper hero-swiper">
+                    <div class="swiper-wrapper">
+                        @foreach (var b in Model.HeroBanners)
+                        {
+                            <div class="swiper-slide">
+                                <a class="hero-slide" href="@(b.LinkUrl ?? "#")" aria-label="@b.Title">
+                                    <img src="@b.ImageUrl" alt="@b.Title" />
+                                </a>
+                            </div>
+                        }
+                    </div>
+                    <div class="swiper-pagination hero-pagination"></div>
+                    <button class="hero-nav hero-prev" type="button" aria-label="Banner trước"><i class="bi bi-chevron-left"></i></button>
+                    <button class="hero-nav hero-next" type="button" aria-label="Banner kế tiếp"><i class="bi bi-chevron-right"></i></button>
+                </div>
+            </div>
+            <div class="hero-side d-none d-lg-flex">
+                @foreach (var s in Model.SideBanners)
+                {
+                    <a class="hero-side-card" href="@(s.LinkUrl ?? "#")" aria-label="@s.Title">
+                        <img src="@s.ImageUrl" alt="@s.Title" />
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@* 2. KHỐI DANH MỤC: 6 tile danh mục cha *@
+<section class="home-section">
+    <div class="container">
+        <div class="home-cats">
+            @foreach (var c in Model.Categories)
+            {
+                <a class="cat-tile reveal" href="/@c.Slug">
+                    <span class="cat-tile-img">
+                        <img src="@(c.ImageUrl ?? "/images/placeholder-product.svg")" alt="@c.Name" loading="lazy" />
+                    </span>
+                    <span class="cat-tile-name">@c.Name</span>
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+@* 3. SẢN PHẨM THEO DANH MỤC *@
+@foreach (var section in Model.CategorySections)
+{
+    <section class="home-section">
+        <div class="container">
+            @await Html.PartialAsync("_SectionHeader",
+                new SectionHeader(section.Category.Name, $"{section.Category.Name} chính hãng", $"/{section.Category.Slug}"))
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-lg-4">
+                @foreach (var p in section.Products)
+                {
+                    <div class="col reveal">
+                        @await Html.PartialAsync("_ProductCard", p)
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@* 4. ƯU ĐÃI ĐẶC BIỆT: sản phẩm nổi bật, nền tinh chỉnh cho nổi khối *@
+@if (Model.FeaturedProducts.Count > 0)
+{
+    <section class="home-section home-special">
+        <div class="container">
+            @await Html.PartialAsync("_SectionHeader",
+                new SectionHeader("Ưu đãi đặc biệt", "Deal hot trong tuần"))
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 g-lg-4">
+                @foreach (var p in Model.FeaturedProducts)
+                {
+                    <div class="col reveal">
+                        @await Html.PartialAsync("_ProductCard", p)
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@* 5. BÁN CHẠY: carousel *@
+@if (Model.BestSellers.Count > 0)
+{
+    <section class="home-section">
+        <div class="container">
+            @await Html.PartialAsync("_SectionHeader",
+                new SectionHeader("Bán chạy nhất", "Khách hàng chọn nhiều", "/san-pham"))
+            <div class="swiper bestseller-swiper reveal">
+                <div class="swiper-wrapper">
+                    @foreach (var p in Model.BestSellers)
+                    {
+                        <div class="swiper-slide">
+                            @await Html.PartialAsync("_ProductCard", p)
+                        </div>
+                    }
+                </div>
+                <button class="carousel-nav bs-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
+                <button class="carousel-nav bs-next" type="button" aria-label="Sau"><i class="bi bi-chevron-right"></i></button>
+            </div>
+        </div>
+    </section>
+}
+
+@* 6. ĐÁNH GIÁ KHÁCH HÀNG *@
+@if (Model.Testimonials.Count > 0)
+{
+    <section class="home-section home-testimonials">
+        <div class="container">
+            @await Html.PartialAsync("_SectionHeader",
+                new SectionHeader("Khách hàng nói gì", "Hàng nghìn khách hài lòng"))
+            <div class="swiper testimonial-swiper reveal">
+                <div class="swiper-wrapper">
+                    @foreach (var t in Model.Testimonials)
+                    {
+                        <div class="swiper-slide">
+                            <figure class="tm-card">
+                                <i class="bi bi-quote tm-quote" aria-hidden="true"></i>
+                                <blockquote class="tm-content">@t.Content</blockquote>
+                                <figcaption class="tm-foot">
+                                    <img class="tm-avatar" src="@(t.AvatarUrl ?? "/images/placeholder-avatar.svg")" alt="@t.CustomerName" loading="lazy" />
+                                    <span class="tm-meta">
+                                        <span class="tm-name">@t.CustomerName</span>
+                                        <span class="tm-stars" aria-label="Đánh giá 5 sao">
+                                            @for (var i = 0; i < 5; i++)
+                                            {
+                                                <i class="bi bi-star-fill"></i>
+                                            }
+                                        </span>
+                                    </span>
+                                </figcaption>
+                            </figure>
+                        </div>
+                    }
+                </div>
+                <div class="swiper-pagination tm-pagination"></div>
+            </div>
+        </div>
+    </section>
+}
+
+@* 7. TIN CÔNG NGHỆ: 4 bài mới nhất *@
+@if (Model.LatestNews.Count > 0)
+{
+    <section class="home-section">
+        <div class="container">
+            @await Html.PartialAsync("_SectionHeader",
+                new SectionHeader("Tin công nghệ", "Cập nhật mới nhất", "/tin-tuc"))
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 g-lg-4">
+                @foreach (var n in Model.LatestNews)
+                {
+                    <div class="col reveal">
+                        <a class="news-card" href="/@n.Slug">
+                            <span class="news-thumb">
+                                <img src="@(n.ThumbnailUrl ?? "/images/placeholder-news.svg")" alt="@n.Title" loading="lazy" />
+                                @if (!string.IsNullOrEmpty(n.CategoryTag))
+                                {
+                                    <span class="news-tag">@n.CategoryTag</span>
+                                }
+                            </span>
+                            <span class="news-body">
+                                <span class="news-date"><i class="bi bi-clock"></i>@n.PublishedAt.ToString("dd/MM/yyyy")</span>
+                                <span class="news-title">@n.Title</span>
+                            </span>
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@section Scripts {
+    <script src="~/lib/swiper/swiper-bundle.min.js"></script>
+    <script src="~/js/home.js" asp-append-version="true"></script>
+}

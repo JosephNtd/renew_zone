@@ -1,0 +1,321 @@
+@using RenewZone.Domain.Entities
+@using RenewZone.Domain.Interfaces
+@inject ISiteContentService SiteContent
+@{
+    var settings = await SiteContent.GetSettingsAsync();
+    var menuCats = await SiteContent.GetMenuCategoriesAsync();
+
+    string S(string key) => settings.GetValueOrDefault(key) ?? "";
+
+    var storeName = S(SettingKeys.StoreName);
+    var hotline = S(SettingKeys.Hotline);
+    var hotlineTel = "tel:" + hotline.Replace(".", "").Replace(" ", "");
+
+    // Icon Bootstrap Icons theo slug danh mục cha
+    string CatIcon(string slug) => slug switch
+    {
+        "iphone" => "bi-phone",
+        "macbook" => "bi-laptop",
+        "ipad" => "bi-tablet",
+        "apple-watch" => "bi-smartwatch",
+        "airpods" => "bi-earbuds",
+        "hang-thanh-ly" => "bi-box-seam",
+        _ => "bi-grid"
+    };
+
+    var policyLinks = new (string Text, string Url)[]
+    {
+        ("Bảng giá thu cũ đổi mới", "/bang-gia-thu-cu-doi-moi"),
+        ("Máy mới", "/may-moi"),
+        ("Máy đã qua sử dụng", "/may-da-qua-su-dung"),
+        ("Bảo hành 20 năm", "/bao-hanh-20-nam"),
+    };
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(ViewData["Title"] is null ? storeName : $"{ViewData["Title"]} - {storeName}")</title>
+    <meta name="description" content="@(ViewData["MetaDescription"] ?? $"{storeName} - {S(SettingKeys.Tagline)}")" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Nunito+Sans:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    @* ============ TOPBAR ============ *@
+    <div class="topbar d-none d-md-block">
+        <div class="container d-flex justify-content-between">
+            <div class="topbar-item text-truncate">
+                <i class="bi bi-geo-alt-fill"></i>@S(SettingKeys.Address)
+            </div>
+            <div class="d-flex">
+                <div class="topbar-item"><i class="bi bi-clock-fill"></i>@S(SettingKeys.OpenHours)</div>
+                <div class="topbar-item"><i class="bi bi-telephone-fill"></i><a href="@hotlineTel">@hotline</a></div>
+            </div>
+        </div>
+    </div>
+
+    @* ============ HEADER ============ *@
+    <header class="site-header" id="siteHeader">
+        <div class="container header-inner">
+            <button class="hamburger-btn d-lg-none" type="button"
+                    data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-label="Mở menu">
+                <i class="bi bi-list"></i>
+            </button>
+
+            <a class="brand" href="/" aria-label="@storeName - Trang chủ">
+                <span class="brand-word">Renew<span class="text-brand">Zone</span><span class="brand-dot">.</span></span>
+                <span class="brand-tag">@S(SettingKeys.Tagline)</span>
+            </a>
+
+            <form class="search-pill d-none d-lg-flex" action="/tim-kiem" method="get" role="search">
+                <input type="search" name="q" placeholder="Bạn cần tìm gì hôm nay? (iPhone 16, MacBook M3...)" aria-label="Tìm kiếm sản phẩm" />
+                <button class="search-btn" type="submit" aria-label="Tìm kiếm"><i class="bi bi-search"></i></button>
+            </form>
+
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <a class="hotline-box d-none d-xl-flex" href="@hotlineTel">
+                    <span class="hotline-icon"><i class="bi bi-headset"></i></span>
+                    <span>
+                        <span class="hotline-label d-block">Hotline hỗ trợ</span>
+                        <span class="hotline-number">@hotline</span>
+                    </span>
+                </a>
+
+                <a class="cart-btn" href="/gio-hang" aria-label="Giỏ hàng">
+                    <i class="bi bi-bag-fill"></i>
+                    <span class="badge-count">0</span>
+                    <span class="d-none d-md-inline">Giỏ hàng</span>
+                </a>
+            </div>
+        </div>
+
+        @* Search hàng 2 — mobile/tablet *@
+        <div class="header-search-mobile d-lg-none">
+            <form class="search-pill" action="/tim-kiem" method="get" role="search">
+                <input type="search" name="q" placeholder="Tìm iPhone, MacBook, iPad..." aria-label="Tìm kiếm sản phẩm" />
+                <button class="search-btn" type="submit" aria-label="Tìm kiếm"><i class="bi bi-search"></i></button>
+            </form>
+        </div>
+    </header>
+
+    @* ============ MAIN NAV (desktop) ============ *@
+    <nav class="mainnav d-none d-lg-block" aria-label="Menu chính">
+        <div class="container">
+            <ul class="mainnav-list">
+                <li class="mainnav-item"><a class="mainnav-link" href="/"><i class="bi bi-house-door"></i>Trang chủ</a></li>
+                <li class="mainnav-item"><a class="mainnav-link" href="/gioi-thieu">Giới thiệu</a></li>
+
+                <li class="mainnav-item">
+                    <a class="mainnav-link" href="/san-pham">Sản phẩm <i class="bi bi-chevron-down"></i></a>
+                    <div class="dd-panel">
+                        @foreach (var cat in menuCats)
+                        {
+                            <div class="dd-item">
+                                <a class="dd-link" href="/@cat.Slug">
+                                    <i class="bi @CatIcon(cat.Slug)"></i>@cat.Name
+                                    @if (cat.Children.Count > 0)
+                                    {
+                                        <i class="bi bi-chevron-right"></i>
+                                    }
+                                </a>
+                                @if (cat.Children.Count > 0)
+                                {
+                                    <div class="dd-sub">
+                                        @foreach (var child in cat.Children)
+                                        {
+                                            <a class="dd-link" href="/@child.Slug">@child.Name</a>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </li>
+
+                <li class="mainnav-item">
+                    <a class="mainnav-link" href="/sua-chua">Sửa chữa <i class="bi bi-chevron-down"></i></a>
+                    <div class="dd-panel">
+                        <a class="dd-link" href="/sua-chua"><i class="bi bi-tools"></i>Dịch vụ sửa chữa</a>
+                        <a class="dd-link" href="/sua-chua-phan-cung"><i class="bi bi-cpu"></i>Sửa chữa phần cứng</a>
+                    </div>
+                </li>
+
+                <li class="mainnav-item">
+                    <a class="mainnav-link" href="/chinh-sach-bao-hanh">Chính sách <i class="bi bi-chevron-down"></i></a>
+                    <div class="dd-panel">
+                        @foreach (var (text, url) in policyLinks)
+                        {
+                            <a class="dd-link" href="@url"><i class="bi bi-shield-check"></i>@text</a>
+                        }
+                    </div>
+                </li>
+
+                <li class="mainnav-item"><a class="mainnav-link" href="/tin-tuc">Tin công nghệ</a></li>
+                <li class="mainnav-item"><a class="mainnav-link" href="/lien-he">Liên hệ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    @* ============ OFFCANVAS MENU (mobile) ============ *@
+    <div class="offcanvas offcanvas-start mobile-menu" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
+        <div class="offcanvas-header">
+            <span class="brand-word" id="mobileMenuLabel" style="font-size:1.2rem;color:#fff">
+                Renew<span style="color:var(--brand-200)">Zone</span><span class="brand-dot">.</span>
+            </span>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
+        </div>
+        <div class="offcanvas-body">
+            <a class="mm-link" href="/"><i class="bi bi-house-door"></i>Trang chủ</a>
+            <a class="mm-link" href="/gioi-thieu"><i class="bi bi-info-circle"></i>Giới thiệu</a>
+
+            <div class="mm-group">
+                <button class="mm-link mm-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mmProducts" aria-expanded="false">
+                    <i class="bi bi-grid"></i>Sản phẩm <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="collapse" id="mmProducts">
+                    @foreach (var cat in menuCats)
+                    {
+                        if (cat.Children.Count > 0)
+                        {
+                            <button class="mm-link mm-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mmCat-@cat.Id" aria-expanded="false">
+                                <i class="bi @CatIcon(cat.Slug)"></i>@cat.Name <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div class="collapse mm-sub" id="mmCat-@cat.Id">
+                                <a class="mm-link" href="/@cat.Slug">Tất cả @cat.Name</a>
+                                @foreach (var child in cat.Children)
+                                {
+                                    <a class="mm-link" href="/@child.Slug">@child.Name</a>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <a class="mm-link" href="/@cat.Slug"><i class="bi @CatIcon(cat.Slug)"></i>@cat.Name</a>
+                        }
+                    }
+                </div>
+            </div>
+
+            <div class="mm-group">
+                <button class="mm-link mm-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mmRepair" aria-expanded="false">
+                    <i class="bi bi-tools"></i>Sửa chữa <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="collapse mm-sub" id="mmRepair">
+                    <a class="mm-link" href="/sua-chua">Dịch vụ sửa chữa</a>
+                    <a class="mm-link" href="/sua-chua-phan-cung">Sửa chữa phần cứng</a>
+                </div>
+            </div>
+
+            <div class="mm-group">
+                <button class="mm-link mm-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mmPolicy" aria-expanded="false">
+                    <i class="bi bi-shield-check"></i>Chính sách <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="collapse mm-sub" id="mmPolicy">
+                    @foreach (var (text, url) in policyLinks)
+                    {
+                        <a class="mm-link" href="@url">@text</a>
+                    }
+                </div>
+            </div>
+
+            <a class="mm-link" href="/tin-tuc"><i class="bi bi-newspaper"></i>Tin công nghệ</a>
+            <a class="mm-link" href="/lien-he"><i class="bi bi-envelope"></i>Liên hệ</a>
+
+            <div class="mm-hotline">
+                <div class="hotline-label">Hotline hỗ trợ 24/7</div>
+                <a class="hotline-number" href="@hotlineTel">@hotline</a>
+            </div>
+        </div>
+    </div>
+
+    @* ============ NỘI DUNG TRANG ============ *@
+    <main id="mainContent">
+        @RenderBody()
+    </main>
+
+    @* ============ FOOTER ============ *@
+    <footer class="site-footer">
+        <div class="container footer-main">
+            <div class="row g-4">
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="f-brand-word mb-2">Renew<span class="text-brand">Zone</span><span class="brand-dot">.</span></div>
+                    <p class="mb-3">@S(SettingKeys.Tagline). Chuyên iPhone, MacBook, iPad, Apple Watch, AirPods chính hãng — mới &amp; đã qua sử dụng.</p>
+                    <div class="f-contact-item"><i class="bi bi-geo-alt-fill"></i><span>@S(SettingKeys.Address)</span></div>
+                    <div class="f-contact-item"><i class="bi bi-clock-fill"></i><span>@S(SettingKeys.OpenHours)</span></div>
+                    <div class="f-contact-item"><i class="bi bi-telephone-fill"></i><a class="f-link d-inline p-0" href="@hotlineTel">@hotline</a></div>
+                    <div class="f-contact-item"><i class="bi bi-envelope-fill"></i><span>@S(SettingKeys.Email)</span></div>
+                </div>
+
+                <div class="col-6 col-md-6 col-lg-3">
+                    <div class="f-title">Chính sách</div>
+                    <a class="f-link" href="/chinh-sach-bao-hanh">Chính sách bảo hành</a>
+                    <a class="f-link" href="/chinh-sach-thanh-toan">Chính sách thanh toán</a>
+                    <a class="f-link" href="/chinh-sach-van-chuyen">Chính sách vận chuyển</a>
+                    <a class="f-link" href="/chinh-sach-kiem-hang">Chính sách kiểm hàng</a>
+                    <a class="f-link" href="/chinh-sach-tra-gop">Chính sách trả góp</a>
+                    <a class="f-link" href="/chinh-sach-bao-mat">Chính sách bảo mật</a>
+                </div>
+
+                <div class="col-6 col-md-6 col-lg-2">
+                    <div class="f-title">Hỗ trợ</div>
+                    <a class="f-link" href="/gioi-thieu">Giới thiệu</a>
+                    <a class="f-link" href="/tin-tuc">Tin công nghệ</a>
+                    <a class="f-link" href="/sua-chua">Sửa chữa</a>
+                    <a class="f-link" href="/gio-hang">Giỏ hàng</a>
+                    <a class="f-link" href="/lien-he">Liên hệ</a>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="f-title">Kết nối với chúng tôi</div>
+                    <p class="mb-1">Theo dõi để nhận ưu đãi sớm nhất:</p>
+                    <div class="f-social">
+                        <a href="@S(SettingKeys.FacebookUrl)" target="_blank" rel="noopener" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                        <a href="@S(SettingKeys.MessengerUrl)" target="_blank" rel="noopener" aria-label="Messenger"><i class="bi bi-messenger"></i></a>
+                        <a href="@S(SettingKeys.ZaloUrl)" target="_blank" rel="noopener" aria-label="Zalo"><i class="bi bi-chat-dots-fill"></i></a>
+                        <a href="@S(SettingKeys.MapUrl)" target="_blank" rel="noopener" aria-label="Bản đồ"><i class="bi bi-geo-alt"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container d-flex flex-column flex-md-row justify-content-between gap-1">
+                <span>© @DateTime.Now.Year @storeName · MST: @S(SettingKeys.TaxCode)</span>
+                <span>Website học tập (clone) — không phải cửa hàng thật, không bán hàng.</span>
+            </div>
+        </div>
+    </footer>
+
+    @* ============ NÚT NỔI + BACK TO TOP + TOAST ============ *@
+    <div class="float-contact">
+        <a class="fbtn fbtn-phone" href="@hotlineTel" aria-label="Gọi điện">
+            <i class="bi bi-telephone-fill"></i>
+            <span class="fbtn-tip">@hotline</span>
+        </a>
+        <a class="fbtn fbtn-zalo" href="@S(SettingKeys.ZaloUrl)" target="_blank" rel="noopener" aria-label="Chat Zalo">
+            Zalo
+            <span class="fbtn-tip">Chat Zalo</span>
+        </a>
+        <a class="fbtn fbtn-messenger" href="@S(SettingKeys.MessengerUrl)" target="_blank" rel="noopener" aria-label="Chat Messenger">
+            <i class="bi bi-messenger"></i>
+            <span class="fbtn-tip">Chat Messenger</span>
+        </a>
+    </div>
+
+    <button id="backToTop" type="button" aria-label="Về đầu trang"><i class="bi bi-arrow-up"></i></button>
+
+    <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

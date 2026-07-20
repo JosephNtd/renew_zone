@@ -1,0 +1,53 @@
+@model Product
+@inject RenewZone.Domain.Interfaces.ISiteContentService SiteContent
+@{
+    var mainImg = Model.Images.FirstOrDefault(i => i.IsMain) ?? Model.Images.FirstOrDefault();
+    var imgUrl = mainImg?.Url ?? "/images/placeholder-product.svg";
+
+    int? discountPct = Model.HasDiscount
+        ? (int)Math.Round((1 - (double)(Model.SalePrice!.Value / Model.OriginalPrice)) * 100)
+        : null;
+
+    // Chỉ sản phẩm "Liên hệ" cần số hotline cho nút gọi — settings đã được cache ở tầng service.
+    string hotlineTel = "";
+    if (Model.IsContactPrice)
+    {
+        var settings = await SiteContent.GetSettingsAsync();
+        var hotline = settings.GetValueOrDefault(SettingKeys.Hotline) ?? "";
+        hotlineTel = "tel:" + hotline.Replace(".", "").Replace(" ", "");
+    }
+}
+<article class="p-card">
+    <div class="p-card-media">
+        @if (Model.IsInstallment0Percent)
+        {
+            <span class="badge-installment p-badge-tl">Trả góp 0%</span>
+        }
+        @if (discountPct is > 0)
+        {
+            <span class="badge-off p-badge-tr">-@discountPct%</span>
+        }
+        <img class="p-card-img" src="@imgUrl" alt="@Model.Name" loading="lazy" />
+        <span class="p-card-hover"><span class="p-quick">Xem nhanh <i class="bi bi-arrow-right"></i></span></span>
+    </div>
+
+    <div class="p-card-body">
+        <h3 class="p-card-name"><a class="stretched-link" href="/@Model.Slug">@Model.Name</a></h3>
+
+        @if (Model.IsContactPrice)
+        {
+            <div class="p-card-price"><span class="badge-contact">Liên hệ</span></div>
+            <a class="p-card-call" href="@hotlineTel"><i class="bi bi-telephone-fill"></i>Gọi tư vấn</a>
+        }
+        else
+        {
+            <div class="p-card-price">
+                @if (Model.HasDiscount)
+                {
+                    <span class="p-price-old">@Model.OriginalPrice.ToVnd()</span>
+                }
+                <span class="p-price-now">@Model.DisplayPrice.ToVnd()</span>
+            </div>
+        }
+    </div>
+</article>

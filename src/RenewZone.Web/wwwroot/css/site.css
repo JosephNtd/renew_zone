@@ -1,0 +1,846 @@
+/* =====================================================================
+   RenewZone Clone — site.css
+   Tokens + base + component layout dùng chung (theo docs/DESIGN.md)
+   ===================================================================== */
+
+/* =========================== 1. TOKENS =========================== */
+:root {
+  /* Brand — hồng RenewZone tinh chỉnh từ #d78dba gốc */
+  --brand-50:  #FDF2F8;
+  --brand-100: #FCE7F1;
+  --brand-200: #F8CFE2;
+  --brand-300: #F0AACB;
+  --brand-400: #E183AF;
+  --brand-500: #CE5F9A;
+  --brand-600: #B54983;
+  --brand-700: #96386B;
+  --brand-800: #772D56;
+  --brand-900: #5C2343;
+
+  /* Accent đỏ — giữ token site gốc */
+  --red-500: #EC2D3F;
+  --red-600: #CC2C32;
+  --red-700: #C31829;
+
+  /* Neutrals */
+  --ink-900: #17141A;
+  --ink-700: #212529;
+  --ink-500: #6C757D;
+  --ink-400: #98A0A8;
+  --line:    #ECE7EC;
+  --paper:   #FFFFFF;
+  --page:    #FAF7FA;
+
+  --success: #28A745;
+  --warning: #F59E0B;
+  --info:    #0D6EFD;
+
+  --grad-cta:   linear-gradient(135deg, #EC2D3F 0%, #C2447E 100%);
+  --grad-brand: linear-gradient(135deg, #CE5F9A 0%, #96386B 100%);
+  --grad-hero:  linear-gradient(120deg, #1B1420 0%, #3A2033 55%, #96386B 130%);
+  --grad-shine: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.35) 50%, transparent 60%);
+
+  --font-display: "Be Vietnam Pro", system-ui, sans-serif;
+  --font-body:    "Nunito Sans", system-ui, sans-serif;
+  --font-accent:  "Pacifico", cursive;
+
+  --sh-sm:    0 1px 2px rgba(23,20,26,.06), 0 1px 6px rgba(23,20,26,.04);
+  --sh-md:    0 4px 12px rgba(23,20,26,.08), 0 2px 4px rgba(23,20,26,.05);
+  --sh-lg:    0 12px 32px rgba(23,20,26,.12), 0 4px 8px rgba(23,20,26,.06);
+  --sh-brand: 0 8px 24px rgba(206,95,154,.35);
+  --sh-red:   0 8px 24px rgba(236,45,63,.35);
+
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 24px; --r-pill: 999px;
+
+  --t-fast: 150ms; --t-base: 250ms; --t-slow: 420ms;
+  --ease-out:    cubic-bezier(.22,.61,.36,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
+
+  --container: 1280px;
+  --header-h: 76px;
+  --header-h-shrink: 60px;
+}
+
+/* =========================== 2. BASE =========================== */
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink-700);
+  background: var(--page);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); color: var(--ink-900); font-weight: 700; }
+
+a { color: var(--brand-600); text-decoration: none; transition: color var(--t-fast) var(--ease-out); }
+a:hover { color: var(--brand-700); }
+
+img { max-width: 100%; }
+
+@media (min-width: 1320px) {
+  .container { max-width: var(--container); }
+}
+
+:focus-visible { outline: 2px solid var(--brand-400); outline-offset: 2px; }
+
+::selection { background: var(--brand-200); color: var(--ink-900); }
+
+/* =========================== 3. TOPBAR =========================== */
+.topbar {
+  background: var(--grad-brand);
+  color: #fff;
+  font-size: .75rem;
+  line-height: 36px;
+  height: 36px;
+  overflow: hidden;
+}
+.topbar a { color: #fff; }
+.topbar a:hover { color: var(--brand-100); }
+.topbar .bi { font-size: .8rem; margin-right: 4px; opacity: .85; }
+.topbar-item + .topbar-item { margin-left: 20px; }
+
+/* =========================== 4. HEADER =========================== */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  transition: box-shadow var(--t-base) var(--ease-out);
+}
+.site-header.scrolled { box-shadow: var(--sh-md); }
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: var(--header-h);
+  transition: height var(--t-base) var(--ease-out);
+}
+.site-header.scrolled .header-inner { height: var(--header-h-shrink); }
+
+/* --- Logo wordmark --- */
+.brand { display: flex; flex-direction: column; line-height: 1.1; flex-shrink: 0; }
+.brand-word {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: var(--ink-900);
+  letter-spacing: -.5px;
+  transition: font-size var(--t-base) var(--ease-out);
+}
+.site-header.scrolled .brand-word { font-size: 1.35rem; }
+.brand-word .text-brand { color: var(--brand-500); }
+.brand-word .brand-dot { color: var(--red-500); }
+.brand-tag {
+  font-family: var(--font-accent);
+  font-size: .78rem;
+  color: var(--brand-500);
+  white-space: nowrap;
+}
+.site-header.scrolled .brand-tag { display: none; }
+
+/* --- Search pill --- */
+.search-pill {
+  flex: 1;
+  max-width: 560px;
+  display: flex;
+  align-items: center;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-pill);
+  padding: 4px 4px 4px 20px;
+  transition: border-color var(--t-base), box-shadow var(--t-base);
+}
+.search-pill:focus-within {
+  border-color: var(--brand-400);
+  box-shadow: 0 0 0 4px var(--brand-100);
+}
+.search-pill input {
+  flex: 1;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: .9rem;
+  color: var(--ink-700);
+  min-width: 0;
+}
+.search-pill input::placeholder { color: var(--ink-400); }
+.search-pill .search-btn {
+  width: 38px; height: 38px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--grad-brand);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform var(--t-fast) var(--ease-out), box-shadow var(--t-fast);
+  flex-shrink: 0;
+}
+.search-pill .search-btn:hover { transform: scale(1.06); box-shadow: var(--sh-brand); }
+
+/* --- Hotline --- */
+.hotline-box { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.hotline-icon {
+  width: 42px; height: 42px;
+  border-radius: var(--r-pill);
+  background: var(--brand-50);
+  color: var(--brand-600);
+  display: grid;
+  place-items: center;
+  font-size: 1.15rem;
+}
+.hotline-label { font-size: .7rem; color: var(--ink-400); line-height: 1.2; }
+.hotline-number {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--red-500);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.hotline-number:hover { color: var(--red-600); }
+
+/* --- Cart button --- */
+.cart-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: var(--r-pill);
+  background: var(--brand-50);
+  color: var(--brand-700);
+  font-weight: 700;
+  font-size: .875rem;
+  flex-shrink: 0;
+  transition: background var(--t-base), color var(--t-base), box-shadow var(--t-base);
+}
+.cart-btn:hover { background: var(--brand-500); color: #fff; box-shadow: var(--sh-brand); }
+.cart-btn .bi { font-size: 1.2rem; }
+.badge-count {
+  position: absolute;
+  top: -4px;
+  left: 26px;
+  min-width: 19px; height: 19px;
+  padding: 0 5px;
+  border-radius: var(--r-pill);
+  background: var(--red-500);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--paper);
+}
+.badge-count.pop { animation: badge-pop var(--t-slow) var(--ease-spring); }
+
+/* --- Hamburger --- */
+.hamburger-btn {
+  border: 1.5px solid var(--line);
+  background: var(--paper);
+  width: 42px; height: 42px;
+  border-radius: var(--r-sm);
+  display: grid;
+  place-items: center;
+  font-size: 1.25rem;
+  color: var(--ink-700);
+  flex-shrink: 0;
+}
+.hamburger-btn:hover { border-color: var(--brand-400); color: var(--brand-600); }
+
+/* --- Search hàng 2 (mobile) --- */
+.header-search-mobile { padding: 0 12px 10px; }
+
+/* =========================== 5. MAIN NAV (desktop) =========================== */
+.mainnav { background: var(--grad-brand); }
+.mainnav-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.mainnav-item { position: relative; }
+.mainnav-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 13px 18px;
+  color: #fff;
+  font-weight: 600;
+  font-size: .9rem;
+  position: relative;
+  white-space: nowrap;
+}
+.mainnav-link:hover { color: #fff; }
+.mainnav-link::after {
+  content: "";
+  position: absolute;
+  left: 18px; right: 18px; bottom: 6px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--t-base) var(--ease-out);
+}
+.mainnav-item:hover .mainnav-link::after,
+.mainnav-item:focus-within .mainnav-link::after { transform: scaleX(1); }
+.mainnav-link .bi-chevron-down {
+  font-size: .65rem;
+  transition: transform var(--t-base) var(--ease-out);
+}
+.mainnav-item:hover .bi-chevron-down { transform: rotate(180deg); }
+
+/* --- Dropdown cấp 1 --- */
+.dd-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 240px;
+  background: var(--paper);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-lg);
+  padding: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out), visibility 200ms;
+  z-index: 1020;
+}
+.mainnav-item:hover > .dd-panel,
+.mainnav-item:focus-within > .dd-panel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.dd-item { position: relative; }
+.dd-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  color: var(--ink-700);
+  font-weight: 600;
+  font-size: .875rem;
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast) var(--ease-out);
+}
+.dd-link:hover { background: var(--brand-50); color: var(--brand-700); transform: translateX(4px); }
+.dd-link .bi { color: var(--brand-400); font-size: 1rem; }
+.dd-link .bi-chevron-right { margin-left: auto; font-size: .6rem; color: var(--ink-400); }
+
+/* --- Flyout cấp 2 (series) --- */
+.dd-sub {
+  position: absolute;
+  top: -8px;
+  left: 100%;
+  min-width: 210px;
+  background: var(--paper);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-lg);
+  padding: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(6px);
+  transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out), visibility 200ms;
+}
+.dd-item:hover > .dd-sub,
+.dd-item:focus-within > .dd-sub {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+/* =========================== 6. OFFCANVAS MOBILE MENU =========================== */
+.mobile-menu { width: 300px !important; }
+.mobile-menu .offcanvas-header {
+  background: var(--grad-brand);
+  color: #fff;
+}
+.mobile-menu .offcanvas-header .btn-close { filter: invert(1); }
+.mobile-menu .offcanvas-body { padding: 8px; }
+.mm-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  color: var(--ink-700);
+  font-weight: 600;
+  font-size: .95rem;
+}
+.mm-link:hover, .mm-link:active { background: var(--brand-50); color: var(--brand-700); }
+.mm-link .bi { color: var(--brand-500); font-size: 1.05rem; width: 20px; text-align: center; }
+.mm-group .mm-toggle { width: 100%; border: 0; background: none; text-align: left; }
+.mm-toggle .bi-chevron-down { margin-left: auto; font-size: .7rem; transition: transform var(--t-base); color: var(--ink-400); }
+.mm-toggle[aria-expanded="true"] .bi-chevron-down { transform: rotate(180deg); }
+.mm-sub { padding-left: 30px; }
+.mm-sub .mm-link { padding: 9px 14px; font-size: .875rem; font-weight: 500; }
+.mm-hotline {
+  margin: 12px 6px 6px;
+  padding: 14px;
+  border-radius: var(--r-md);
+  background: var(--brand-50);
+  text-align: center;
+}
+.mm-hotline .hotline-number { font-size: 1.15rem; }
+
+/* =========================== 7. FOOTER =========================== */
+.site-footer {
+  background: var(--ink-900);
+  color: #B9B3BC;
+  margin-top: 64px;
+  font-size: .9rem;
+}
+.footer-main { padding: 56px 0 40px; }
+.f-title {
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 8px;
+}
+.f-title::after {
+  content: "";
+  display: block;
+  width: 40px; height: 3px;
+  margin-top: 8px;
+  border-radius: 3px;
+  background: var(--brand-500);
+}
+.f-brand-word { font-size: 1.45rem; font-weight: 800; color: #fff; font-family: var(--font-display); }
+.f-brand-word .text-brand { color: var(--brand-400); }
+.f-brand-word .brand-dot { color: var(--red-500); }
+.f-link {
+  display: block;
+  color: #B9B3BC;
+  padding: 5px 0;
+  transition: color var(--t-fast), transform var(--t-fast) var(--ease-out);
+}
+.f-link:hover { color: #fff; transform: translateX(4px); }
+.f-contact-item { display: flex; gap: 10px; padding: 5px 0; }
+.f-contact-item .bi { color: var(--brand-400); margin-top: 2px; }
+.f-social { display: flex; gap: 10px; margin-top: 14px; }
+.f-social a {
+  width: 38px; height: 38px;
+  border-radius: var(--r-pill);
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  transition: background var(--t-base), transform var(--t-base) var(--ease-spring);
+}
+.f-social a:hover { background: var(--brand-500); transform: translateY(-3px); }
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,.1);
+  padding: 18px 0;
+  font-size: .78rem;
+  color: #8A8290;
+}
+
+/* =========================== 8. FLOATING CONTACT + BACK TO TOP =========================== */
+.float-contact {
+  position: fixed;
+  right: 16px;
+  bottom: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1040;
+}
+.fbtn {
+  position: relative;
+  width: 52px; height: 52px;
+  border-radius: var(--r-pill);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 1.4rem;
+  box-shadow: var(--sh-md);
+  transition: transform var(--t-base) var(--ease-spring);
+}
+.fbtn:hover { transform: scale(1.12); color: #fff; }
+.fbtn .fbtn-tip {
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%) translateX(6px);
+  background: var(--ink-900);
+  color: #fff;
+  font-size: .75rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: var(--r-sm);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--t-base), transform var(--t-base) var(--ease-out), visibility var(--t-base);
+  pointer-events: none;
+}
+.fbtn:hover .fbtn-tip { opacity: 1; visibility: visible; transform: translateY(-50%) translateX(0); }
+.fbtn-phone { background: var(--red-500); animation: phone-ring 3s ease-in-out infinite; }
+.fbtn-phone::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  animation: pulse-ring 3s ease-out infinite;
+}
+.fbtn-zalo { background: #0068FF; font-family: var(--font-display); font-size: .8rem; font-weight: 800; }
+.fbtn-messenger { background: linear-gradient(135deg, #0695FF 0%, #A334FA 60%, #FF6968 100%); }
+
+#backToTop {
+  position: fixed;
+  right: 16px;
+  bottom: 28px;
+  width: 52px; height: 52px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--line);
+  background: var(--paper);
+  color: var(--brand-600);
+  font-size: 1.2rem;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--sh-md);
+  z-index: 1040;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(.8);
+  transition: opacity var(--t-base), transform var(--t-base) var(--ease-spring), visibility var(--t-base);
+}
+#backToTop.show { opacity: 1; visibility: visible; transform: scale(1); }
+#backToTop:hover { background: var(--brand-500); border-color: var(--brand-500); color: #fff; }
+
+/* =========================== 9. BUTTONS (theo DESIGN 3.4) =========================== */
+.btn-rz {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 22px;
+  border-radius: var(--r-pill);
+  border: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .9rem;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--t-base) var(--ease-out), box-shadow var(--t-base), background var(--t-base), color var(--t-base), border-color var(--t-base);
+}
+.btn-rz:active { transform: scale(.97); }
+.btn-rz:disabled { opacity: .5; pointer-events: none; }
+.btn-rz.btn-sm { height: 34px; padding: 0 16px; font-size: .8rem; }
+.btn-rz.btn-lg { height: 50px; padding: 0 30px; font-size: 1rem; }
+
+.btn-buy { background: var(--grad-cta); color: #fff; }
+.btn-buy::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--grad-shine);
+  transform: translateX(-100%);
+}
+.btn-buy:hover { color: #fff; transform: translateY(-2px); box-shadow: var(--sh-red); }
+.btn-buy:hover::after { transition: transform 600ms var(--ease-out); transform: translateX(100%); }
+
+.btn-cart-outline { background: var(--paper); border: 2px solid var(--red-500); color: var(--red-500); }
+.btn-cart-outline:hover { background: var(--red-500); color: #fff; }
+
+.btn-brand { background: var(--brand-500); color: #fff; }
+.btn-brand:hover { background: var(--brand-600); color: #fff; box-shadow: var(--sh-brand); }
+
+.btn-ghost { background: transparent; border: 1.5px solid var(--line); color: var(--ink-700); }
+.btn-ghost:hover { border-color: var(--brand-400); color: var(--brand-600); }
+
+.btn-dark-rz { background: var(--ink-900); color: #fff; }
+.btn-dark-rz:hover { background: var(--ink-700); color: #fff; }
+
+/* =========================== 10. BADGES (theo DESIGN 3.5) =========================== */
+.badge-installment {
+  display: inline-block;
+  background: var(--grad-cta);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--r-sm);
+  box-shadow: var(--sh-sm);
+}
+.badge-off {
+  width: 40px; height: 40px;
+  border-radius: var(--r-pill);
+  background: var(--warning);
+  color: var(--ink-900);
+  font-size: .72rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.badge-cond {
+  display: inline-block;
+  border: 1.5px solid var(--success);
+  color: var(--success);
+  background: var(--paper);
+  font-size: .7rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+}
+.badge-contact {
+  display: inline-block;
+  background: var(--brand-100);
+  color: var(--brand-700);
+  font-size: .75rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+}
+.badge-liquid {
+  display: inline-block;
+  background: var(--ink-900);
+  color: var(--warning);
+  font-size: .7rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+}
+
+/* =========================== 11. TOAST =========================== */
+.toast-stack {
+  position: fixed;
+  top: 90px;
+  right: 16px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rz-toast {
+  min-width: 280px;
+  max-width: 360px;
+  background: var(--paper);
+  border-left: 4px solid var(--success);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-lg);
+  padding: 12px 16px;
+  position: relative;
+  overflow: hidden;
+  animation: toast-in var(--t-slow) var(--ease-out);
+}
+.rz-toast.leaving { animation: toast-out var(--t-base) var(--ease-out) forwards; }
+.rz-toast .toast-progress {
+  position: absolute;
+  left: 0; bottom: 0;
+  height: 3px;
+  background: var(--success);
+  animation: toast-progress 3.5s linear forwards;
+}
+
+/* =========================== 12. REVEAL + SKELETON =========================== */
+.reveal { opacity: 0; transform: translateY(24px); }
+.reveal.is-inview {
+  opacity: 1;
+  transform: none;
+  transition: opacity var(--t-slow) var(--ease-out), transform var(--t-slow) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.skeleton {
+  position: relative;
+  background: var(--line);
+  overflow: hidden;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--grad-shine);
+  animation: shine 1.2s linear infinite;
+}
+
+/* =========================== 13. KEYFRAMES =========================== */
+@keyframes badge-pop {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+@keyframes phone-ring {
+  0%, 76%, 100% { transform: rotate(0); }
+  80% { transform: rotate(10deg); }
+  84% { transform: rotate(-10deg); }
+  88% { transform: rotate(8deg); }
+  92% { transform: rotate(-8deg); }
+  96% { transform: rotate(4deg); }
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(236,45,63,.5); }
+  70% { box-shadow: 0 0 0 16px rgba(236,45,63,0); }
+  100% { box-shadow: 0 0 0 0 rgba(236,45,63,0); }
+}
+@keyframes shine {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes toast-out {
+  to { opacity: 0; transform: translateX(40px); }
+}
+@keyframes toast-progress {
+  from { width: 100%; }
+  to { width: 0; }
+}
+
+/* =========================== 14. PRODUCT CARD (DESIGN 3.6) =========================== */
+/* Component dùng chung: trang chủ (Giai đoạn 2) và trang danh mục (Giai đoạn 3). */
+.p-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 12px;
+  transition: transform var(--t-base) var(--ease-out), box-shadow var(--t-base), border-color var(--t-base);
+}
+.p-card-media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: #fff;
+}
+.p-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform var(--t-slow) var(--ease-out);
+}
+.p-badge-tl { position: absolute; top: 10px; left: 10px; z-index: 2; }
+.p-badge-tr { position: absolute; top: 8px; right: 8px; z-index: 2; }
+
+.p-card-hover {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+  background: linear-gradient(to top, rgba(23, 20, 26, .55), transparent);
+  transform: translateY(100%);
+  transition: transform var(--t-base) var(--ease-out);
+}
+.p-quick {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  color: var(--brand-700);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .8rem;
+  box-shadow: var(--sh-sm);
+}
+
+.p-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 6px;
+  padding: 12px 4px 4px;
+}
+.p-card-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: .92rem;
+  font-weight: 600;
+  line-height: 1.4;
+  min-height: 2.8em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.p-card-name a { color: var(--ink-900); transition: color var(--t-fast); }
+.p-card-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: auto;
+}
+.p-price-old { color: var(--ink-400); font-size: .8rem; text-decoration: line-through; }
+.p-price-now { color: var(--red-500); font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; }
+.p-card-call {
+  position: relative;
+  z-index: 2;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  background: var(--success);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .8rem;
+}
+.p-card-call:hover { color: #fff; filter: brightness(.95); }
+
+@media (hover: hover) {
+  .p-card:hover { transform: translateY(-6px); box-shadow: var(--sh-lg); border-color: var(--brand-200); }
+  .p-card:hover .p-card-img { transform: scale(1.06); }
+  .p-card:hover .p-card-hover { transform: translateY(0); }
+  .p-card-name a:hover { color: var(--brand-600); }
+}
+
+/* =========================== 15. RESPONSIVE =========================== */
+@media (max-width: 991.98px) {
+  :root { --header-h: 64px; --header-h-shrink: 58px; }
+  .brand-word { font-size: 1.35rem; }
+  .brand-tag { display: none; }
+  .header-inner { gap: 12px; }
+  .site-footer { margin-top: 40px; }
+  .footer-main { padding: 40px 0 24px; }
+}
+
+@media (max-width: 575.98px) {
+  .float-contact { right: 10px; bottom: 84px; gap: 10px; }
+  .fbtn { width: 46px; height: 46px; font-size: 1.2rem; }
+  #backToTop { right: 10px; bottom: 22px; width: 46px; height: 46px; }
+  .cart-btn { padding: 9px 12px; }
+  .toast-stack { left: 12px; right: 12px; }
+  .rz-toast { min-width: 0; max-width: none; }
+}
+
+/* Hover chỉ áp dụng cho thiết bị có chuột */
+@media (hover: none) {
+  .fbtn:hover { transform: none; }
+}
+
+/* Tôn trọng người dùng giảm chuyển động */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  .reveal { opacity: 1; transform: none; }
+}

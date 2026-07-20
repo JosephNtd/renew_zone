@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>@ViewData["Title"] - RenewZone Admin</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+</head>
+<body class="bg-light">
+    @* Layout tối giản cho Giai đoạn 0 — Giai đoạn 6 sẽ nâng cấp thành sidebar + topbar đầy đủ *@
+    <nav class="navbar navbar-expand navbar-dark bg-dark px-3">
+        <a class="navbar-brand" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">RenewZone Admin</a>
+        <div class="navbar-nav">
+            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index" target="_blank">Xem website</a>
+        </div>
+    </nav>
+
+    <main class="container-fluid py-4">
+        @RenderBody()
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
