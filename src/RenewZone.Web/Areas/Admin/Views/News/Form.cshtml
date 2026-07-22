@@ -1,0 +1,145 @@
+@using RenewZone.Domain.Enums
+@model NewsFormViewModel
+@{
+    ViewData["Title"] = Model.IsEdit ? "Sửa bài viết" : "Viết bài mới";
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        <div class="adm-page-sub">
+            Bài “nổi bật” hiện ở khối 3 bài đầu trang /tin-tuc và không lặp lại trong danh sách bên dưới.
+        </div>
+    </div>
+    <div class="adm-page-actions">
+        @if (Model.IsEdit)
+        {
+            <a class="adm-btn adm-btn-ghost" href="/@Model.Slug" target="_blank" rel="noopener">
+                <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                <span class="adm-btn-label">Xem trên web</span>
+            </a>
+        }
+        <a class="adm-btn adm-btn-ghost" asp-action="Index">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            <span class="adm-btn-label">Danh sách</span>
+        </a>
+    </div>
+</div>
+
+<form method="post" data-adm-form data-dirty-guard
+      asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.Id">
+
+    <div class="adm-form-card">
+        @if (ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+        {
+            <div class="adm-alert adm-alert-error" role="alert">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                <div asp-validation-summary="ModelOnly"></div>
+            </div>
+        }
+
+        <div class="adm-form-grid">
+            <div class="adm-field" style="--col-span: 8;">
+                <label class="adm-label" asp-for="Title">
+                    Tiêu đề<span class="adm-req" aria-hidden="true">*</span>
+                </label>
+                <input class="adm-input" asp-for="Title" autocomplete="off" />
+                <span class="adm-error" asp-validation-for="Title"></span>
+            </div>
+
+            <div class="adm-field" style="--col-span: 4;">
+                <label class="adm-label" asp-for="CategoryId">Chuyên mục</label>
+                <select class="adm-select" asp-for="CategoryId">
+                    <option value="">— Chưa phân loại —</option>
+                    @foreach (var category in Model.Categories)
+                    {
+                        <option value="@category.Id" selected="@(Model.CategoryId == category.Id)">
+                            @category.Name
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="adm-field" style="--col-span: 8;">
+                <label class="adm-label" asp-for="Slug">
+                    Slug (đường dẫn)<span class="adm-req" aria-hidden="true">*</span>
+                </label>
+                <partial name="_SlugInput" model='new SlugInputModel {
+                    FieldName = "Slug", Value = Model.Slug, SourceSelector = "#Title",
+                    TargetType = SlugTargetType.NewsArticle, ExcludeId = Model.Id }' />
+                <span class="adm-error" asp-validation-for="Slug"></span>
+            </div>
+
+            <div class="adm-field" style="--col-span: 4;">
+                <label class="adm-label" asp-for="PublishedAt">Ngày đăng</label>
+                <input class="adm-input" asp-for="PublishedAt" type="datetime-local" />
+                <span class="adm-error" asp-validation-for="PublishedAt"></span>
+            </div>
+
+            <div class="adm-field" style="--col-span: 8;">
+                <label class="adm-label" asp-for="ThumbnailUrl">Ảnh đại diện</label>
+                <input class="adm-input" asp-for="ThumbnailUrl" placeholder="/images/placeholder-news.svg" />
+                <div class="adm-hint">Hiện ở card bài viết. Để trống sẽ dùng ảnh mặc định.</div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 4;">
+                <label class="adm-label">Tùy chọn</label>
+                <div class="d-flex flex-column gap-2 mt-1">
+                    <label class="adm-switch">
+                        <input asp-for="IsFeatured" />
+                        <span class="adm-switch-track"></span>
+                        <span class="adm-switch-label">Bài nổi bật</span>
+                    </label>
+                    <label class="adm-switch">
+                        <input asp-for="IsActive" />
+                        <span class="adm-switch-track"></span>
+                        <span class="adm-switch-label">Hiển thị trên website</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 12;">
+                <label class="adm-label" asp-for="Excerpt">Đoạn trích</label>
+                <textarea class="adm-textarea" asp-for="Excerpt" rows="2" maxlength="500" id="Excerpt"></textarea>
+                <div class="adm-hint">
+                    2–3 câu hiện ở danh sách tin. <span id="excerptCount">0</span>/500 ký tự.
+                </div>
+                <span class="adm-error" asp-validation-for="Excerpt"></span>
+            </div>
+
+            <div class="adm-field" style="--col-span: 12;">
+                <label class="adm-label" asp-for="ContentHtml">
+                    Nội dung<span class="adm-req" aria-hidden="true">*</span>
+                </label>
+                <textarea class="adm-textarea js-editor" asp-for="ContentHtml" rows="18"></textarea>
+                <span class="adm-error" asp-validation-for="ContentHtml"></span>
+            </div>
+        </div>
+
+        <div class="adm-form-bar">
+            <button type="submit" class="adm-btn adm-btn-primary">
+                <span class="adm-spinner"></span>
+                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                <span class="adm-btn-label">Lưu bài viết</span>
+            </button>
+            <div class="adm-form-bar-end">
+                <a class="adm-btn adm-btn-ghost" asp-action="Index">Hủy</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="~/lib/tinymce/tinymce.min.js"></script>
+    <script src="~/js/admin-editor.js" asp-append-version="true"></script>
+    <script>
+        (function () {
+            var input = document.getElementById("Excerpt");
+            var out = document.getElementById("excerptCount");
+            if (!input || !out) return;
+            var render = function () { out.textContent = input.value.length; };
+            input.addEventListener("input", render);
+            render();
+        })();
+    </script>
+}

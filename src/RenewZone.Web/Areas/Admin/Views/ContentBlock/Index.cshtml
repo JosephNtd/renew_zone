@@ -1,0 +1,176 @@
+@model ContentBlockIndexViewModel
+@{
+    ViewData["Title"] = "Khối nội dung";
+    var current = ContentBlockIndexViewModel.Describe(Model.GroupKey);
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Khối nội dung</h1>
+        <div class="adm-page-sub">@current.Where</div>
+    </div>
+    <div class="adm-page-actions">
+        <a class="adm-btn adm-btn-primary" asp-action="Create" asp-route-nhom="@Model.GroupKey">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            <span class="adm-btn-label">Thêm khối</span>
+        </a>
+    </div>
+</div>
+
+@* Tab hiển thị TÊN TIẾNG VIỆT dễ hiểu, không phải khóa kỹ thuật "product.commitments" *@
+<nav class="adm-tabs" aria-label="Chọn nhóm khối nội dung">
+    @foreach (var group in ContentBlockIndexViewModel.Groups)
+    {
+        var isActive = group.Key == Model.GroupKey;
+        <a class="adm-tab @(isActive ? "is-active" : "")"
+           asp-action="Index" asp-route-nhom="@group.Key"
+           aria-current="@(isActive ? "page" : null)">
+            <i class="bi @group.Icon" aria-hidden="true"></i> @group.Name
+        </a>
+    }
+</nav>
+
+@if (Model.Blocks.Count == 0)
+{
+    <div class="adm-card">
+        <partial name="_EmptyState" model='new EmptyStateModel {
+            Icon = "bi-grid-1x2", Title = "Nhóm này chưa có khối nào",
+            Message = "Nhóm không có mục nào đang hiện thì khối sẽ ẨN HẲN trên website — không để lại khung trống." }' />
+    </div>
+}
+else
+{
+    @if (Model.Blocks.All(b => !b.IsActive))
+    {
+        <div class="adm-alert adm-alert-warning">
+            <i class="bi bi-eye-slash-fill" aria-hidden="true"></i>
+            <div>
+                Tất cả khối trong nhóm này đang bị ẩn ⇒ trên website khối này <b>không hiện ra</b>
+                (đúng thiết kế: thiếu dữ liệu thì ẩn hẳn chứ không để khung trống).
+            </div>
+        </div>
+    }
+
+    <div class="adm-card p-0">
+        <div class="adm-tree js-sortable">
+            @foreach (var block in Model.Blocks)
+            {
+                <div class="adm-tree-row" data-id="@block.Id">
+                    <span class="adm-drag-handle" title="Kéo để đổi thứ tự" aria-hidden="true">
+                        <i class="bi bi-grip-vertical"></i>
+                    </span>
+                    <span class="adm-move-btns">
+                        <button type="button" class="js-move" data-dir="up"
+                                aria-label="Chuyển “@block.Title” lên trên">▲</button>
+                        <button type="button" class="js-move" data-dir="down"
+                                aria-label="Chuyển “@block.Title” xuống dưới">▼</button>
+                    </span>
+
+                    <span class="adm-tree-icon">
+                        @if (!string.IsNullOrWhiteSpace(block.ImageUrl))
+                        {
+                            <img src="@block.ImageUrl" alt="" loading="lazy" />
+                        }
+                        else
+                        {
+                            <i class="bi @(block.Icon ?? "bi-square")" aria-hidden="true"></i>
+                        }
+                    </span>
+
+                    <span class="adm-tree-name">
+                        <b>@block.Title</b>
+                        @if (!block.IsActive)
+                        {
+                            <span class="adm-badge adm-badge-muted ms-1">Đang ẩn</span>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(block.Subtitle))
+                        {
+                            <span class="adm-small adm-muted d-block">@block.Subtitle</span>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(block.LinkUrl))
+                        {
+                            <span class="adm-small adm-muted d-block adm-mono">@block.LinkUrl</span>
+                        }
+                    </span>
+
+                    <label class="adm-switch" title="Hiện/ẩn trên website">
+                        <input type="checkbox" class="js-toggle" checked="@block.IsActive"
+                               aria-label="Hiển thị khối “@block.Title”" />
+                        <span class="adm-switch-track"></span>
+                    </label>
+
+                    <span class="adm-row-actions">
+                        <a class="adm-act" asp-action="Edit" asp-route-id="@block.Id" title="Sửa">
+                            <i class="bi bi-pencil" aria-hidden="true"></i>
+                            <span class="visually-hidden">Sửa</span>
+                        </a>
+                        <form method="post" asp-action="Delete" asp-route-id="@block.Id"
+                              asp-route-nhom="@Model.GroupKey" class="d-inline">
+                            <button type="button" class="adm-act is-danger"
+                                    data-confirm="Khối <b>@block.Title</b> sẽ được chuyển vào Thùng rác."
+                                    data-confirm-title="Xóa khối nội dung?" title="Xóa">
+                                <i class="bi bi-trash" aria-hidden="true"></i>
+                                <span class="visually-hidden">Xóa</span>
+                            </button>
+                        </form>
+                    </span>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/lib/sortablejs/Sortable.min.js"></script>
+    <script>
+        (function () {
+            var list = document.querySelector(".js-sortable");
+            if (list) {
+                Sortable.create(list, {
+                    handle: ".adm-drag-handle",
+                    animation: 150,
+                    ghostClass: "adm-sortable-ghost",
+                    onEnd: saveOrder
+                });
+            }
+
+            document.addEventListener("click", function (e) {
+                var btn = e.target.closest(".js-move");
+                if (!btn || !list) return;
+
+                var row = btn.closest("[data-id]");
+                var sibling = btn.dataset.dir === "up"
+                    ? row.previousElementSibling : row.nextElementSibling;
+
+                if (!sibling || !sibling.hasAttribute("data-id")) return;
+
+                if (btn.dataset.dir === "up") { list.insertBefore(row, sibling); }
+                else { list.insertBefore(sibling, row); }
+
+                btn.focus();
+                saveOrder();
+            });
+
+            function saveOrder() {
+                var ids = Array.prototype.map.call(list.querySelectorAll("[data-id]"),
+                    function (el) { return parseInt(el.dataset.id, 10); });
+
+                RZAdmin.post("/admin/khoi-noi-dung/sap-xep", { ids: ids }).then(function (res) {
+                    RZAdmin.toast(res.message, res.ok ? "success" : "error");
+                });
+            }
+
+            document.addEventListener("change", function (e) {
+                var input = e.target.closest(".js-toggle");
+                if (!input) return;
+
+                var id = input.closest("[data-id]").dataset.id;
+
+                RZAdmin.post("/admin/khoi-noi-dung/" + id + "/toggle", {}).then(function (res) {
+                    if (!res.ok) { input.checked = !input.checked; RZAdmin.toast(res.message, "error"); return; }
+                    RZAdmin.toast(res.message, "success");
+                });
+            });
+        })();
+    </script>
+}

@@ -1,0 +1,204 @@
+@model ContactListViewModel
+@{
+    ViewData["Title"] = "Hộp thư";
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Hộp thư liên hệ</h1>
+        <div class="adm-page-sub">Tin nhắn khách gửi từ form ở trang /lien-he. Mở tin là tự đánh dấu đã đọc.</div>
+    </div>
+</div>
+
+<form class="adm-filters" method="get" action="/admin/lien-he">
+    <div class="adm-search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input class="adm-input" type="search" name="q" value="@Model.Search"
+               placeholder="Tìm theo tên, số điện thoại, nội dung..." aria-label="Tìm tin nhắn" />
+    </div>
+
+    <select class="adm-select" name="trangThai" style="width: auto;" aria-label="Lọc theo trạng thái đọc">
+        <option value="">Tất cả</option>
+        <option value="chuaDoc" selected="@(Model.IsRead == false)">Chưa đọc</option>
+        <option value="daDoc" selected="@(Model.IsRead == true)">Đã đọc</option>
+    </select>
+
+    @if (Model.Subjects.Count > 0)
+    {
+        <select class="adm-select" name="chuDe" style="width: auto;" aria-label="Lọc theo chủ đề">
+            <option value="">Mọi chủ đề</option>
+            @foreach (var subject in Model.Subjects)
+            {
+                <option value="@subject" selected="@(Model.Subject == subject)">@subject</option>
+            }
+        </select>
+    }
+
+    <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">
+        <i class="bi bi-funnel" aria-hidden="true"></i>
+        <span class="adm-btn-label">Lọc</span>
+    </button>
+
+    @if (Model.HasAnyFilter)
+    {
+        <a class="adm-btn adm-btn-ghost adm-btn-sm" href="/admin/lien-he">Xóa lọc</a>
+    }
+</form>
+
+@if (Model.Result.TotalItems == 0)
+{
+    <div class="adm-card">
+        <partial name="_EmptyState" model='new EmptyStateModel {
+            Icon = "bi-inbox",
+            Title = Model.HasAnyFilter ? "Không có tin nào khớp bộ lọc" : "Hộp thư trống",
+            Message = Model.HasAnyFilter ? "Thử bỏ bớt điều kiện lọc." : "Tin khách gửi từ trang Liên hệ sẽ xuất hiện ở đây." }' />
+    </div>
+}
+else
+{
+    <div class="adm-table-wrap">
+        <table class="adm-table">
+            <caption class="visually-hidden">Danh sách tin nhắn liên hệ</caption>
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 34px;"><span class="visually-hidden">Trạng thái đọc</span></th>
+                    <th scope="col">Người gửi</th>
+                    <th scope="col">Chủ đề</th>
+                    <th scope="col">Nội dung</th>
+                    <th scope="col">Thời gian</th>
+                    <th scope="col" class="adm-col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var message in Model.Result.Items)
+                {
+                    @* Hàng chưa đọc in đậm + nền nhạt — quy ước hộp thư quen thuộc *@
+                    <tr class="js-open @(message.IsRead ? "" : "is-unread")"
+                        data-id="@message.Id" style="cursor: pointer;">
+                        <td>
+                            @if (!message.IsRead)
+                            {
+                                <span class="adm-unread-dot" title="Chưa đọc"></span>
+                                <span class="visually-hidden">Chưa đọc</span>
+                            }
+                        </td>
+                        <td>
+                            <b>@message.FullName</b>
+                            <div class="adm-small adm-muted adm-num">@message.Phone</div>
+                        </td>
+                        <td class="adm-small">
+                            @if (!string.IsNullOrWhiteSpace(message.Subject))
+                            {
+                                <span class="adm-flag">@message.Subject</span>
+                            }
+                        </td>
+                        <td class="adm-small text-truncate" style="max-width: 380px;">
+                            @if (!string.IsNullOrWhiteSpace(message.AttachmentPath))
+                            {
+                                <i class="bi bi-paperclip" title="Có file đính kèm" aria-hidden="true"></i>
+                            }
+                            @message.Content
+                        </td>
+                        <td class="adm-small adm-muted">@message.CreatedAt.ToRelativeTime()</td>
+                        <td class="adm-col-actions">
+                            <span class="adm-row-actions">
+                                <form method="post" asp-action="Delete" asp-route-id="@message.Id" class="d-inline">
+                                    <button type="button" class="adm-act is-danger"
+                                            data-confirm="Tin nhắn của <b>@message.FullName</b> sẽ vào Thùng rác."
+                                            data-confirm-title="Xóa tin nhắn?" title="Xóa">
+                                        <i class="bi bi-trash" aria-hidden="true"></i>
+                                        <span class="visually-hidden">Xóa</span>
+                                    </button>
+                                </form>
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <partial name="_AdminPager" model='new AdminPagerModel {
+        Page = Model.Result.Page, PageSize = Model.Result.PageSize,
+        TotalItems = Model.Result.TotalItems, UrlFor = p => Model.BuildUrl(page: p) }' />
+}
+
+@* Drawer trượt từ phải — nhanh hơn chuyển hẳn sang trang khác *@
+<div class="adm-drawer" id="contactDrawer" role="dialog" aria-modal="true"
+     aria-label="Chi tiết tin nhắn" hidden>
+    <div class="adm-drawer-backdrop" data-close></div>
+    <div class="adm-drawer-panel">
+        <div class="adm-drawer-head">
+            <h2>Chi tiết tin nhắn</h2>
+            <button type="button" class="adm-icon-btn ms-auto" data-close aria-label="Đóng">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="adm-drawer-body" id="drawerBody"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var drawer = document.getElementById("contactDrawer");
+            var body = document.getElementById("drawerBody");
+            var lastFocused = null;
+
+            document.addEventListener("click", function (e) {
+                // Bấm vào nút thao tác trong hàng thì KHÔNG mở drawer
+                if (e.target.closest(".adm-row-actions")) return;
+
+                var row = e.target.closest(".js-open");
+                if (row) { open(row); return; }
+
+                if (e.target.closest("[data-close]")) { close(); }
+            });
+
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape" && !drawer.hidden) close();
+            });
+
+            function open(row) {
+                lastFocused = document.activeElement;
+                body.innerHTML = '<div class="adm-skeleton" style="height: 200px;"></div>';
+                drawer.hidden = false;
+                requestAnimationFrame(function () { drawer.classList.add("is-open"); });
+
+                fetch("/admin/lien-he/" + row.dataset.id, {
+                    headers: { "X-Requested-With": "XMLHttpRequest" }
+                })
+                    .then(function (r) { return r.text(); })
+                    .then(function (html) {
+                        body.innerHTML = html;
+                        var close = drawer.querySelector("[data-close]");
+                        if (close) close.focus();
+
+                        // Server đã đánh dấu đã đọc khi trả chi tiết ⇒ cập nhật lại hàng + badge
+                        row.classList.remove("is-unread");
+                        var dot = row.querySelector(".adm-unread-dot");
+                        if (dot) dot.remove();
+                        decrementBadge();
+                    })
+                    .catch(function () {
+                        body.innerHTML = '<div class="adm-alert adm-alert-error">Không tải được nội dung tin nhắn.</div>';
+                    });
+            }
+
+            function close() {
+                drawer.classList.remove("is-open");
+                setTimeout(function () { drawer.hidden = true; }, 200);
+                if (lastFocused && lastFocused.focus) lastFocused.focus();
+            }
+
+            // Chỉ trừ badge HỘP THƯ (id riêng) — dùng selector chung sẽ trừ nhầm cả badge đơn hàng
+            function decrementBadge() {
+                var badge = document.getElementById("contactBadge");
+                if (!badge) return;
+
+                var n = parseInt(badge.textContent, 10);
+                if (isNaN(n) || n <= 1) { badge.remove(); } else { badge.textContent = n - 1; }
+            }
+        })();
+    </script>
+}

@@ -1,0 +1,144 @@
+@using RenewZone.Domain.Enums
+@model MenuIndexViewModel
+@{
+    ViewData["Title"] = "Menu";
+
+    var groups = new (MenuGroup Group, string Name, string Where)[]
+    {
+        (MenuGroup.MainMenu, "Menu chính", "Thanh điều hướng ngang + menu offcanvas trên điện thoại."),
+        (MenuGroup.FooterPolicy, "Footer – Chính sách", "Cột link chính sách ở chân trang."),
+        (MenuGroup.FooterSupport, "Footer – Hỗ trợ", "Cột link hỗ trợ ở chân trang.")
+    };
+
+    var current = groups.First(g => g.Group == Model.Group);
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Menu</h1>
+        <div class="adm-page-sub">@current.Where</div>
+    </div>
+    <div class="adm-page-actions">
+        <a class="adm-btn adm-btn-primary" asp-action="Create" asp-route-nhom="@Model.Group">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            <span class="adm-btn-label">Thêm mục menu</span>
+        </a>
+    </div>
+</div>
+
+<nav class="adm-tabs" aria-label="Chọn nhóm menu">
+    @foreach (var group in groups)
+    {
+        var isActive = group.Group == Model.Group;
+        <a class="adm-tab @(isActive ? "is-active" : "")"
+           asp-action="Index" asp-route-nhom="@group.Group"
+           aria-current="@(isActive ? "page" : null)">
+            @group.Name<span class="adm-tab-count">@Model.Counts.GetValueOrDefault(group.Group)</span>
+        </a>
+    }
+</nav>
+
+@if (Model.BrokenCount > 0)
+{
+    <div class="adm-alert adm-alert-warning">
+        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+        <div>
+            Có <b>@Model.BrokenCount mục</b> đang trỏ tới đường dẫn không tồn tại — khách bấm vào sẽ gặp trang 404.
+            Các mục đó được đánh dấu <span class="adm-badge adm-badge-cancel">404</span> bên dưới.
+        </div>
+    </div>
+}
+
+@if (Model.Tree.Count == 0)
+{
+    <div class="adm-card">
+        <partial name="_EmptyState" model='new EmptyStateModel {
+            Icon = "bi-list-nested", Title = "Nhóm menu này chưa có mục nào",
+            Message = "Thêm mục để nó xuất hiện trên website." }' />
+    </div>
+}
+else
+{
+    <div class="adm-card p-0">
+        <div class="adm-tree" id="menuTree">
+            @foreach (var item in Model.Tree)
+            {
+                <div class="adm-tree-branch" data-id="@item.Id">
+                    <partial name="_MenuRow" model="item" />
+
+                    <div class="adm-tree-children js-sortable">
+                        @foreach (var child in item.Children)
+                        {
+                            <partial name="_MenuRow" model="child" />
+                        }
+                    </div>
+
+                    @if (item.Type == MenuItemType.Link)
+                    {
+                        <div class="adm-tree-add">
+                            <a asp-action="Create" asp-route-nhom="@Model.Group" asp-route-parentId="@item.Id">
+                                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                                Thêm mục con cho “@item.Text”
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/lib/sortablejs/Sortable.min.js"></script>
+    <script>
+        (function () {
+            document.querySelectorAll(".js-sortable").forEach(function (list) {
+                Sortable.create(list, {
+                    handle: ".adm-drag-handle",
+                    animation: 150,
+                    ghostClass: "adm-sortable-ghost",
+                    onEnd: function () { saveOrder(list); }
+                });
+            });
+
+            document.addEventListener("click", function (e) {
+                var btn = e.target.closest(".js-move");
+                if (!btn) return;
+
+                var row = btn.closest("[data-id]");
+                var list = row.parentElement;
+                var sibling = btn.dataset.dir === "up"
+                    ? row.previousElementSibling : row.nextElementSibling;
+
+                if (!sibling || !sibling.hasAttribute("data-id")) return;
+
+                if (btn.dataset.dir === "up") { list.insertBefore(row, sibling); }
+                else { list.insertBefore(sibling, row); }
+
+                btn.focus();
+                saveOrder(list);
+            });
+
+            function saveOrder(list) {
+                var ids = Array.prototype.map.call(list.querySelectorAll(":scope > [data-id]"),
+                    function (el) { return parseInt(el.dataset.id, 10); });
+
+                RZAdmin.post("/admin/menu/sap-xep", { ids: ids }).then(function (res) {
+                    RZAdmin.toast(res.message, res.ok ? "success" : "error");
+                });
+            }
+
+            document.addEventListener("change", function (e) {
+                var input = e.target.closest(".js-toggle");
+                if (!input) return;
+
+                var id = input.closest("[data-id]").dataset.id;
+
+                RZAdmin.post("/admin/menu/" + id + "/toggle", {}).then(function (res) {
+                    if (!res.ok) { input.checked = !input.checked; RZAdmin.toast(res.message, "error"); return; }
+                    RZAdmin.toast(res.message, "success");
+                });
+            });
+        })();
+    </script>
+}

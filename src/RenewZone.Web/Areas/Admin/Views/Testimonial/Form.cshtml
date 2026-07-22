@@ -1,0 +1,90 @@
+@model TestimonialFormViewModel
+@{
+    ViewData["Title"] = Model.IsEdit ? "Sửa đánh giá" : "Thêm đánh giá";
+}
+
+<div class="adm-page-head">
+    <div><h1>@ViewData["Title"]</h1></div>
+    <div class="adm-page-actions">
+        <a class="adm-btn adm-btn-ghost" asp-action="Index">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            <span class="adm-btn-label">Danh sách</span>
+        </a>
+    </div>
+</div>
+
+<form method="post" data-adm-form data-dirty-guard
+      asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.Id">
+
+    <div class="adm-form-card">
+        @if (ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+        {
+            <div class="adm-alert adm-alert-error" role="alert">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                <div asp-validation-summary="ModelOnly"></div>
+            </div>
+        }
+
+        <div class="adm-form-grid">
+            <div class="adm-field" style="--col-span: 6;">
+                <label class="adm-label" asp-for="CustomerName">
+                    Tên khách hàng<span class="adm-req" aria-hidden="true">*</span>
+                </label>
+                <input class="adm-input" asp-for="CustomerName" autocomplete="off" />
+                <span class="adm-error" asp-validation-for="CustomerName"></span>
+            </div>
+
+            <div class="adm-field" style="--col-span: 6;">
+                <label class="adm-label" asp-for="AvatarUrl">Ảnh đại diện</label>
+                <input class="adm-input" asp-for="AvatarUrl" placeholder="/images/placeholder-avatar.svg" />
+                <div class="adm-hint">Để trống sẽ dùng ảnh mặc định.</div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 12;">
+                <label class="adm-label" asp-for="Content">
+                    Nội dung đánh giá<span class="adm-req" aria-hidden="true">*</span>
+                </label>
+                <textarea class="adm-textarea" asp-for="Content" rows="4" maxlength="1000" id="Content"></textarea>
+                <div class="adm-hint"><span id="contentCount">0</span>/1000 ký tự.</div>
+                <span class="adm-error" asp-validation-for="Content"></span>
+            </div>
+
+            <div class="adm-field" style="--col-span: 6;">
+                <label class="adm-label" asp-for="DisplayOrder">Thứ tự</label>
+                <input class="adm-input" asp-for="DisplayOrder" type="number" min="0" max="9999" />
+            </div>
+
+            <div class="adm-field" style="--col-span: 6;">
+                <label class="adm-switch mt-4">
+                    <input asp-for="IsActive" />
+                    <span class="adm-switch-track"></span>
+                    <span class="adm-switch-label">Hiển thị trên trang chủ</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="adm-form-bar">
+            <button type="submit" class="adm-btn adm-btn-primary">
+                <span class="adm-spinner"></span>
+                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                <span class="adm-btn-label">Lưu đánh giá</span>
+            </button>
+            <div class="adm-form-bar-end">
+                <a class="adm-btn adm-btn-ghost" asp-action="Index">Hủy</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        (function () {
+            var input = document.getElementById("Content");
+            var out = document.getElementById("contentCount");
+            if (!input || !out) return;
+            var render = function () { out.textContent = input.value.length; };
+            input.addEventListener("input", render);
+            render();
+        })();
+    </script>
+}

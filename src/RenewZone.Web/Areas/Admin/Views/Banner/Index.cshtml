@@ -1,0 +1,128 @@
+@using RenewZone.Domain.Enums
+@model IReadOnlyList<BannerItem>
+@{
+    ViewData["Title"] = "Banner";
+
+    var positions = new (BannerPosition Position, string Name, string Where, string Ratio)[]
+    {
+        (BannerPosition.HomeSlider, "Slider trang chủ", "Băng ảnh lớn chạy tự động ở đầu trang chủ.", "1400 × 450"),
+        (BannerPosition.HomeMiddle, "Khối giữa trang chủ", "2 ảnh phụ cạnh slider.", "700 × 220")
+    };
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Banner</h1>
+        <div class="adm-page-sub">Ảnh quảng cáo trên trang chủ. Kéo để đổi thứ tự trong cùng vị trí.</div>
+    </div>
+    <div class="adm-page-actions">
+        <a class="adm-btn adm-btn-primary" asp-action="Create">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            <span class="adm-btn-label">Thêm banner</span>
+        </a>
+    </div>
+</div>
+
+@foreach (var group in positions)
+{
+    var banners = Model.Where(b => b.Position == group.Position).ToList();
+
+    <div class="adm-card mb-3">
+        <div class="adm-card-head">
+            <h2>@group.Name</h2>
+            <span class="adm-small adm-muted">@group.Where Kích thước gợi ý @group.Ratio.</span>
+        </div>
+
+        @if (banners.Count == 0)
+        {
+            <div class="adm-empty py-4">
+                <i class="bi bi-image" aria-hidden="true"></i>
+                <h3>Chưa có banner ở vị trí này</h3>
+            </div>
+        }
+        else
+        {
+            <div class="adm-banner-grid js-sortable">
+                @foreach (var banner in banners)
+                {
+                    <div class="adm-banner-card @(banner.IsActive ? "" : "is-off")" data-id="@banner.Id">
+                        <span class="adm-drag-handle" title="Kéo để đổi thứ tự" aria-hidden="true">
+                            <i class="bi bi-grip-vertical"></i>
+                        </span>
+
+                        <img src="@banner.ImageUrl" alt="" loading="lazy" />
+
+                        <div class="adm-banner-body">
+                            <b>@(string.IsNullOrWhiteSpace(banner.Title) ? "(không đặt tên)" : banner.Title)</b>
+                            @if (!string.IsNullOrWhiteSpace(banner.LinkUrl))
+                            {
+                                <div class="adm-small adm-muted adm-mono text-truncate">@banner.LinkUrl</div>
+                            }
+                            else
+                            {
+                                <div class="adm-small adm-muted">Không gắn link — banner không bấm được</div>
+                            }
+                        </div>
+
+                        <label class="adm-switch" title="Hiện/ẩn banner">
+                            <input type="checkbox" class="js-toggle" checked="@banner.IsActive"
+                                   aria-label="Hiển thị banner" />
+                            <span class="adm-switch-track"></span>
+                        </label>
+
+                        <span class="adm-row-actions">
+                            <a class="adm-act" asp-action="Edit" asp-route-id="@banner.Id" title="Sửa">
+                                <i class="bi bi-pencil" aria-hidden="true"></i>
+                                <span class="visually-hidden">Sửa</span>
+                            </a>
+                            <form method="post" asp-action="Delete" asp-route-id="@banner.Id" class="d-inline">
+                                <button type="button" class="adm-act is-danger"
+                                        data-confirm="Banner này sẽ được chuyển vào Thùng rác."
+                                        data-confirm-title="Xóa banner?" title="Xóa">
+                                    <i class="bi bi-trash" aria-hidden="true"></i>
+                                    <span class="visually-hidden">Xóa</span>
+                                </button>
+                            </form>
+                        </span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+    <script src="~/lib/sortablejs/Sortable.min.js"></script>
+    <script>
+        (function () {
+            document.querySelectorAll(".js-sortable").forEach(function (list) {
+                Sortable.create(list, {
+                    handle: ".adm-drag-handle",
+                    animation: 150,
+                    ghostClass: "adm-sortable-ghost",
+                    onEnd: function () {
+                        var ids = Array.prototype.map.call(list.querySelectorAll("[data-id]"),
+                            function (el) { return parseInt(el.dataset.id, 10); });
+
+                        RZAdmin.post("/admin/banner/sap-xep", { ids: ids }).then(function (res) {
+                            RZAdmin.toast(res.message, res.ok ? "success" : "error");
+                        });
+                    }
+                });
+            });
+
+            document.addEventListener("change", function (e) {
+                var input = e.target.closest(".js-toggle");
+                if (!input) return;
+
+                var card = input.closest("[data-id]");
+
+                RZAdmin.post("/admin/banner/" + card.dataset.id + "/toggle", {}).then(function (res) {
+                    if (!res.ok) { input.checked = !input.checked; RZAdmin.toast(res.message, "error"); return; }
+                    card.classList.toggle("is-off", !input.checked);
+                    RZAdmin.toast(res.message, "success");
+                });
+            });
+        })();
+    </script>
+}

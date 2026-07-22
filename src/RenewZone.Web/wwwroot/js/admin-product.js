@@ -1,100 +1,12 @@
 /* =====================================================================
    admin-product.js — form sản phẩm 5 tab (chỉ nạp ở màn này, không vào admin.js)
-   Gồm: TinyMCE · uploader ảnh · repeater biến thể · xem trước giá
+   Gồm: uploader ảnh · repeater biến thể · xem trước giá.
+   TinyMCE do admin-editor.js lo (dùng chung với form bài viết/trang tĩnh).
    ===================================================================== */
 (function (window, document) {
     "use strict";
 
-    /* ============ 1. TinyMCE ============ */
-    function initEditor() {
-        if (!window.tinymce) return;
-
-        tinymce.init({
-            selector: "textarea.js-editor",
-            height: 420,
-            menubar: false,
-            branding: false,
-            promotion: false,
-            // KHÔNG đặt language:"vi" — gói ngôn ngữ không nằm trong package npm của TinyMCE,
-            // khai báo mà thiếu file thì editor gọi /langs/vi.js rồi 404. Muốn tiếng Việt thì
-            // tải gói ngôn ngữ về wwwroot/lib/tinymce/langs/ rồi mới bật dòng này.
-            plugins: "lists link image table code fullscreen advlist autolink wordcount",
-            toolbar: "undo redo | blocks | bold italic | bullist numlist | link image table | code fullscreen",
-            license_key: "gpl",
-
-            // Ép upload đàng hoàng thay vì nhúng base64 làm phình cột DescriptionHtml trong DB
-            paste_data_images: false,
-            automatic_uploads: true,
-            images_upload_handler: uploadEditorImage,
-
-            /* ⚠️ Whitelist thẻ/thuộc tính: KHÔNG cho <script>, <iframe>, thuộc tính on*.
-               Đây là lớp phòng vệ ở client nên KHÔNG phải biện pháp bảo mật thật —
-               web khách render bằng @Html.Raw. Rủi ro này chấp nhận được vì chỉ có
-               1 tài khoản admin tin cậy; mở thêm role Editor thì BẮT BUỘC thêm
-               HtmlSanitizer ở tầng service trước khi lưu (xem CLAUDE.md mục 4.9). */
-            valid_elements:
-                "p[style|class],br,strong/b,em/i,u,s,h1,h2,h3,h4,h5,h6,"
-                + "ul,ol,li,blockquote,hr,"
-                + "a[href|title|target|rel],img[src|alt|width|height|loading],"
-                + "table[class|border|style],thead,tbody,tfoot,tr,th[colspan|rowspan|style],td[colspan|rowspan|style],"
-                + "span[class|style],div[class|style],code,pre",
-            invalid_elements: "script,iframe,object,embed,form,input,style,link",
-
-            /* Nội dung trong editor trông giống hệt lúc lên web khách — chi tiết nhỏ
-               nhưng bớt hẳn cảnh "trên admin thấy đẹp, ra web lại khác" */
-            content_style:
-                "body{font-family:'Nunito Sans',system-ui,sans-serif;font-size:15px;line-height:1.7;color:#212529}"
-                + "h2,h3,h4{font-family:'Be Vietnam Pro',system-ui,sans-serif;font-weight:700;color:#17141A;margin:1.2em 0 .5em}"
-                + "table{width:100%;border-collapse:collapse;margin:1em 0}"
-                + "th,td{border:1px solid #ECE7EC;padding:8px 12px;text-align:left}"
-                + "th{background:#FAF7FA;font-weight:700}"
-                + "a{color:#B54983}"
-        });
-    }
-
-    function uploadEditorImage(blobInfo) {
-        return new Promise(function (resolve, reject) {
-            var form = new FormData();
-            form.append("file", blobInfo.blob(), blobInfo.filename());
-
-            fetch("/admin/media/upload-editor", {
-                method: "POST",
-                headers: { "RequestVerificationToken": RZAdmin.token() },
-                body: form
-            })
-                .then(function (res) { return res.json(); })
-                .then(function (data) {
-                    if (data.location) { resolve(data.location); }
-                    else { reject({ message: data.message || "Tải ảnh thất bại.", remove: true }); }
-                })
-                .catch(function () { reject({ message: "Không kết nối được máy chủ.", remove: true }); });
-        });
-    }
-
-    /* ============ 2. Chèn bảng thông số mẫu ============ */
-    function initSpecTable() {
-        var btn = document.getElementById("insertSpecTable");
-        if (!btn) return;
-
-        btn.addEventListener("click", function () {
-            var editor = tinymce.get("SpecsHtml");
-            if (!editor) return;
-
-            editor.insertContent(
-                "<h3>Thông số kỹ thuật</h3>"
-                + "<table><thead><tr><th>Hạng mục</th><th>Chi tiết</th></tr></thead><tbody>"
-                + "<tr><td>Màn hình</td><td>&nbsp;</td></tr>"
-                + "<tr><td>Chip xử lý</td><td>&nbsp;</td></tr>"
-                + "<tr><td>Camera</td><td>&nbsp;</td></tr>"
-                + "<tr><td>Pin &amp; sạc</td><td>&nbsp;</td></tr>"
-                + "<tr><td>Thiết kế &amp; chất liệu</td><td>&nbsp;</td></tr>"
-                + "</tbody></table>");
-
-            editor.focus();
-        });
-    }
-
-    /* ============ 3. Giá liên hệ khóa 2 ô giá ============ */
+    /* ============ 1. Giá liên hệ khóa 2 ô giá ============ */
     function initContactPrice() {
         var toggle = document.getElementById("IsContactPrice");
         var hint = document.getElementById("contactPriceHint");
@@ -113,7 +25,7 @@
         apply();
     }
 
-    /* ============ 4. Đếm ký tự mô tả ngắn ============ */
+    /* ============ 2. Đếm ký tự mô tả ngắn ============ */
     function initShortDescCount() {
         var input = document.getElementById("ShortDescription");
         var out = document.getElementById("shortDescCount");
@@ -124,7 +36,7 @@
         render();
     }
 
-    /* ============ 5. Repeater biến thể ============ */
+    /* ============ 3. Repeater biến thể ============ */
     var groupList = document.getElementById("groupList");
 
     function initRepeater() {
@@ -217,7 +129,7 @@
         });
     }
 
-    /* ============ 6. Xem trước giá theo lựa chọn mặc định ============ */
+    /* ============ 4. Xem trước giá theo lựa chọn mặc định ============ */
     function updatePreview() {
         var preview = document.getElementById("variantPreview");
         if (!preview) return;
@@ -251,7 +163,7 @@
         return isNaN(n) ? 0 : n;
     }
 
-    /* ============ 7. Uploader ảnh ============ */
+    /* ============ 5. Uploader ảnh ============ */
     function initUploader() {
         var zone = document.getElementById("imgDropzone");
         var input = document.getElementById("imgInput");
@@ -394,8 +306,6 @@
 
     /* ============ Khởi động ============ */
     function init() {
-        initEditor();
-        initSpecTable();
         initContactPrice();
         initShortDescCount();
         initRepeater();
@@ -408,15 +318,6 @@
             var el = document.getElementById(id);
             if (el) el.addEventListener("input", updatePreview);
         });
-
-        // TinyMCE giữ nội dung trong iframe riêng ⇒ phải đẩy về textarea trước khi submit,
-        // không thì mô tả/thông số vừa gõ sẽ KHÔNG được lưu
-        var form = document.querySelector("form[data-adm-form]");
-        if (form) {
-            form.addEventListener("submit", function () {
-                if (window.tinymce) tinymce.triggerSave();
-            }, true);
-        }
     }
 
     if (document.readyState === "loading") {

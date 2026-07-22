@@ -956,6 +956,87 @@ body.adm :focus-visible {
   .adm-tree-count { width: 100%; padding-left: 44px; }
 }
 
+/* ===================== 11c. BANNER · HỘP THƯ · DRAWER ===================== */
+.adm-banner-grid { display: flex; flex-direction: column; gap: 10px; }
+
+.adm-banner-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-sm);
+  background: var(--adm-surface);
+  transition: opacity var(--t-fast);
+}
+.adm-banner-card.is-off { opacity: .55; }
+.adm-banner-card > img {
+  width: 160px; height: 52px;
+  object-fit: cover;
+  border-radius: var(--adm-r-sm);
+  background: var(--adm-surface-2);
+  flex-shrink: 0;
+}
+.adm-banner-body { flex: 1; min-width: 0; }
+
+.adm-banner-preview img {
+  max-width: 100%;
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-sm);
+}
+
+/* Hàng chưa đọc: đậm + nền nhạt — quy ước hộp thư quen thuộc */
+.adm-table tbody tr.is-unread { background: var(--brand-50); font-weight: 600; }
+.adm-table tbody tr.is-unread:hover { background: var(--brand-100); }
+
+.adm-unread-dot {
+  display: inline-block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--brand-500);
+}
+
+/* Drawer trượt từ phải — xem chi tiết nhanh hơn chuyển hẳn sang trang khác */
+.adm-drawer { position: fixed; inset: 0; z-index: 1085; }
+.adm-drawer-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(23,20,26,.5);
+  opacity: 0;
+  transition: opacity var(--t-base) var(--ease-out);
+}
+.adm-drawer.is-open .adm-drawer-backdrop { opacity: 1; }
+
+.adm-drawer-panel {
+  position: absolute; top: 0; right: 0; bottom: 0;
+  width: min(520px, 100%);
+  background: var(--adm-surface);
+  box-shadow: var(--sh-lg);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform var(--t-base) var(--ease-out);
+}
+.adm-drawer.is-open .adm-drawer-panel { transform: none; }
+
+.adm-drawer-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--adm-border);
+  flex-shrink: 0;
+}
+.adm-drawer-head h2 { font-size: 1rem; }
+.adm-drawer-body { padding: 20px; overflow-y: auto; flex: 1; }
+
+.adm-drawer-info { margin: 0; }
+.adm-drawer-info dt { font-size: .76rem; color: var(--ink-500); margin-top: 10px; }
+.adm-drawer-info dd { margin: 2px 0 0; }
+
+.adm-attachment-img {
+  max-width: 100%;
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-sm);
+}
+
 /* ===================== 12. BADGE TRẠNG THÁI ===================== */
 .adm-badge {
   display: inline-flex; align-items: center; gap: 5px;

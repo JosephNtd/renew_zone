@@ -1,0 +1,193 @@
+@using RenewZone.Domain.Enums
+@model MenuFormViewModel
+@{
+    ViewData["Title"] = Model.IsEdit ? "Sửa mục menu" : "Thêm mục menu";
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        <div class="adm-page-sub">
+            Đường dẫn nội bộ bắt đầu bằng dấu <b>/</b> (vd <span class="adm-mono">/gioi-thieu</span>).
+            Hệ thống sẽ cảnh báo nếu đường dẫn không tồn tại.
+        </div>
+    </div>
+    <div class="adm-page-actions">
+        <a class="adm-btn adm-btn-ghost" asp-action="Index" asp-route-nhom="@Model.Group">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            <span class="adm-btn-label">Danh sách</span>
+        </a>
+    </div>
+</div>
+
+<form method="post" data-adm-form data-dirty-guard
+      asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.Id">
+
+    <div class="adm-form-card">
+        @if (ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+        {
+            <div class="adm-alert adm-alert-error" role="alert">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                <div asp-validation-summary="ModelOnly"></div>
+            </div>
+        }
+
+        <div class="adm-form-grid">
+            <div class="adm-field" style="--col-span: 6;">
+                <label class="adm-label" asp-for="Text">
+                    Tên hiển thị<span class="adm-req" aria-hidden="true">*</span>
+                </label>
+                <input class="adm-input" asp-for="Text" autocomplete="off" />
+                <span class="adm-error" asp-validation-for="Text"></span>
+            </div>
+
+            <div class="adm-field" style="--col-span: 3;">
+                <label class="adm-label" asp-for="Group">Nhóm menu</label>
+                <select class="adm-select" asp-for="Group" id="Group">
+                    <option value="@MenuGroup.MainMenu" selected="@(Model.Group == MenuGroup.MainMenu)">Menu chính</option>
+                    <option value="@MenuGroup.FooterPolicy" selected="@(Model.Group == MenuGroup.FooterPolicy)">Footer – Chính sách</option>
+                    <option value="@MenuGroup.FooterSupport" selected="@(Model.Group == MenuGroup.FooterSupport)">Footer – Hỗ trợ</option>
+                </select>
+            </div>
+
+            <div class="adm-field" style="--col-span: 3;">
+                <label class="adm-label" asp-for="Type">Kiểu mục</label>
+                <select class="adm-select" asp-for="Type" id="Type">
+                    <option value="@MenuItemType.Link" selected="@(Model.Type == MenuItemType.Link)">
+                        Link thường
+                    </option>
+                    <option value="@MenuItemType.ProductMega" selected="@(Model.Type == MenuItemType.ProductMega)">
+                        Menu sản phẩm tự động
+                    </option>
+                </select>
+            </div>
+
+            <div class="adm-field" style="--col-span: 12;" id="megaNote" hidden>
+                <div class="adm-alert adm-alert-info mb-0">
+                    <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+                    <div>
+                        Danh sách con của mục này <b>sinh tự động từ Danh mục sản phẩm</b> — không cần
+                        khai báo tay. Thêm danh mục mới là menu tự có ngay.
+                    </div>
+                </div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 6;">
+                <label class="adm-label" asp-for="Url">Đường dẫn</label>
+                <input class="adm-input adm-mono" asp-for="Url" id="Url"
+                       placeholder="/gioi-thieu" autocomplete="off" />
+                <div class="adm-slug-msg" id="urlCheck" aria-live="polite"></div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 6;">
+                <label class="adm-label" asp-for="ParentId">Mục cha</label>
+                <select class="adm-select" asp-for="ParentId">
+                    <option value="">— Là mục cấp 1 —</option>
+                    @foreach (var option in Model.ParentOptions)
+                    {
+                        <option value="@option.Id" selected="@(Model.ParentId == option.Id)">@option.Text</option>
+                    }
+                </select>
+                <div class="adm-hint">Menu chỉ có 2 cấp nên mục con không thể có mục con.</div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 4;">
+                <label class="adm-label" asp-for="Icon">Icon</label>
+                <input class="adm-input" asp-for="Icon" placeholder="bi-shield-check" autocomplete="off" />
+                <div class="adm-hint">Tên class Bootstrap Icons. Để trống thì không hiện icon.</div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 4;">
+                <label class="adm-label" asp-for="DisplayOrder">Thứ tự</label>
+                <input class="adm-input" asp-for="DisplayOrder" type="number" min="0" max="9999" />
+            </div>
+
+            <div class="adm-field" style="--col-span: 4;">
+                <label class="adm-label">Tùy chọn</label>
+                <div class="d-flex flex-column gap-2 mt-1">
+                    <label class="adm-switch">
+                        <input asp-for="IsActive" />
+                        <span class="adm-switch-track"></span>
+                        <span class="adm-switch-label">Hiển thị</span>
+                    </label>
+                    <label class="adm-switch">
+                        <input asp-for="OpenInNewTab" />
+                        <span class="adm-switch-track"></span>
+                        <span class="adm-switch-label">Mở trong tab mới</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-form-bar">
+            <button type="submit" class="adm-btn adm-btn-primary">
+                <span class="adm-spinner"></span>
+                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                <span class="adm-btn-label">Lưu mục menu</span>
+            </button>
+            <div class="adm-form-bar-end">
+                <a class="adm-btn adm-btn-ghost" asp-action="Index" asp-route-nhom="@Model.Group">Hủy</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        (function () {
+            var type = document.getElementById("Type");
+            var note = document.getElementById("megaNote");
+            var url = document.getElementById("Url");
+            var check = document.getElementById("urlCheck");
+
+            function applyType() {
+                var isMega = type.value === "@MenuItemType.ProductMega";
+                note.hidden = !isMega;
+                url.disabled = isMega; // mục mega không cần link riêng
+                if (isMega) check.textContent = "";
+            }
+
+            type.addEventListener("change", applyType);
+            applyType();
+
+            // Cảnh báo NGAY khi gõ nếu đường dẫn trỏ tới slug không tồn tại —
+            // đúng loại lỗi mà Giai đoạn 2–4 từng mắc (menu trỏ /sua-chua khi chưa seed trang)
+            var timer = null;
+            url.addEventListener("input", function () {
+                clearTimeout(timer);
+                var value = url.value.trim();
+
+                if (!value || value.startsWith("http") || value === "/") { check.textContent = ""; return; }
+
+                var path = value.replace(/^\//, "").split("?")[0].split("#")[0];
+                if (!path || path.indexOf("/") >= 0) { check.textContent = ""; return; }
+
+                var staticRoutes = ["san-pham", "tim-kiem", "gio-hang", "dat-hang", "tin-tuc", "lien-he"];
+                if (staticRoutes.indexOf(path) >= 0) {
+                    check.className = "adm-slug-msg is-ok";
+                    check.textContent = "Đường dẫn hợp lệ.";
+                    return;
+                }
+
+                timer = setTimeout(function () {
+                    fetch("/admin/api/slug/kiem-tra?slug=" + encodeURIComponent(path))
+                        .then(function (r) { return r.json(); })
+                        .then(function (data) {
+                            // isAvailable = slug còn TRỐNG ⇒ với menu nghĩa là KHÔNG có trang nào ở đó
+                            if (data.isAvailable) {
+                                check.className = "adm-slug-msg is-bad";
+                                check.textContent = "⚠ Đường dẫn này hiện đang 404 — chưa có nội dung nào dùng slug này.";
+                            } else {
+                                check.className = "adm-slug-msg is-ok";
+                                check.textContent = "Đường dẫn hợp lệ" +
+                                    (data.takenByName ? " — trỏ tới “" + data.takenByName + "”." : ".");
+                            }
+                        })
+                        .catch(function () { check.textContent = ""; });
+                }, 400);
+            });
+
+            if (url.value) url.dispatchEvent(new Event("input"));
+        })();
+    </script>
+}

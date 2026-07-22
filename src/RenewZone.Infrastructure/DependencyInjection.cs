@@ -79,6 +79,13 @@ public static class DependencyInjection
         services.AddScoped<IOrderAdminService, OrderAdminService>();
         services.AddScoped<ICategoryAdminService, CategoryAdminService>();
         services.AddScoped<IProductAdminService, ProductAdminService>();
+        services.AddScoped<INewsAdminService, NewsAdminService>();
+        services.AddScoped<IPageAdminService, PageAdminService>();
+        services.AddScoped<INavigationAdminService, NavigationAdminService>();
+        services.AddScoped<IContentBlockAdminService, ContentBlockAdminService>();
+        services.AddScoped<IContactAdminService, ContactAdminService>();
+        services.AddScoped<ISettingAdminService, SettingAdminService>();
+        services.AddScoped<ITrashService, TrashService>();
 
         return services;
     }

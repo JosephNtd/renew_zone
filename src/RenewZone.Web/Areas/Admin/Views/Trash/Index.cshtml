@@ -1,0 +1,108 @@
+@using RenewZone.Domain.Models.Admin
+@model TrashViewModel
+@{
+    ViewData["Title"] = "Thùng rác";
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Thùng rác</h1>
+        <div class="adm-page-sub">
+            Mục đã xóa vẫn giữ ở đây cho tới khi bạn xóa vĩnh viễn. Khôi phục là chúng hiện lại
+            trên website ngay.
+        </div>
+    </div>
+</div>
+
+<nav class="adm-tabs" aria-label="Chọn loại nội dung">
+    @foreach (var type in Enum.GetValues<TrashType>())
+    {
+        var count = Model.Counts.GetValueOrDefault(type);
+        var isActive = type == Model.Type;
+
+        <a class="adm-tab @(isActive ? "is-active" : "")"
+           asp-action="Index" asp-route-loai="@type"
+           aria-current="@(isActive ? "page" : null)">
+            @TrashViewModel.LabelOf(type)<span class="adm-tab-count">@count</span>
+        </a>
+    }
+</nav>
+
+@if (Model.TotalCount == 0)
+{
+    <div class="adm-card">
+        <partial name="_EmptyState" model='new EmptyStateModel {
+            Icon = "bi-trash3", Title = "Thùng rác trống",
+            Message = "Mọi thứ bạn xóa sẽ nằm ở đây trước khi biến mất hẳn." }' />
+    </div>
+}
+else if (Model.Items.Count == 0)
+{
+    <div class="adm-card">
+        <partial name="_EmptyState" model='new EmptyStateModel {
+            Icon = "bi-check2-circle", Title = "Không có mục nào thuộc loại này",
+            Message = "Chọn loại khác ở thanh phía trên." }' />
+    </div>
+}
+else
+{
+    <div class="adm-alert adm-alert-warning">
+        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+        <div>
+            <b>Xóa vĩnh viễn không hoàn tác được.</b> Để tránh bấm nhầm, hệ thống sẽ bắt bạn gõ
+            đúng tên mục trước khi cho xóa.
+        </div>
+    </div>
+
+    <div class="adm-table-wrap">
+        <table class="adm-table">
+            <caption class="visually-hidden">Danh sách mục trong thùng rác</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Tên</th>
+                    <th scope="col">Thông tin thêm</th>
+                    <th scope="col">Xóa lúc</th>
+                    <th scope="col" class="adm-col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td><b>@item.Name</b></td>
+                        <td class="adm-small adm-muted text-truncate" style="max-width: 420px;">@item.Extra</td>
+                        <td class="adm-small adm-muted">
+                            @(item.DeletedAt?.ToRelativeTime() ?? "—")
+                        </td>
+                        <td class="adm-col-actions">
+                            <div class="d-inline-flex gap-2">
+                                <form method="post" asp-action="Restore" class="d-inline">
+                                    <input type="hidden" name="loai" value="@item.Type" />
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button type="submit" class="adm-btn adm-btn-ghost adm-btn-sm">
+                                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                                        <span class="adm-btn-label">Khôi phục</span>
+                                    </button>
+                                </form>
+
+                                <form method="post" asp-action="Purge" class="d-inline">
+                                    <input type="hidden" name="loai" value="@item.Type" />
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    @* data-confirm-type: bắt gõ đúng tên mới bật được nút xóa *@
+                                    <button type="button" class="adm-btn adm-btn-ghost adm-btn-sm text-danger"
+                                            data-confirm="Mục <b>@item.Name</b> sẽ bị xóa khỏi cơ sở dữ liệu và <b>không thể khôi phục</b>."
+                                            data-confirm-title="Xóa vĩnh viễn?"
+                                            data-confirm-ok="Xóa vĩnh viễn"
+                                            data-confirm-type="@item.Name">
+                                        <i class="bi bi-trash3" aria-hidden="true"></i>
+                                        <span class="adm-btn-label">Xóa vĩnh viễn</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

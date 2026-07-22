@@ -1,0 +1,89 @@
+@model ContactListItem
+@{
+    var isImage = !string.IsNullOrWhiteSpace(Model.AttachmentPath)
+        && (Model.AttachmentPath!.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+            || Model.AttachmentPath.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)
+            || Model.AttachmentPath.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+            || Model.AttachmentPath.EndsWith(".webp", StringComparison.OrdinalIgnoreCase));
+}
+
+<div class="mb-3">
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <h3 class="mb-0">@Model.FullName</h3>
+        @if (!string.IsNullOrWhiteSpace(Model.Subject))
+        {
+            <span class="adm-flag">@Model.Subject</span>
+        }
+    </div>
+    <div class="adm-small adm-muted">
+        Gửi lúc @Model.CreatedAt.ToString("HH:mm 'ngày' dd/MM/yyyy") (@Model.CreatedAt.ToRelativeTime())
+    </div>
+</div>
+
+<dl class="adm-drawer-info">
+    <dt>Số điện thoại</dt>
+    <dd>
+        <a class="adm-num" href="tel:@Model.Phone.Replace(".", "").Replace(" ", "")">
+            <i class="bi bi-telephone" aria-hidden="true"></i> @Model.Phone
+        </a>
+    </dd>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Email))
+    {
+        <dt>Email</dt>
+        <dd>
+            <a href="mailto:@Model.Email">
+                <i class="bi bi-envelope" aria-hidden="true"></i> @Model.Email
+            </a>
+        </dd>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.Address))
+    {
+        <dt>Địa chỉ</dt>
+        <dd>@Model.Address</dd>
+    }
+</dl>
+
+<div class="adm-card mt-3" style="background: var(--adm-surface-2);">
+    <div class="adm-small adm-muted mb-1">Nội dung</div>
+    <div style="white-space: pre-wrap;">@Model.Content</div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.AttachmentPath))
+{
+    <div class="mt-3">
+        <div class="adm-small adm-muted mb-2">
+            <i class="bi bi-paperclip" aria-hidden="true"></i> File đính kèm
+        </div>
+
+        @if (isImage)
+        {
+            <a href="@Model.AttachmentPath" target="_blank" rel="noopener">
+                <img src="@Model.AttachmentPath" alt="Ảnh khách đính kèm"
+                     class="adm-attachment-img" loading="lazy" />
+            </a>
+        }
+        else
+        {
+            <a class="adm-btn adm-btn-ghost" href="@Model.AttachmentPath" target="_blank" rel="noopener" download>
+                <i class="bi bi-download" aria-hidden="true"></i>
+                <span class="adm-btn-label">Tải file về</span>
+            </a>
+        }
+    </div>
+}
+
+<div class="d-flex gap-2 mt-4 pt-3 border-top">
+    <a class="adm-btn adm-btn-primary" href="tel:@Model.Phone.Replace(".", "").Replace(" ", "")">
+        <i class="bi bi-telephone-fill" aria-hidden="true"></i>
+        <span class="adm-btn-label">Gọi khách</span>
+    </a>
+    @if (!string.IsNullOrWhiteSpace(Model.Email))
+    {
+        <a class="adm-btn adm-btn-ghost" href="mailto:@Model.Email">
+            <i class="bi bi-reply" aria-hidden="true"></i>
+            <span class="adm-btn-label">Trả lời email</span>
+        </a>
+    }
+</div>

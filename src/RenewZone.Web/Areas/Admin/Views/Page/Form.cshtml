@@ -1,0 +1,104 @@
+@using RenewZone.Domain.Enums
+@model StaticPageFormViewModel
+@{
+    ViewData["Title"] = Model.IsEdit ? "Sửa trang" : "Thêm trang";
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        <div class="adm-page-sub">
+            Nội dung trang hiển thị nguyên vẹn tại địa chỉ <b>/@(Model.Slug ?? "duong-dan")</b> trên website.
+        </div>
+    </div>
+    <div class="adm-page-actions">
+        @if (Model.IsEdit)
+        {
+            <a class="adm-btn adm-btn-ghost" href="/@Model.Slug" target="_blank" rel="noopener">
+                <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                <span class="adm-btn-label">Xem trên web</span>
+            </a>
+        }
+        <a class="adm-btn adm-btn-ghost" asp-action="Index">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            <span class="adm-btn-label">Danh sách</span>
+        </a>
+    </div>
+</div>
+
+<form method="post" data-adm-form data-dirty-guard
+      asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.Id">
+
+    <div class="adm-form-card">
+        @if (ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+        {
+            <div class="adm-alert adm-alert-error" role="alert">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                <div asp-validation-summary="ModelOnly"></div>
+            </div>
+        }
+
+        @if (Model.IsEdit)
+        {
+            <div class="adm-alert adm-alert-warning">
+                <i class="bi bi-link-45deg" aria-hidden="true"></i>
+                <div>
+                    Đổi slug sẽ làm đường dẫn cũ không còn truy cập được. Nếu có mục menu đang trỏ tới
+                    trang này, nhớ sang <a asp-controller="Menu" asp-action="Index">màn Menu</a> sửa lại.
+                </div>
+            </div>
+        }
+
+        <div class="adm-form-grid">
+            <div class="adm-field" style="--col-span: 7;">
+                <label class="adm-label" asp-for="Title">
+                    Tiêu đề trang<span class="adm-req" aria-hidden="true">*</span>
+                </label>
+                <input class="adm-input" asp-for="Title" autocomplete="off" />
+                <span class="adm-error" asp-validation-for="Title"></span>
+            </div>
+
+            <div class="adm-field" style="--col-span: 5;">
+                <label class="adm-label" asp-for="Slug">
+                    Slug<span class="adm-req" aria-hidden="true">*</span>
+                </label>
+                <partial name="_SlugInput" model='new SlugInputModel {
+                    FieldName = "Slug", Value = Model.Slug, SourceSelector = "#Title",
+                    TargetType = SlugTargetType.StaticPage, ExcludeId = Model.Id }' />
+                <span class="adm-error" asp-validation-for="Slug"></span>
+            </div>
+
+            <div class="adm-field" style="--col-span: 12;">
+                <label class="adm-label" asp-for="ContentHtml">
+                    Nội dung<span class="adm-req" aria-hidden="true">*</span>
+                </label>
+                <textarea class="adm-textarea js-editor" asp-for="ContentHtml" rows="20"></textarea>
+                <span class="adm-error" asp-validation-for="ContentHtml"></span>
+            </div>
+
+            <div class="adm-field" style="--col-span: 12;">
+                <label class="adm-switch">
+                    <input asp-for="IsActive" />
+                    <span class="adm-switch-track"></span>
+                    <span class="adm-switch-label">Hiển thị trên website</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="adm-form-bar">
+            <button type="submit" class="adm-btn adm-btn-primary">
+                <span class="adm-spinner"></span>
+                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                <span class="adm-btn-label">Lưu trang</span>
+            </button>
+            <div class="adm-form-bar-end">
+                <a class="adm-btn adm-btn-ghost" asp-action="Index">Hủy</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="~/lib/tinymce/tinymce.min.js"></script>
+    <script src="~/js/admin-editor.js" asp-append-version="true"></script>
+}

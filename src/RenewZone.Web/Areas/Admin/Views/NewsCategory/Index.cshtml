@@ -1,0 +1,222 @@
+@model IReadOnlyList<NewsCategoryItem>
+@{
+    ViewData["Title"] = "Chuyên mục tin";
+    ViewData["Crumb"] = "Bài viết";
+    ViewData["CrumbUrl"] = Url.Action("Index", "News");
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Chuyên mục tin</h1>
+        <div class="adm-page-sub">
+            Chuyên mục hiện thành các chip lọc ở đầu trang /tin-tuc.
+            Xóa chuyên mục KHÔNG làm mất bài viết — bài chỉ chuyển sang “chưa phân loại”.
+        </div>
+    </div>
+    <div class="adm-page-actions">
+        <a class="adm-btn adm-btn-ghost" asp-controller="News" asp-action="Index">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            <span class="adm-btn-label">Bài viết</span>
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-lg-7">
+        @if (Model.Count == 0)
+        {
+            <div class="adm-card">
+                <partial name="_EmptyState" model='new EmptyStateModel {
+                    Icon = "bi-tags", Title = "Chưa có chuyên mục nào",
+                    Message = "Dùng form bên cạnh để thêm chuyên mục đầu tiên." }' />
+            </div>
+        }
+        else
+        {
+            <div class="adm-card p-0">
+                <div class="adm-tree js-sortable">
+                    @foreach (var category in Model)
+                    {
+                        <div class="adm-tree-row" data-id="@category.Id">
+                            <span class="adm-drag-handle" title="Kéo để đổi thứ tự" aria-hidden="true">
+                                <i class="bi bi-grip-vertical"></i>
+                            </span>
+                            <span class="adm-move-btns">
+                                <button type="button" class="js-move" data-dir="up"
+                                        aria-label="Chuyển “@category.Name” lên trên">▲</button>
+                                <button type="button" class="js-move" data-dir="down"
+                                        aria-label="Chuyển “@category.Name” xuống dưới">▼</button>
+                            </span>
+
+                            <span class="adm-tree-name">
+                                <b>@category.Name</b>
+                                @if (!category.IsActive)
+                                {
+                                    <span class="adm-badge adm-badge-muted ms-1">Đang ẩn</span>
+                                }
+                                <span class="adm-small adm-muted d-block adm-mono">?chuyenMuc=@category.Slug</span>
+                            </span>
+
+                            <span class="adm-tree-count adm-small adm-muted">@category.ArticleCount bài</span>
+
+                            <span class="adm-row-actions">
+                                <button type="button" class="adm-act js-edit"
+                                        data-id="@category.Id" data-name="@category.Name"
+                                        data-slug="@category.Slug" data-order="@category.DisplayOrder"
+                                        data-active="@category.IsActive.ToString().ToLowerInvariant()"
+                                        title="Sửa “@category.Name”">
+                                    <i class="bi bi-pencil" aria-hidden="true"></i>
+                                    <span class="visually-hidden">Sửa</span>
+                                </button>
+                                <form method="post" asp-action="Delete" asp-route-id="@category.Id" class="d-inline">
+                                    <button type="button" class="adm-act is-danger"
+                                            data-confirm="Chuyên mục <b>@category.Name</b> sẽ vào Thùng rác.@(category.ArticleCount > 0 ? $" {category.ArticleCount} bài viết sẽ chuyển sang chưa phân loại." : "")"
+                                            data-confirm-title="Xóa chuyên mục?" title="Xóa">
+                                        <i class="bi bi-trash" aria-hidden="true"></i>
+                                        <span class="visually-hidden">Xóa</span>
+                                    </button>
+                                </form>
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    @* Màn nhỏ nên form nằm ngay cạnh danh sách, không cần trang riêng *@
+    <div class="col-12 col-lg-5">
+        <div class="adm-card">
+            <div class="adm-card-head">
+                <h2 id="formTitle">Thêm chuyên mục</h2>
+                <button type="button" class="adm-btn adm-btn-ghost adm-btn-sm ms-auto" id="resetForm" hidden>
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    <span class="adm-btn-label">Hủy sửa</span>
+                </button>
+            </div>
+
+            <form method="post" asp-action="Save" data-adm-form id="catForm">
+                <input type="hidden" name="Id" id="catId" />
+
+                <div class="adm-field mb-3">
+                    <label class="adm-label" for="catName">
+                        Tên chuyên mục<span class="adm-req" aria-hidden="true">*</span>
+                    </label>
+                    <input class="adm-input" name="Name" id="catName" autocomplete="off" required />
+                </div>
+
+                <div class="adm-field mb-3">
+                    <label class="adm-label" for="catSlug">
+                        Slug<span class="adm-req" aria-hidden="true">*</span>
+                    </label>
+                    <input class="adm-input adm-mono" name="Slug" id="catSlug" autocomplete="off" required />
+                    <div class="adm-hint">
+                        Dùng trong địa chỉ lọc <span class="adm-mono">/tin-tuc?chuyenMuc=...</span>
+                    </div>
+                </div>
+
+                <div class="adm-field mb-3">
+                    <label class="adm-label" for="catOrder">Thứ tự</label>
+                    <input class="adm-input" name="DisplayOrder" id="catOrder" type="number"
+                           min="0" max="9999" value="0" />
+                </div>
+
+                <div class="adm-field mb-3">
+                    <label class="adm-switch">
+                        <input type="checkbox" name="IsActive" id="catActive" value="true" checked />
+                        <span class="adm-switch-track"></span>
+                        <span class="adm-switch-label">Hiển thị</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="adm-btn adm-btn-primary w-100">
+                    <span class="adm-spinner"></span>
+                    <i class="bi bi-check-lg" aria-hidden="true"></i>
+                    <span class="adm-btn-label">Lưu chuyên mục</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/sortablejs/Sortable.min.js"></script>
+    <script>
+        (function () {
+            var form = document.getElementById("catForm");
+            var title = document.getElementById("formTitle");
+            var reset = document.getElementById("resetForm");
+            var nameInput = document.getElementById("catName");
+            var slugInput = document.getElementById("catSlug");
+
+            // Tự sinh slug từ tên khi thêm mới (không đụng vào slug người dùng đã gõ)
+            var slugTouched = false;
+            slugInput.addEventListener("input", function () { slugTouched = true; });
+            nameInput.addEventListener("input", function () {
+                if (!slugTouched) slugInput.value = RZAdmin.slugify(nameInput.value);
+            });
+
+            document.addEventListener("click", function (e) {
+                var btn = e.target.closest(".js-edit");
+                if (!btn) return;
+
+                document.getElementById("catId").value = btn.dataset.id;
+                nameInput.value = btn.dataset.name;
+                slugInput.value = btn.dataset.slug;
+                document.getElementById("catOrder").value = btn.dataset.order;
+                document.getElementById("catActive").checked = btn.dataset.active === "true";
+
+                slugTouched = true; // đang sửa: đừng ghi đè slug đã có
+                title.textContent = "Sửa chuyên mục";
+                reset.hidden = false;
+                nameInput.focus();
+                form.scrollIntoView({ behavior: "smooth", block: "center" });
+            });
+
+            reset.addEventListener("click", function () {
+                form.reset();
+                document.getElementById("catId").value = "";
+                slugTouched = false;
+                title.textContent = "Thêm chuyên mục";
+                reset.hidden = true;
+            });
+
+            // ----- Kéo-thả + nút ▲▼ -----
+            var list = document.querySelector(".js-sortable");
+            if (!list) return;
+
+            Sortable.create(list, {
+                handle: ".adm-drag-handle",
+                animation: 150,
+                ghostClass: "adm-sortable-ghost",
+                onEnd: saveOrder
+            });
+
+            document.addEventListener("click", function (e) {
+                var btn = e.target.closest(".js-move");
+                if (!btn) return;
+
+                var row = btn.closest("[data-id]");
+                var sibling = btn.dataset.dir === "up"
+                    ? row.previousElementSibling : row.nextElementSibling;
+
+                if (!sibling || !sibling.hasAttribute("data-id")) return;
+
+                if (btn.dataset.dir === "up") { list.insertBefore(row, sibling); }
+                else { list.insertBefore(sibling, row); }
+
+                btn.focus();
+                saveOrder();
+            });
+
+            function saveOrder() {
+                var ids = Array.prototype.map.call(list.querySelectorAll("[data-id]"),
+                    function (el) { return parseInt(el.dataset.id, 10); });
+
+                RZAdmin.post("/admin/chuyen-muc-tin/sap-xep", { ids: ids }).then(function (res) {
+                    RZAdmin.toast(res.message, res.ok ? "success" : "error");
+                });
+            }
+        })();
+    </script>
+}

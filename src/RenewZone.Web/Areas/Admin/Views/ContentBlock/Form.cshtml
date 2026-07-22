@@ -1,0 +1,113 @@
+@model ContentBlockFormViewModel
+@{
+    ViewData["Title"] = Model.IsEdit ? "Sửa khối nội dung" : "Thêm khối nội dung";
+    var group = ContentBlockIndexViewModel.Describe(Model.GroupKey);
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        <div class="adm-page-sub">
+            Nhóm <b>@group.Name</b> — @group.Where
+        </div>
+    </div>
+    <div class="adm-page-actions">
+        <a class="adm-btn adm-btn-ghost" asp-action="Index" asp-route-nhom="@Model.GroupKey">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            <span class="adm-btn-label">Danh sách</span>
+        </a>
+    </div>
+</div>
+
+<form method="post" data-adm-form data-dirty-guard
+      asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.Id">
+    <input type="hidden" asp-for="GroupKey" />
+
+    <div class="adm-form-card">
+        @if (ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+        {
+            <div class="adm-alert adm-alert-error" role="alert">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                <div asp-validation-summary="ModelOnly"></div>
+            </div>
+        }
+
+        <div class="adm-form-grid">
+            <div class="adm-field" style="--col-span: 8;">
+                <label class="adm-label" asp-for="Title">
+                    Tiêu đề<span class="adm-req" aria-hidden="true">*</span>
+                </label>
+                <input class="adm-input" asp-for="Title" autocomplete="off" />
+                <span class="adm-error" asp-validation-for="Title"></span>
+            </div>
+
+            <div class="adm-field" style="--col-span: 4;">
+                <label class="adm-label" asp-for="Icon">Icon</label>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="adm-icon-preview" id="iconPreview">
+                        <i class="bi @(string.IsNullOrWhiteSpace(Model.Icon) ? "bi-square" : Model.Icon)"
+                           aria-hidden="true"></i>
+                    </span>
+                    <input class="adm-input" asp-for="Icon" id="Icon"
+                           placeholder="bi-patch-check-fill" autocomplete="off" />
+                </div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 12;">
+                <label class="adm-label" asp-for="Subtitle">Mô tả phụ</label>
+                <input class="adm-input" asp-for="Subtitle" autocomplete="off" />
+                <div class="adm-hint">Dòng chữ nhỏ dưới tiêu đề. Để trống thì chỉ hiện tiêu đề.</div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 6;">
+                <label class="adm-label" asp-for="LinkUrl">Đường dẫn</label>
+                <input class="adm-input adm-mono" asp-for="LinkUrl" placeholder="/lien-he hoặc tel:0900000000" />
+                <div class="adm-hint">Để trống thì khối chỉ để đọc, không bấm được.</div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 6;">
+                <label class="adm-label" asp-for="ImageUrl">Ảnh (tùy chọn)</label>
+                <input class="adm-input" asp-for="ImageUrl" />
+                <div class="adm-hint">Có ảnh thì ảnh sẽ thay cho icon.</div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 6;">
+                <label class="adm-label" asp-for="DisplayOrder">Thứ tự</label>
+                <input class="adm-input" asp-for="DisplayOrder" type="number" min="0" max="9999" />
+            </div>
+
+            <div class="adm-field" style="--col-span: 6;">
+                <label class="adm-switch mt-4">
+                    <input asp-for="IsActive" />
+                    <span class="adm-switch-track"></span>
+                    <span class="adm-switch-label">Hiển thị trên website</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="adm-form-bar">
+            <button type="submit" class="adm-btn adm-btn-primary">
+                <span class="adm-spinner"></span>
+                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                <span class="adm-btn-label">Lưu khối</span>
+            </button>
+            <div class="adm-form-bar-end">
+                <a class="adm-btn adm-btn-ghost" asp-action="Index" asp-route-nhom="@Model.GroupKey">Hủy</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        (function () {
+            var input = document.getElementById("Icon");
+            var preview = document.getElementById("iconPreview");
+            if (!input || !preview) return;
+
+            input.addEventListener("input", function () {
+                preview.querySelector("i").className = "bi " + (input.value.trim() || "bi-square");
+            });
+        })();
+    </script>
+}

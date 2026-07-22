@@ -1,0 +1,117 @@
+@model SettingViewModel
+@{
+    ViewData["Title"] = "Cấu hình";
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Cấu hình website</h1>
+        <div class="adm-page-sub">
+            Những nội dung xuất hiện ở nhiều nơi trên website. Ô nào để trống thì website dùng
+            giá trị mặc định ghi sẵn trong ô (chữ mờ) — không bao giờ hiện chỗ trống.
+        </div>
+    </div>
+</div>
+
+<form method="post" data-adm-form data-dirty-guard asp-action="Index">
+    @foreach (var group in SettingViewModel.Groups)
+    {
+        <div class="adm-card mb-3">
+            <div class="adm-card-head">
+                <i class="bi @group.Icon" aria-hidden="true"></i>
+                <h2>@group.Name</h2>
+            </div>
+
+            <div class="adm-form-grid">
+                @foreach (var field in group.Fields)
+                {
+                    var value = Model.ValueOf(field.Key);
+                    var inputId = "set_" + field.Key;
+
+                    <div class="adm-field" style="--col-span: @(field.Multiline ? 12 : 6);">
+                        <label class="adm-label" for="@inputId">@field.Label</label>
+
+                        <div class="d-flex gap-2 align-items-start">
+                            @if (field.Multiline)
+                            {
+                                <textarea class="adm-textarea" id="@inputId"
+                                          name="values[@field.Key]" rows="3"
+                                          placeholder="@field.Placeholder">@value</textarea>
+                            }
+                            else
+                            {
+                                <input class="adm-input" id="@inputId" name="values[@field.Key]"
+                                       value="@value" placeholder="@field.Placeholder" autocomplete="off" />
+                            }
+
+                            @if (field.IsUrl)
+                            {
+                                <a class="adm-btn adm-btn-ghost adm-btn-sm js-open-url"
+                                   href="@(string.IsNullOrWhiteSpace(value) ? "#" : value)"
+                                   target="_blank" rel="noopener"
+                                   title="Mở thử đường dẫn này trong tab mới"
+                                   hidden="@string.IsNullOrWhiteSpace(value)">
+                                    <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                                    <span class="visually-hidden">Mở thử</span>
+                                </a>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(field.Hint))
+                        {
+                            <div class="adm-hint">@field.Hint</div>
+                        }
+
+                        @if (field.Key == SettingKeys.Hotline)
+                        {
+                            <div class="adm-hint">
+                                Khách bấm nút gọi sẽ quay số:
+                                <b class="adm-mono" id="hotlinePreview">@value.Replace(".", "").Replace(" ", "")</b>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="adm-card">
+        <div class="adm-form-bar" style="margin: -20px; border-radius: var(--adm-r);">
+            <button type="submit" class="adm-btn adm-btn-primary">
+                <span class="adm-spinner"></span>
+                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                <span class="adm-btn-label">Lưu cấu hình</span>
+            </button>
+            <span class="adm-small adm-muted ms-2">
+                Website cập nhật ngay sau khi lưu, không cần khởi động lại.
+            </span>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        (function () {
+            // Nút "mở thử" chỉ hiện khi ô có giá trị — link rỗng sẽ trỏ về chính trang này
+            document.querySelectorAll(".js-open-url").forEach(function (link) {
+                var field = link.closest(".adm-field");
+                var input = field.querySelector("input, textarea");
+
+                input.addEventListener("input", function () {
+                    var value = input.value.trim();
+                    link.hidden = !value;
+                    link.href = value || "#";
+                });
+            });
+
+            // Xem trước số điện thoại dạng tel: — đúng thứ khách sẽ quay khi bấm nút gọi
+            var hotline = document.getElementById("set_@SettingKeys.Hotline");
+            var preview = document.getElementById("hotlinePreview");
+            if (hotline && preview) {
+                hotline.addEventListener("input", function () {
+                    preview.textContent = hotline.value.replace(/[.\s]/g, "");
+                });
+            }
+        })();
+    </script>
+}

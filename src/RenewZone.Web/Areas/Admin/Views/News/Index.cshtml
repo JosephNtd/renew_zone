@@ -1,0 +1,169 @@
+@model NewsListViewModel
+@{
+    ViewData["Title"] = "Bài viết";
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Bài viết</h1>
+        <div class="adm-page-sub">Tin công nghệ hiển thị ở trang chủ và trang /tin-tuc</div>
+    </div>
+    <div class="adm-page-actions">
+        <a class="adm-btn adm-btn-ghost" asp-controller="NewsCategory" asp-action="Index">
+            <i class="bi bi-tags" aria-hidden="true"></i>
+            <span class="adm-btn-label">Chuyên mục</span>
+        </a>
+        <a class="adm-btn adm-btn-primary" asp-action="Create">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            <span class="adm-btn-label">Viết bài mới</span>
+        </a>
+    </div>
+</div>
+
+<form class="adm-filters" method="get" action="/admin/bai-viet">
+    <div class="adm-search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input class="adm-input" type="search" name="q" value="@Model.Search"
+               placeholder="Tìm theo tiêu đề hoặc slug..." aria-label="Tìm bài viết" />
+    </div>
+
+    <select class="adm-select" name="chuyenMuc" style="width: auto;" aria-label="Lọc theo chuyên mục">
+        <option value="">Mọi chuyên mục</option>
+        @foreach (var category in Model.Categories)
+        {
+            <option value="@category.Id" selected="@(Model.CategoryId == category.Id)">@category.Name</option>
+        }
+    </select>
+
+    <select class="adm-select" name="trangThai" style="width: auto;" aria-label="Lọc theo trạng thái">
+        <option value="">Mọi trạng thái</option>
+        <option value="hien" selected="@(Model.IsActive == true)">Đang hiện</option>
+        <option value="an" selected="@(Model.IsActive == false)">Đang ẩn</option>
+    </select>
+
+    <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">
+        <i class="bi bi-funnel" aria-hidden="true"></i>
+        <span class="adm-btn-label">Lọc</span>
+    </button>
+
+    @if (Model.HasAnyFilter)
+    {
+        <a class="adm-btn adm-btn-ghost adm-btn-sm" href="/admin/bai-viet">Xóa lọc</a>
+    }
+</form>
+
+@if (Model.Result.TotalItems == 0)
+{
+    <div class="adm-card">
+        <partial name="_EmptyState" model='new EmptyStateModel {
+            Icon = "bi-newspaper",
+            Title = Model.HasAnyFilter ? "Không có bài nào khớp bộ lọc" : "Chưa có bài viết nào",
+            Message = Model.HasAnyFilter ? "Thử bỏ bớt điều kiện lọc." : "Bài viết hiện ở khối tin công nghệ trang chủ và trang /tin-tuc.",
+            ActionText = Model.HasAnyFilter ? null : "Viết bài đầu tiên",
+            ActionUrl = Model.HasAnyFilter ? null : Url.Action("Create") }' />
+    </div>
+}
+else
+{
+    <div class="adm-table-wrap">
+        <table class="adm-table adm-table-cards">
+            <caption class="visually-hidden">Danh sách bài viết</caption>
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 60px;">Ảnh</th>
+                    <th scope="col">Tiêu đề</th>
+                    <th scope="col">Chuyên mục</th>
+                    <th scope="col">Nổi bật</th>
+                    <th scope="col" class="adm-col-right">Lượt xem</th>
+                    <th scope="col">Ngày đăng</th>
+                    <th scope="col">Hiển thị</th>
+                    <th scope="col" class="adm-col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var article in Model.Result.Items)
+                {
+                    <tr data-id="@article.Id">
+                        <td data-label="Ảnh">
+                            <img class="adm-thumb" src="@(article.ThumbnailUrl ?? "/images/placeholder-news.svg")"
+                                 alt="" loading="lazy" />
+                        </td>
+                        <td data-label="Tiêu đề">
+                            <a class="fw-bold" asp-action="Edit" asp-route-id="@article.Id">@article.Title</a>
+                            <div class="adm-small adm-muted adm-mono">/@article.Slug</div>
+                        </td>
+                        <td data-label="Chuyên mục">
+                            @if (article.CategoryName is not null)
+                            {
+                                <span class="adm-flag">@article.CategoryName</span>
+                            }
+                            else
+                            {
+                                <span class="adm-small adm-muted">Chưa phân loại</span>
+                            }
+                        </td>
+                        <td data-label="Nổi bật">
+                            @if (article.IsFeatured)
+                            {
+                                <span class="adm-badge adm-badge-confirm">
+                                    <i class="bi bi-star-fill" aria-hidden="true"></i> Nổi bật
+                                </span>
+                            }
+                        </td>
+                        <td data-label="Lượt xem" class="adm-col-right adm-num">@article.ViewCount</td>
+                        <td data-label="Ngày đăng" class="adm-small">
+                            @article.PublishedAt.ToString("dd/MM/yyyy")
+                        </td>
+                        <td data-label="Hiển thị">
+                            <label class="adm-switch">
+                                <input type="checkbox" class="js-toggle-active" checked="@article.IsActive"
+                                       aria-label="Hiển thị bài “@article.Title”" />
+                                <span class="adm-switch-track"></span>
+                            </label>
+                        </td>
+                        <td data-label="Thao tác" class="adm-col-actions">
+                            <span class="adm-row-actions">
+                                <a class="adm-act" href="/@article.Slug" target="_blank" rel="noopener" title="Xem trên website">
+                                    <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                                    <span class="visually-hidden">Xem trên website</span>
+                                </a>
+                                <a class="adm-act" asp-action="Edit" asp-route-id="@article.Id" title="Sửa">
+                                    <i class="bi bi-pencil" aria-hidden="true"></i>
+                                    <span class="visually-hidden">Sửa</span>
+                                </a>
+                                <form method="post" asp-action="Delete" asp-route-id="@article.Id" class="d-inline">
+                                    <button type="button" class="adm-act is-danger"
+                                            data-confirm="Bài <b>@article.Title</b> sẽ được chuyển vào Thùng rác."
+                                            data-confirm-title="Xóa bài viết?" title="Xóa">
+                                        <i class="bi bi-trash" aria-hidden="true"></i>
+                                        <span class="visually-hidden">Xóa</span>
+                                    </button>
+                                </form>
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <partial name="_AdminPager" model='new AdminPagerModel {
+        Page = Model.Result.Page, PageSize = Model.Result.PageSize,
+        TotalItems = Model.Result.TotalItems, UrlFor = p => Model.BuildUrl(page: p) }' />
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("change", function (e) {
+            var input = e.target.closest(".js-toggle-active");
+            if (!input) return;
+
+            var id = input.closest("[data-id]").dataset.id;
+
+            RZAdmin.post("/admin/bai-viet/" + id + "/toggle", {}).then(function (res) {
+                if (!res.ok) { input.checked = !input.checked; RZAdmin.toast(res.message, "error"); return; }
+                RZAdmin.toast(res.message, "success");
+            });
+        });
+    </script>
+}

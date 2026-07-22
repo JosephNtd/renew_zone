@@ -1,0 +1,68 @@
+@using RenewZone.Domain.Enums
+@model MenuTreeNode
+
+<div class="adm-tree-row" data-id="@Model.Id">
+    <span class="adm-drag-handle" title="Kéo để đổi thứ tự" aria-hidden="true">
+        <i class="bi bi-grip-vertical"></i>
+    </span>
+
+    <span class="adm-move-btns">
+        <button type="button" class="js-move" data-dir="up" aria-label="Chuyển “@Model.Text” lên trên">▲</button>
+        <button type="button" class="js-move" data-dir="down" aria-label="Chuyển “@Model.Text” xuống dưới">▼</button>
+    </span>
+
+    <span class="adm-tree-icon">
+        <i class="bi @(Model.Icon ?? "bi-link-45deg")" aria-hidden="true"></i>
+    </span>
+
+    <span class="adm-tree-name">
+        <b>@Model.Text</b>
+        @if (Model.Type == MenuItemType.ProductMega)
+        {
+            <span class="adm-flag ms-1" title="Danh sách con sinh tự động từ Danh mục sản phẩm">
+                Menu sản phẩm tự động
+            </span>
+        }
+        @if (Model.IsBroken == true)
+        {
+            <span class="adm-badge adm-badge-cancel ms-1"
+                  title="Đường dẫn này hiện không tồn tại — khách bấm vào sẽ gặp trang 404">404</span>
+        }
+        @if (Model.OpenInNewTab)
+        {
+            <span class="adm-badge adm-badge-muted ms-1">Tab mới</span>
+        }
+
+        <span class="adm-small adm-muted d-block adm-mono">
+            @if (Model.Type == MenuItemType.ProductMega)
+            {
+                <text>Sinh tự động từ cây Danh mục — không cần khai báo mục con</text>
+            }
+            else
+            {
+                @(string.IsNullOrWhiteSpace(Model.Url) ? "(chưa có đường dẫn)" : Model.Url)
+            }
+        </span>
+    </span>
+
+    <label class="adm-switch" title="Hiện/ẩn trên website">
+        <input type="checkbox" class="js-toggle" checked="@Model.IsActive"
+               aria-label="Hiển thị “@Model.Text” trên menu" />
+        <span class="adm-switch-track"></span>
+    </label>
+
+    <span class="adm-row-actions">
+        <a class="adm-act" asp-action="Edit" asp-route-id="@Model.Id" title="Sửa “@Model.Text”">
+            <i class="bi bi-pencil" aria-hidden="true"></i>
+            <span class="visually-hidden">Sửa</span>
+        </a>
+        <form method="post" asp-action="Delete" asp-route-id="@Model.Id" asp-route-nhom="@Model.Group" class="d-inline">
+            <button type="button" class="adm-act is-danger"
+                    data-confirm="Mục menu <b>@Model.Text</b> sẽ được chuyển vào Thùng rác."
+                    data-confirm-title="Xóa mục menu?" title="Xóa">
+                <i class="bi bi-trash" aria-hidden="true"></i>
+                <span class="visually-hidden">Xóa</span>
+            </button>
+        </form>
+    </span>
+</div>

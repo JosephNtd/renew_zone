@@ -85,7 +85,9 @@
             <i class="bi bi-envelope" aria-hidden="true"></i><span>Hộp thư</span>
             @if (Model.UnreadContacts > 0)
             {
-                <span class="adm-nav-badge" title="@Model.UnreadContacts liên hệ chưa đọc">@Model.UnreadContacts</span>
+                @* id riêng để màn Hộp thư trừ đúng badge này khi mở tin (không đụng badge đơn hàng) *@
+                <span class="adm-nav-badge" id="contactBadge"
+                      title="@Model.UnreadContacts liên hệ chưa đọc">@Model.UnreadContacts</span>
             }
         </a>
         <a class="adm-nav-item @Active("Setting")" aria-current="@Current("Setting")"

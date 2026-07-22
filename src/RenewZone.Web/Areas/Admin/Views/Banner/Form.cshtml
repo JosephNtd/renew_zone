@@ -1,0 +1,157 @@
+@using RenewZone.Domain.Enums
+@model BannerFormViewModel
+@{
+    ViewData["Title"] = Model.IsEdit ? "Sửa banner" : "Thêm banner";
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        <div class="adm-page-sub">Tiêu đề chỉ dùng để bạn dễ nhận ra banner trong admin, không hiện trên website.</div>
+    </div>
+    <div class="adm-page-actions">
+        <a class="adm-btn adm-btn-ghost" asp-action="Index">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            <span class="adm-btn-label">Danh sách</span>
+        </a>
+    </div>
+</div>
+
+<form method="post" data-adm-form data-dirty-guard
+      asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.Id">
+
+    <div class="adm-form-card">
+        @if (ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+        {
+            <div class="adm-alert adm-alert-error" role="alert">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                <div asp-validation-summary="ModelOnly"></div>
+            </div>
+        }
+
+        <div class="adm-form-grid">
+            <div class="adm-field" style="--col-span: 7;">
+                <label class="adm-label" asp-for="Title">Tiêu đề (nội bộ)</label>
+                <input class="adm-input" asp-for="Title" autocomplete="off"
+                       placeholder="vd: Khuyến mãi iPhone 17 tháng 7" />
+            </div>
+
+            <div class="adm-field" style="--col-span: 5;">
+                <label class="adm-label" asp-for="Position">Vị trí hiển thị</label>
+                <select class="adm-select" asp-for="Position">
+                    <option value="@BannerPosition.HomeSlider" selected="@(Model.Position == BannerPosition.HomeSlider)">
+                        Slider trang chủ (1400×450)
+                    </option>
+                    <option value="@BannerPosition.HomeMiddle" selected="@(Model.Position == BannerPosition.HomeMiddle)">
+                        Khối giữa trang chủ (700×220)
+                    </option>
+                </select>
+            </div>
+
+            <div class="adm-field" style="--col-span: 12;">
+                <label class="adm-label" asp-for="ImageUrl">
+                    Ảnh banner<span class="adm-req" aria-hidden="true">*</span>
+                </label>
+                <div class="d-flex gap-2 align-items-start">
+                    <input class="adm-input" asp-for="ImageUrl" id="ImageUrl"
+                           placeholder="/images/placeholder-banner.svg" />
+                    <button type="button" class="adm-btn adm-btn-ghost" id="pickImage">
+                        <i class="bi bi-upload" aria-hidden="true"></i>
+                        <span class="adm-btn-label">Tải ảnh lên</span>
+                    </button>
+                    <input type="file" id="imageFile" accept=".jpg,.jpeg,.png,.webp" hidden />
+                </div>
+                <span class="adm-error" asp-validation-for="ImageUrl"></span>
+
+                <div class="adm-banner-preview mt-2" id="preview">
+                    @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+                    {
+                        <img src="@Model.ImageUrl" alt="Xem trước banner" />
+                    }
+                </div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 7;">
+                <label class="adm-label" asp-for="LinkUrl">Link khi bấm vào</label>
+                <input class="adm-input" asp-for="LinkUrl" placeholder="/iphone hoặc https://..." />
+                <div class="adm-hint">Để trống thì banner chỉ để xem, không bấm được.</div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 5;">
+                <label class="adm-label" asp-for="DisplayOrder">Thứ tự</label>
+                <input class="adm-input" asp-for="DisplayOrder" type="number" min="0" max="9999" />
+            </div>
+
+            <div class="adm-field" style="--col-span: 12;">
+                <label class="adm-switch">
+                    <input asp-for="IsActive" />
+                    <span class="adm-switch-track"></span>
+                    <span class="adm-switch-label">Hiển thị trên website</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="adm-form-bar">
+            <button type="submit" class="adm-btn adm-btn-primary">
+                <span class="adm-spinner"></span>
+                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                <span class="adm-btn-label">Lưu banner</span>
+            </button>
+            <div class="adm-form-bar-end">
+                <a class="adm-btn adm-btn-ghost" asp-action="Index">Hủy</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        // Upload ảnh banner dùng chung endpoint editor của IMediaService
+        (function () {
+            var pick = document.getElementById("pickImage");
+            var file = document.getElementById("imageFile");
+            var url = document.getElementById("ImageUrl");
+            var preview = document.getElementById("preview");
+
+            url.addEventListener("input", render);
+            pick.addEventListener("click", function () { file.click(); });
+
+            file.addEventListener("change", function () {
+                if (!file.files.length) return;
+
+                var form = new FormData();
+                form.append("file", file.files[0]);
+
+                pick.classList.add("is-loading");
+
+                fetch("/admin/media/upload-editor", {
+                    method: "POST",
+                    headers: { "RequestVerificationToken": RZAdmin.token() },
+                    body: form
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        pick.classList.remove("is-loading");
+                        if (!data.location) {
+                            RZAdmin.toast(data.message || "Tải ảnh thất bại.", "error");
+                            return;
+                        }
+                        url.value = data.location;
+                        render();
+                        RZAdmin.toast("Đã tải ảnh lên.", "success");
+                    })
+                    .catch(function () {
+                        pick.classList.remove("is-loading");
+                        RZAdmin.toast("Không kết nối được máy chủ.", "error");
+                    });
+
+                file.value = "";
+            });
+
+            function render() {
+                preview.innerHTML = url.value
+                    ? '<img src="' + url.value + '" alt="Xem trước banner" />' : "";
+            }
+        })();
+    </script>
+}

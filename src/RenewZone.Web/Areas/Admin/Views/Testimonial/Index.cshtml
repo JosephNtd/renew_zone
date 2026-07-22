@@ -1,0 +1,98 @@
+@model IReadOnlyList<TestimonialItem>
+@{
+    ViewData["Title"] = "Đánh giá khách hàng";
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Đánh giá khách hàng</h1>
+        <div class="adm-page-sub">Carousel đánh giá ở trang chủ. Đây là nội dung do shop tự nhập, không phải bình luận công khai.</div>
+    </div>
+    <div class="adm-page-actions">
+        <a class="adm-btn adm-btn-primary" asp-action="Create">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            <span class="adm-btn-label">Thêm đánh giá</span>
+        </a>
+    </div>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="adm-card">
+        <partial name="_EmptyState" model='new EmptyStateModel {
+            Icon = "bi-chat-quote", Title = "Chưa có đánh giá nào",
+            Message = "Khối đánh giá sẽ tự ẩn trên trang chủ khi không có mục nào đang hiện.",
+            ActionText = "Thêm đánh giá", ActionUrl = Url.Action("Create") }' />
+    </div>
+}
+else
+{
+    <div class="adm-table-wrap">
+        <table class="adm-table">
+            <caption class="visually-hidden">Danh sách đánh giá khách hàng</caption>
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 60px;">Ảnh</th>
+                    <th scope="col">Khách hàng</th>
+                    <th scope="col">Nội dung</th>
+                    <th scope="col" class="adm-col-right">Thứ tự</th>
+                    <th scope="col">Hiển thị</th>
+                    <th scope="col" class="adm-col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr data-id="@item.Id">
+                        <td>
+                            <img class="adm-thumb rounded-circle"
+                                 src="@(item.AvatarUrl ?? "/images/placeholder-avatar.svg")" alt="" loading="lazy" />
+                        </td>
+                        <td><b>@item.CustomerName</b></td>
+                        <td class="adm-small" style="max-width: 480px;">@item.Content</td>
+                        <td class="adm-col-right adm-num">@item.DisplayOrder</td>
+                        <td>
+                            <label class="adm-switch">
+                                <input type="checkbox" class="js-toggle" checked="@item.IsActive"
+                                       aria-label="Hiển thị đánh giá của @item.CustomerName" />
+                                <span class="adm-switch-track"></span>
+                            </label>
+                        </td>
+                        <td class="adm-col-actions">
+                            <span class="adm-row-actions">
+                                <a class="adm-act" asp-action="Edit" asp-route-id="@item.Id" title="Sửa">
+                                    <i class="bi bi-pencil" aria-hidden="true"></i>
+                                    <span class="visually-hidden">Sửa</span>
+                                </a>
+                                <form method="post" asp-action="Delete" asp-route-id="@item.Id" class="d-inline">
+                                    <button type="button" class="adm-act is-danger"
+                                            data-confirm="Đánh giá của <b>@item.CustomerName</b> sẽ vào Thùng rác."
+                                            data-confirm-title="Xóa đánh giá?" title="Xóa">
+                                        <i class="bi bi-trash" aria-hidden="true"></i>
+                                        <span class="visually-hidden">Xóa</span>
+                                    </button>
+                                </form>
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("change", function (e) {
+            var input = e.target.closest(".js-toggle");
+            if (!input) return;
+
+            var id = input.closest("[data-id]").dataset.id;
+
+            RZAdmin.post("/admin/danh-gia/" + id + "/toggle", {}).then(function (res) {
+                if (!res.ok) { input.checked = !input.checked; RZAdmin.toast(res.message, "error"); return; }
+                RZAdmin.toast(res.message, "success");
+            });
+        });
+    </script>
+}
