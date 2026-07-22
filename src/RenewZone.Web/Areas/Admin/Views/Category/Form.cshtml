@@ -1,0 +1,173 @@
+@using RenewZone.Domain.Enums
+@model CategoryFormViewModel
+@{
+    ViewData["Title"] = Model.IsEdit ? "Sửa danh mục" : "Thêm danh mục";
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        <div class="adm-page-sub">
+            @if (Model.IsEdit)
+            {
+                <text>Đổi slug sẽ làm đường dẫn cũ không còn truy cập được.</text>
+            }
+            else
+            {
+                <text>Danh mục cấp 1 hiện trên menu chính; danh mục cấp 2 là tab lọc dòng sản phẩm.</text>
+            }
+        </div>
+    </div>
+    <div class="adm-page-actions">
+        @if (Model.IsEdit)
+        {
+            <a class="adm-btn adm-btn-ghost" href="/@Model.Slug" target="_blank" rel="noopener">
+                <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                <span class="adm-btn-label">Xem trên web</span>
+            </a>
+        }
+        <a class="adm-btn adm-btn-ghost" asp-action="Index">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            <span class="adm-btn-label">Danh sách</span>
+        </a>
+    </div>
+</div>
+
+<form method="post" data-adm-form data-dirty-guard
+      asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.Id">
+
+    <div class="adm-form-card">
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+        {
+            <div class="adm-alert adm-alert-error" role="alert">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                <div asp-validation-summary="ModelOnly"></div>
+            </div>
+        }
+
+        <div class="adm-form-grid">
+            <div class="adm-field" style="--col-span: 7;">
+                <label class="adm-label" asp-for="Name">
+                    Tên danh mục<span class="adm-req" aria-hidden="true">*</span>
+                </label>
+                <input class="adm-input" asp-for="Name" autocomplete="off" />
+                <span class="adm-error" asp-validation-for="Name"></span>
+            </div>
+
+            <div class="adm-field" style="--col-span: 5;">
+                <label class="adm-label" asp-for="ParentId">Danh mục cha</label>
+                <select class="adm-select" asp-for="ParentId">
+                    <option value="">— Là danh mục cấp 1 —</option>
+                    @foreach (var option in Model.ParentOptions)
+                    {
+                        <option value="@option.Id" selected="@(Model.ParentId == option.Id)">@option.Name</option>
+                    }
+                </select>
+                <div class="adm-hint">Website chỉ hiển thị 2 cấp nên danh mục con không thể có con.</div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 7;">
+                <label class="adm-label" asp-for="Slug">
+                    Slug (đường dẫn)<span class="adm-req" aria-hidden="true">*</span>
+                </label>
+                <partial name="_SlugInput" model='new SlugInputModel {
+                    FieldName = "Slug", Value = Model.Slug, SourceSelector = "#Name",
+                    TargetType = SlugTargetType.Category, ExcludeId = Model.Id }' />
+                <span class="adm-error" asp-validation-for="Slug"></span>
+                <div class="adm-hint">Địa chỉ trên website sẽ là <b>/@(Model.Slug ?? "duong-dan")</b></div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 5;">
+                <label class="adm-label" asp-for="DisplayOrder">Thứ tự hiển thị</label>
+                <input class="adm-input" asp-for="DisplayOrder" type="number" min="0" max="9999" />
+                <span class="adm-error" asp-validation-for="DisplayOrder"></span>
+                <div class="adm-hint">Số nhỏ hiện trước. Có thể kéo-thả ở màn danh sách thay vì nhập tay.</div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 6;">
+                <label class="adm-label" asp-for="IconClass">Icon trên menu</label>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="adm-icon-preview" id="iconPreview">
+                        <i class="bi @(string.IsNullOrWhiteSpace(Model.IconClass) ? "bi-folder" : Model.IconClass)"
+                           aria-hidden="true"></i>
+                    </span>
+                    <select class="adm-select" asp-for="IconClass" id="IconClass">
+                        <option value="">— Không dùng icon —</option>
+                        @foreach (var icon in IconOptions)
+                        {
+                            <option value="@icon.Key" selected="@(Model.IconClass == icon.Key)">@icon.Value</option>
+                        }
+                    </select>
+                </div>
+                <div class="adm-hint">Icon hiện cạnh tên danh mục trong menu thả xuống của website.</div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 6;">
+                <label class="adm-label" asp-for="ImageUrl">Ảnh danh mục</label>
+                <input class="adm-input" asp-for="ImageUrl" placeholder="/images/placeholder-product.svg" />
+                <div class="adm-hint">Dùng cho khối 6 ô danh mục ở trang chủ. Để trống sẽ dùng ảnh mặc định.</div>
+            </div>
+
+            <div class="adm-field" style="--col-span: 12;">
+                <label class="adm-switch">
+                    <input asp-for="IsActive" />
+                    <span class="adm-switch-track"></span>
+                    <span class="adm-switch-label">
+                        Hiển thị trên website
+                        <span class="adm-small adm-muted d-block">
+                            Tắt thì danh mục và toàn bộ sản phẩm trong đó biến mất khỏi menu và trang chủ.
+                        </span>
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        <div class="adm-form-bar">
+            <button type="submit" class="adm-btn adm-btn-primary">
+                <span class="adm-spinner"></span>
+                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                <span class="adm-btn-label">Lưu danh mục</span>
+            </button>
+            <div class="adm-form-bar-end">
+                <a class="adm-btn adm-btn-ghost" asp-action="Index">Hủy</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+@functions {
+    /// <summary>
+    /// Bộ icon gợi ý cho danh mục Apple. Cố ý là danh sách CÓ HẠN thay vì ô nhập tự do:
+    /// admin không phải nhớ tên class Bootstrap Icons, và không thể gõ sai thành icon trống.
+    /// </summary>
+    private static readonly Dictionary<string, string> IconOptions = new()
+    {
+        ["bi-phone"] = "Điện thoại",
+        ["bi-laptop"] = "Laptop",
+        ["bi-tablet"] = "Máy tính bảng",
+        ["bi-smartwatch"] = "Đồng hồ",
+        ["bi-earbuds"] = "Tai nghe",
+        ["bi-tags"] = "Thanh lý / Khuyến mãi",
+        ["bi-display"] = "Màn hình",
+        ["bi-keyboard"] = "Bàn phím",
+        ["bi-mouse"] = "Chuột",
+        ["bi-battery-charging"] = "Phụ kiện sạc",
+        ["bi-box-seam"] = "Phụ kiện khác",
+        ["bi-star"] = "Nổi bật"
+    };
+}
+
+@section Scripts {
+    <script>
+        // Xem trước icon ngay khi chọn — không phải lưu rồi mở website mới biết mình chọn cái gì
+        (function () {
+            var select = document.getElementById("IconClass");
+            var preview = document.getElementById("iconPreview");
+            if (!select || !preview) return;
+
+            select.addEventListener("change", function () {
+                preview.querySelector("i").className = "bi " + (select.value || "bi-folder");
+            });
+        })();
+    </script>
+}

@@ -1,0 +1,231 @@
+@model ProductListViewModel
+@{
+    ViewData["Title"] = "Sản phẩm";
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Sản phẩm</h1>
+        <div class="adm-page-sub">@Model.Result.TotalItems sản phẩm khớp điều kiện đang lọc</div>
+    </div>
+    <div class="adm-page-actions">
+        <button type="button" class="adm-btn adm-btn-ghost" id="admCompactToggle" aria-pressed="false">
+            <i class="bi bi-arrows-collapse" aria-hidden="true"></i>
+            <span class="adm-btn-label">Chế độ gọn</span>
+        </button>
+        <a class="adm-btn adm-btn-primary" asp-action="Create">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            <span class="adm-btn-label">Thêm sản phẩm</span>
+        </a>
+    </div>
+</div>
+
+<form class="adm-filters" method="get" action="/admin/san-pham">
+    <div class="adm-search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input class="adm-input" type="search" name="q" value="@Model.Search"
+               placeholder="Tìm theo tên hoặc slug..." aria-label="Tìm sản phẩm" />
+    </div>
+
+    <select class="adm-select" name="danhMuc" style="width: auto;" aria-label="Lọc theo danh mục">
+        <option value="">Mọi danh mục</option>
+        @foreach (var option in Model.CategoryOptions)
+        {
+            <option value="@option.Id" selected="@(Model.CategoryId == option.Id)">
+                @(option.Depth > 0 ? "— " : "")@option.Name
+            </option>
+        }
+    </select>
+
+    <select class="adm-select" name="trangThai" style="width: auto;" aria-label="Lọc theo trạng thái">
+        <option value="">Mọi trạng thái</option>
+        <option value="hien" selected="@(Model.IsActive == true)">Đang bán</option>
+        <option value="an" selected="@(Model.IsActive == false)">Đang ẩn</option>
+    </select>
+
+    <select class="adm-select" name="coAnh" style="width: auto;" aria-label="Lọc theo tình trạng ảnh">
+        <option value="">Ảnh: tất cả</option>
+        <option value="co" selected="@(Model.HasImage == true)">Đã có ảnh</option>
+        <option value="khong" selected="@(Model.HasImage == false)">Chưa có ảnh</option>
+    </select>
+
+    <select class="adm-select" name="coMoTa" style="width: auto;" aria-label="Lọc theo mô tả">
+        <option value="">Mô tả: tất cả</option>
+        <option value="co" selected="@(Model.HasDescription == true)">Đã có mô tả</option>
+        <option value="khong" selected="@(Model.HasDescription == false)">Chưa có mô tả</option>
+    </select>
+
+    <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">
+        <i class="bi bi-funnel" aria-hidden="true"></i>
+        <span class="adm-btn-label">Lọc</span>
+    </button>
+
+    @if (Model.HasAnyFilter)
+    {
+        <a class="adm-btn adm-btn-ghost adm-btn-sm" href="/admin/san-pham">Xóa lọc</a>
+    }
+</form>
+
+@if (Model.Result.TotalItems == 0)
+{
+    <div class="adm-card">
+        @if (Model.HasAnyFilter)
+        {
+            <partial name="_EmptyState" model='new EmptyStateModel {
+                Icon = "bi-search", Title = "Không có sản phẩm nào khớp bộ lọc",
+                Message = "Thử bỏ bớt điều kiện lọc hoặc đổi từ khóa tìm kiếm." }' />
+        }
+        else
+        {
+            <partial name="_EmptyState" model='new EmptyStateModel {
+                Icon = "bi-box-seam", Title = "Chưa có sản phẩm nào",
+                Message = "Thêm sản phẩm đầu tiên để website có hàng để bán.",
+                ActionText = "Thêm sản phẩm", ActionUrl = Url.Action("Create") }' />
+        }
+    </div>
+}
+else
+{
+    <div class="adm-table-wrap">
+        <table class="adm-table adm-table-cards">
+            <caption class="visually-hidden">Danh sách sản phẩm</caption>
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 60px;">Ảnh</th>
+                    <th scope="col">
+                        <a href="@Model.SortUrl("ten")" class="@(Model.IsSortedBy("ten") ? "is-sorted" : "")">
+                            Tên sản phẩm
+                            <i class="bi @(Model.IsSortedBy("ten") && Model.SortDesc ? "bi-sort-down" : "bi-sort-up")"
+                               aria-hidden="true"></i>
+                        </a>
+                    </th>
+                    <th scope="col">Danh mục</th>
+                    <th scope="col" class="adm-col-right">
+                        <a href="@Model.SortUrl("gia")" class="@(Model.IsSortedBy("gia") ? "is-sorted" : "")">
+                            Giá
+                            <i class="bi @(Model.IsSortedBy("gia") && Model.SortDesc ? "bi-sort-down" : "bi-sort-up")"
+                               aria-hidden="true"></i>
+                        </a>
+                    </th>
+                    <th scope="col">Nhãn</th>
+                    <th scope="col" class="adm-col-right">
+                        <a href="@Model.SortUrl("luotxem")" class="@(Model.IsSortedBy("luotxem") ? "is-sorted" : "")">
+                            Lượt xem
+                            <i class="bi @(Model.IsSortedBy("luotxem") && Model.SortDesc ? "bi-sort-down" : "bi-sort-up")"
+                               aria-hidden="true"></i>
+                        </a>
+                    </th>
+                    <th scope="col">Đang bán</th>
+                    <th scope="col" class="adm-col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var product in Model.Result.Items)
+                {
+                    <tr data-id="@product.Id">
+                        <td data-label="Ảnh">
+                            <img class="adm-thumb" src="@(product.ImageUrl ?? "/images/placeholder-product.svg")"
+                                 alt="" loading="lazy" />
+                        </td>
+                        <td data-label="Tên sản phẩm">
+                            <a class="fw-bold" asp-action="Edit" asp-route-id="@product.Id">@product.Name</a>
+                            <div class="adm-small adm-muted adm-mono">/@product.Slug</div>
+                            @if (product.ImageCount == 0)
+                            {
+                                <span class="adm-badge adm-badge-shipping mt-1">Chưa có ảnh</span>
+                            }
+                        </td>
+                        <td data-label="Danh mục" class="adm-small">@product.CategoryName</td>
+                        <td data-label="Giá" class="adm-col-right">
+                            @if (product.IsContactPrice)
+                            {
+                                <span class="adm-badge adm-badge-muted">Liên hệ</span>
+                            }
+                            else if (product.SalePrice is { } sale && sale < product.OriginalPrice)
+                            {
+                                <div class="adm-small adm-muted text-decoration-line-through adm-num">
+                                    @product.OriginalPrice.ToVnd()
+                                </div>
+                                <div class="fw-bold adm-num" style="color: var(--red-500);">@sale.ToVnd()</div>
+                            }
+                            else
+                            {
+                                <div class="fw-bold adm-num">@product.OriginalPrice.ToVnd()</div>
+                            }
+                        </td>
+                        <td data-label="Nhãn">
+                            @if (product.IsFeatured)
+                            {
+                                <span class="adm-flag">Ưu đãi</span>
+                            }
+                            @if (product.IsBestSeller)
+                            {
+                                <span class="adm-flag">Bán chạy</span>
+                            }
+                            @if (product.IsInstallment0Percent)
+                            {
+                                <span class="adm-flag">Trả góp</span>
+                            }
+                        </td>
+                        <td data-label="Lượt xem" class="adm-col-right adm-num">@product.ViewCount</td>
+                        <td data-label="Đang bán">
+                            <label class="adm-switch">
+                                <input type="checkbox" class="js-toggle-active" checked="@product.IsActive"
+                                       aria-label="Đang bán “@product.Name”" />
+                                <span class="adm-switch-track"></span>
+                            </label>
+                        </td>
+                        <td data-label="Thao tác" class="adm-col-actions">
+                            <span class="adm-row-actions">
+                                <a class="adm-act" href="/@product.Slug" target="_blank" rel="noopener"
+                                   title="Xem “@product.Name” trên website">
+                                    <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                                    <span class="visually-hidden">Xem trên website</span>
+                                </a>
+                                <a class="adm-act" asp-action="Edit" asp-route-id="@product.Id"
+                                   title="Sửa “@product.Name”">
+                                    <i class="bi bi-pencil" aria-hidden="true"></i>
+                                    <span class="visually-hidden">Sửa</span>
+                                </a>
+                                <form method="post" asp-action="Delete" asp-route-id="@product.Id" class="d-inline">
+                                    <button type="button" class="adm-act is-danger"
+                                            data-confirm="Sản phẩm <b>@product.Name</b> sẽ được chuyển vào Thùng rác. Các đơn hàng cũ vẫn giữ nguyên thông tin sản phẩm này."
+                                            data-confirm-title="Xóa sản phẩm?"
+                                            title="Xóa “@product.Name”">
+                                        <i class="bi bi-trash" aria-hidden="true"></i>
+                                        <span class="visually-hidden">Xóa</span>
+                                    </button>
+                                </form>
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <partial name="_AdminPager" model='new AdminPagerModel {
+        Page = Model.Result.Page, PageSize = Model.Result.PageSize,
+        TotalItems = Model.Result.TotalItems, UrlFor = p => Model.BuildUrl(page: p) }' />
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("change", function (e) {
+            var input = e.target.closest(".js-toggle-active");
+            if (!input) return;
+
+            var id = input.closest("[data-id]").dataset.id;
+
+            RZAdmin.post("/admin/san-pham/" + id + "/toggle", {}).then(function (res) {
+                if (!res.ok) {
+                    input.checked = !input.checked; // server từ chối ⇒ trả lại trạng thái cũ
+                    RZAdmin.toast(res.message, "error");
+                    return;
+                }
+                RZAdmin.toast(res.message, "success");
+                RZAdmin.announce(res.message);
+            });
+        });
+    </script>
+}

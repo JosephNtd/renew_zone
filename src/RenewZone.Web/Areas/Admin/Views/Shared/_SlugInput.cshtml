@@ -1,0 +1,31 @@
+@model SlugInputModel
+@*
+    Trạng thái kiểm slug (đang kiểm / ✓ / ✗ / ⚠ trong Thùng rác) do admin.js xử lý —
+    xem hàm initSlugInputs(). Đây CHỈ là tiện ích UX; chốt chặn thật nằm ở service lúc lưu.
+*@
+<div class="adm-slug-wrap" data-slug-input>
+    <span class="adm-input-prefix visually-hidden">Đường dẫn:</span>
+    <input class="adm-input"
+           id="@Model.FieldName"
+           name="@Model.FieldName"
+           value="@Model.Value"
+           data-slug-type="@Model.TargetType"
+           data-slug-id="@Model.ExcludeId"
+           data-slug-source="@Model.SourceSelector"
+           autocomplete="off"
+           spellcheck="false"
+           aria-describedby="slug-msg-@Model.FieldName" />
+
+    <span class="adm-slug-tools">
+        <span class="adm-slug-state" data-role="state" aria-hidden="true"></span>
+        @if (!string.IsNullOrEmpty(Model.SourceSelector))
+        {
+            <button type="button" class="adm-act" data-role="regen" title="Tạo lại slug từ tên">
+                <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+                <span class="visually-hidden">Tạo lại slug từ tên</span>
+            </button>
+        }
+    </span>
+</div>
+
+<div class="adm-slug-msg" id="slug-msg-@Model.FieldName" data-role="slug-msg" aria-live="polite"></div>

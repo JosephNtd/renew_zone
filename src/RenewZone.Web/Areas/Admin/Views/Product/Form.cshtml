@@ -1,0 +1,404 @@
+@using RenewZone.Domain.Enums
+@model ProductFormViewModel
+@{
+    ViewData["Title"] = Model.IsEdit ? "Sửa sản phẩm" : "Thêm sản phẩm";
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        <div class="adm-page-sub">
+            @if (Model.IsEdit)
+            {
+                <text>Giá hiển thị trên website = Giá khuyến mãi + tổng chênh lệch của các biến thể khách chọn.</text>
+            }
+            else
+            {
+                <text>Lưu xong sẽ chuyển sang bước thêm ảnh (upload ảnh cần sản phẩm đã tồn tại).</text>
+            }
+        </div>
+    </div>
+    <div class="adm-page-actions">
+        @if (Model.IsEdit)
+        {
+            <a class="adm-btn adm-btn-ghost" href="/@Model.Slug" target="_blank" rel="noopener">
+                <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                <span class="adm-btn-label">Xem trên web</span>
+            </a>
+        }
+        <a class="adm-btn adm-btn-ghost" asp-action="Index">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            <span class="adm-btn-label">Danh sách</span>
+        </a>
+    </div>
+</div>
+
+<form method="post" data-adm-form data-dirty-guard
+      asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.Id">
+
+    <div class="adm-form-card">
+        @if (ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+        {
+            <div class="adm-alert adm-alert-error" role="alert">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                <div asp-validation-summary="ModelOnly"></div>
+            </div>
+        }
+
+        @* Tab có lỗi validate sẽ được admin.js gắn chấm đỏ — lỗi nằm ở tab đang ẩn mà không
+           báo thì người dùng bấm Lưu mãi không hiểu vì sao không được *@
+        <div data-tabs>
+            <div class="adm-form-tabs" role="tablist">
+                <button type="button" class="adm-form-tab is-active" data-tab="general"
+                        role="tab" aria-selected="true">Thông tin chung</button>
+                <button type="button" class="adm-form-tab" data-tab="desc"
+                        role="tab" aria-selected="false">Mô tả</button>
+                <button type="button" class="adm-form-tab" data-tab="specs"
+                        role="tab" aria-selected="false">Thông số</button>
+                <button type="button" class="adm-form-tab" data-tab="images"
+                        role="tab" aria-selected="false">
+                    Hình ảnh
+                    @if (Model.IsEdit)
+                    {
+                        <span class="adm-tab-count">@Model.Images.Count</span>
+                    }
+                </button>
+                <button type="button" class="adm-form-tab" data-tab="variants"
+                        role="tab" aria-selected="false">
+                    Biến thể
+                    @if (Model.OptionGroups.Count > 0)
+                    {
+                        <span class="adm-tab-count">@Model.OptionGroups.Count</span>
+                    }
+                </button>
+            </div>
+
+            @* ==================== TAB 1: THÔNG TIN CHUNG ==================== *@
+            <div class="adm-tab-panel is-active" data-panel="general">
+                <div class="adm-form-grid">
+                    <div class="adm-field" style="--col-span: 8;">
+                        <label class="adm-label" asp-for="Name">
+                            Tên sản phẩm<span class="adm-req" aria-hidden="true">*</span>
+                        </label>
+                        <input class="adm-input" asp-for="Name" autocomplete="off" />
+                        <span class="adm-error" asp-validation-for="Name"></span>
+                    </div>
+
+                    <div class="adm-field" style="--col-span: 4;">
+                        <label class="adm-label" asp-for="CategoryId">
+                            Danh mục<span class="adm-req" aria-hidden="true">*</span>
+                        </label>
+                        <select class="adm-select" asp-for="CategoryId">
+                            <option value="0">— Chọn danh mục —</option>
+                            @foreach (var option in Model.CategoryOptions)
+                            {
+                                <option value="@option.Id" selected="@(Model.CategoryId == option.Id)">
+                                    @(option.Depth > 0 ? "— " : "")@option.Name
+                                </option>
+                            }
+                        </select>
+                        <span class="adm-error" asp-validation-for="CategoryId"></span>
+                    </div>
+
+                    <div class="adm-field" style="--col-span: 8;">
+                        <label class="adm-label" asp-for="Slug">
+                            Slug (đường dẫn)<span class="adm-req" aria-hidden="true">*</span>
+                        </label>
+                        <partial name="_SlugInput" model='new SlugInputModel {
+                            FieldName = "Slug", Value = Model.Slug, SourceSelector = "#Name",
+                            TargetType = SlugTargetType.Product, ExcludeId = Model.Id }' />
+                        <span class="adm-error" asp-validation-for="Slug"></span>
+                    </div>
+
+                    <div class="adm-field" style="--col-span: 4;">
+                        <label class="adm-switch mt-4">
+                            <input asp-for="IsContactPrice" id="IsContactPrice" />
+                            <span class="adm-switch-track"></span>
+                            <span class="adm-switch-label">Giá liên hệ</span>
+                        </label>
+                        <div class="adm-hint" id="contactPriceHint" hidden>
+                            Sản phẩm giá liên hệ chỉ hiện nút gọi hotline, <b>không thêm được vào giỏ hàng</b>.
+                        </div>
+                    </div>
+
+                    <div class="adm-field" style="--col-span: 4;">
+                        <label class="adm-label" asp-for="OriginalPrice">Giá gốc</label>
+                        <div class="adm-money-wrap">
+                            <input class="adm-input js-price" asp-for="OriginalPrice" data-money
+                                   inputmode="numeric" autocomplete="off" />
+                        </div>
+                        <span class="adm-error" asp-validation-for="OriginalPrice"></span>
+                    </div>
+
+                    <div class="adm-field" style="--col-span: 4;">
+                        <label class="adm-label" asp-for="SalePrice">Giá khuyến mãi</label>
+                        <div class="adm-money-wrap">
+                            <input class="adm-input js-price" asp-for="SalePrice" data-money
+                                   inputmode="numeric" autocomplete="off" />
+                        </div>
+                        <span class="adm-error" asp-validation-for="SalePrice"></span>
+                        <div class="adm-hint">Để trống nếu bán đúng giá gốc.</div>
+                    </div>
+
+                    <div class="adm-field" style="--col-span: 4;">
+                        <label class="adm-label">Nhãn hiển thị</label>
+                        <div class="d-flex flex-column gap-2 mt-1">
+                            <label class="adm-switch">
+                                <input asp-for="IsInstallment0Percent" />
+                                <span class="adm-switch-track"></span>
+                                <span class="adm-switch-label">Trả góp 0%</span>
+                            </label>
+                            <label class="adm-switch">
+                                <input asp-for="IsFeatured" />
+                                <span class="adm-switch-track"></span>
+                                <span class="adm-switch-label">Ưu đãi đặc biệt (trang chủ)</span>
+                            </label>
+                            <label class="adm-switch">
+                                <input asp-for="IsBestSeller" />
+                                <span class="adm-switch-track"></span>
+                                <span class="adm-switch-label">Bán chạy (trang chủ)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="adm-field" style="--col-span: 12;">
+                        <label class="adm-label" asp-for="ShortDescription">Mô tả ngắn</label>
+                        <textarea class="adm-textarea" asp-for="ShortDescription" rows="2"
+                                  maxlength="500" id="ShortDescription"></textarea>
+                        <div class="adm-hint">
+                            Hiện dưới tên sản phẩm ở trang chi tiết.
+                            <span id="shortDescCount">0</span>/500 ký tự.
+                        </div>
+                        <span class="adm-error" asp-validation-for="ShortDescription"></span>
+                    </div>
+
+                    <div class="adm-field" style="--col-span: 12;">
+                        <label class="adm-switch">
+                            <input asp-for="IsActive" />
+                            <span class="adm-switch-track"></span>
+                            <span class="adm-switch-label">
+                                Đang bán
+                                <span class="adm-small adm-muted d-block">
+                                    Tắt thì sản phẩm biến mất khỏi website nhưng vẫn còn trong admin.
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            @* ==================== TAB 2: MÔ TẢ ==================== *@
+            <div class="adm-tab-panel" data-panel="desc">
+                <label class="adm-label" asp-for="DescriptionHtml">Mô tả chi tiết</label>
+                <textarea class="adm-textarea js-editor" asp-for="DescriptionHtml" rows="16"></textarea>
+                <div class="adm-hint">Hiện ở tab “Mô tả” trên trang chi tiết sản phẩm.</div>
+            </div>
+
+            @* ==================== TAB 3: THÔNG SỐ ==================== *@
+            <div class="adm-tab-panel" data-panel="specs">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <label class="adm-label mb-0" asp-for="SpecsHtml">Thông số kỹ thuật</label>
+                    <button type="button" class="adm-btn adm-btn-ghost adm-btn-sm ms-auto" id="insertSpecTable">
+                        <i class="bi bi-table" aria-hidden="true"></i>
+                        <span class="adm-btn-label">Chèn bảng thông số mẫu</span>
+                    </button>
+                </div>
+                <textarea class="adm-textarea js-editor" asp-for="SpecsHtml" rows="16"></textarea>
+                <div class="adm-hint">Hiện ở tab “Thông số kỹ thuật” trên trang chi tiết sản phẩm.</div>
+            </div>
+
+            @* ==================== TAB 4: HÌNH ẢNH ==================== *@
+            <div class="adm-tab-panel" data-panel="images">
+                @if (!Model.IsEdit)
+                {
+                    <div class="adm-alert adm-alert-info">
+                        <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+                        <div>
+                            Hãy lưu sản phẩm trước rồi mới thêm được ảnh — ảnh cần gắn vào một
+                            sản phẩm đã tồn tại.
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="adm-dropzone" id="imgDropzone" tabindex="0" role="button"
+                         aria-label="Chọn hoặc kéo thả ảnh sản phẩm vào đây">
+                        <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
+                        <div><b>Kéo thả ảnh vào đây</b> hoặc bấm để chọn file</div>
+                        <div class="adm-small adm-muted mt-1">JPG, PNG, WEBP · tối đa 4MB mỗi ảnh</div>
+                        <input type="file" id="imgInput" accept=".jpg,.jpeg,.png,.webp"
+                               multiple hidden />
+                    </div>
+
+                    <div class="adm-media-grid" id="imgGrid" data-product="@Model.Id">
+                        @foreach (var image in Model.Images)
+                        {
+                            <div class="adm-media-item @(image.IsMain ? "is-main" : "")" data-id="@image.Id">
+                                <img src="@image.Url" alt="" loading="lazy" />
+                                @if (image.IsMain)
+                                {
+                                    <span class="adm-media-badge">Ảnh chính</span>
+                                }
+                                <span class="adm-media-tools">
+                                    <button type="button" class="adm-media-star js-set-main"
+                                            title="Đặt làm ảnh chính">
+                                        <i class="bi bi-star@(image.IsMain ? "-fill" : "")" aria-hidden="true"></i>
+                                        <span class="visually-hidden">Đặt làm ảnh chính</span>
+                                    </button>
+                                    <button type="button" class="js-del-img" title="Xóa ảnh">
+                                        <i class="bi bi-trash" aria-hidden="true"></i>
+                                        <span class="visually-hidden">Xóa ảnh</span>
+                                    </button>
+                                </span>
+                            </div>
+                        }
+                    </div>
+
+                    <p class="adm-small adm-muted mt-2">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i>
+                        Kéo để đổi thứ tự ảnh. Ảnh chính là ảnh hiện trên card sản phẩm ở trang chủ
+                        và trang danh mục.
+                    </p>
+                }
+            </div>
+
+            @* ==================== TAB 5: BIẾN THỂ ==================== *@
+            <div class="adm-tab-panel" data-panel="variants">
+                <div class="adm-alert adm-alert-info">
+                    <i class="bi bi-calculator" aria-hidden="true"></i>
+                    <div>
+                        <b>Cách tính giá:</b> giá khách thấy = Giá khuyến mãi + tổng chênh lệch của các
+                        lựa chọn. Chênh lệch cho phép <b>số âm</b> (vd bản 98% rẻ hơn 800.000đ thì nhập
+                        <code>-800000</code>). Mỗi nhóm phải có đúng một lựa chọn “Mặc định” — đó là
+                        lựa chọn được chọn sẵn khi khách mở trang.
+                    </div>
+                </div>
+
+                <div id="groupList">
+                    @for (var g = 0; g < Model.OptionGroups.Count; g++)
+                    {
+                        var group = Model.OptionGroups[g];
+                        <div class="adm-repeater-group js-group" data-index="@g">
+                            <input type="hidden" class="js-group-id" name="OptionGroups[@g].Id" value="@group.Id" />
+
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="adm-drag-handle" aria-hidden="true"><i class="bi bi-grip-vertical"></i></span>
+                                <input class="adm-input js-group-name" name="OptionGroups[@g].Name"
+                                       value="@group.Name" placeholder="Tên nhóm (vd Dung lượng, Màu sắc)"
+                                       aria-label="Tên nhóm biến thể" />
+                                <button type="button" class="adm-act is-danger js-del-group" title="Xóa nhóm này">
+                                    <i class="bi bi-trash" aria-hidden="true"></i>
+                                    <span class="visually-hidden">Xóa nhóm</span>
+                                </button>
+                            </div>
+
+                            <div class="js-value-list">
+                                @for (var v = 0; v < group.Values.Count; v++)
+                                {
+                                    var value = group.Values[v];
+                                    <div class="adm-repeater-row js-value" data-index="@v">
+                                        <input type="hidden" class="js-value-id"
+                                               name="OptionGroups[@g].Values[@v].Id" value="@value.Id" />
+                                        <input class="adm-input js-value-text"
+                                               name="OptionGroups[@g].Values[@v].Value" value="@value.Value"
+                                               placeholder="Giá trị (vd 256GB)" aria-label="Giá trị" />
+                                        <div class="adm-money-wrap" style="width: 190px;">
+                                            <input class="adm-input js-value-adj"
+                                                   name="OptionGroups[@g].Values[@v].PriceAdjustment"
+                                                   value="@value.PriceAdjustment.ToString("0")"
+                                                   inputmode="numeric" aria-label="Chênh lệch giá" />
+                                        </div>
+                                        <label class="adm-check" title="Chọn sẵn khi khách mở trang">
+                                            <input type="radio" class="js-value-default"
+                                                   name="default_group_@g" checked="@value.IsDefault" />
+                                            <span class="adm-small">Mặc định</span>
+                                        </label>
+                                        @* Radio không gửi giá trị false ⇒ dùng hidden song song để
+                                           model binder nhận đúng IsDefault của TỪNG dòng *@
+                                        <input type="hidden" class="js-value-default-field"
+                                               name="OptionGroups[@g].Values[@v].IsDefault"
+                                               value="@value.IsDefault.ToString().ToLowerInvariant()" />
+                                        <button type="button" class="adm-act is-danger js-del-value" title="Xóa giá trị">
+                                            <i class="bi bi-x-lg" aria-hidden="true"></i>
+                                            <span class="visually-hidden">Xóa giá trị</span>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+
+                            <button type="button" class="adm-btn adm-btn-ghost adm-btn-sm mt-2 js-add-value">
+                                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                                <span class="adm-btn-label">Thêm giá trị</span>
+                            </button>
+                        </div>
+                    }
+                </div>
+
+                <button type="button" class="adm-btn adm-btn-ghost mt-3" id="addGroup">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                    <span class="adm-btn-label">Thêm nhóm biến thể</span>
+                </button>
+
+                <div class="adm-card mt-3" style="background: var(--adm-surface-2);">
+                    Giá hiển thị khi chọn các lựa chọn mặc định:
+                    <b class="adm-num" id="variantPreview" style="color: var(--red-500);">—</b>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-form-bar">
+            <button type="submit" class="adm-btn adm-btn-primary">
+                <span class="adm-spinner"></span>
+                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                <span class="adm-btn-label">Lưu sản phẩm</span>
+            </button>
+            <div class="adm-form-bar-end">
+                <a class="adm-btn adm-btn-ghost" asp-action="Index">Hủy</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+@* Khuôn mẫu nhân bản cho repeater — index được đánh lại bằng JS trước khi submit *@
+<template id="tplGroup">
+    <div class="adm-repeater-group js-group">
+        <input type="hidden" class="js-group-id" value="" />
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="adm-drag-handle" aria-hidden="true"><i class="bi bi-grip-vertical"></i></span>
+            <input class="adm-input js-group-name" placeholder="Tên nhóm (vd Dung lượng, Màu sắc)"
+                   aria-label="Tên nhóm biến thể" />
+            <button type="button" class="adm-act is-danger js-del-group" title="Xóa nhóm này">
+                <i class="bi bi-trash" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="js-value-list"></div>
+        <button type="button" class="adm-btn adm-btn-ghost adm-btn-sm mt-2 js-add-value">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            <span class="adm-btn-label">Thêm giá trị</span>
+        </button>
+    </div>
+</template>
+
+<template id="tplValue">
+    <div class="adm-repeater-row js-value is-new">
+        <input type="hidden" class="js-value-id" value="" />
+        <input class="adm-input js-value-text" placeholder="Giá trị (vd 256GB)" aria-label="Giá trị" />
+        <div class="adm-money-wrap" style="width: 190px;">
+            <input class="adm-input js-value-adj" value="0" inputmode="numeric" aria-label="Chênh lệch giá" />
+        </div>
+        <label class="adm-check" title="Chọn sẵn khi khách mở trang">
+            <input type="radio" class="js-value-default" />
+            <span class="adm-small">Mặc định</span>
+        </label>
+        <input type="hidden" class="js-value-default-field" value="false" />
+        <button type="button" class="adm-act is-danger js-del-value" title="Xóa giá trị">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+    </div>
+</template>
+
+@section Scripts {
+    <script src="~/lib/tinymce/tinymce.min.js"></script>
+    <script src="~/lib/sortablejs/Sortable.min.js"></script>
+    <script src="~/js/admin-product.js" asp-append-version="true"></script>
+}

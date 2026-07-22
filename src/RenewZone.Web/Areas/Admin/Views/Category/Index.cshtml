@@ -1,0 +1,143 @@
+@model IReadOnlyList<CategoryTreeNode>
+@{
+    ViewData["Title"] = "Danh mục";
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Danh mục sản phẩm</h1>
+        <div class="adm-page-sub">
+            Cây 2 cấp: danh mục cha (iPhone, MacBook…) → dòng sản phẩm (iPhone 16 Series…).
+            Kéo biểu tượng <i class="bi bi-grip-vertical" aria-hidden="true"></i> để đổi thứ tự trong cùng một cấp.
+        </div>
+    </div>
+    <div class="adm-page-actions">
+        <a class="adm-btn adm-btn-primary" asp-action="Create">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            <span class="adm-btn-label">Thêm danh mục</span>
+        </a>
+    </div>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="adm-card">
+        <partial name="_EmptyState" model='new EmptyStateModel {
+            Icon = "bi-diagram-3", Title = "Chưa có danh mục nào",
+            Message = "Danh mục quyết định menu trên website và trang danh sách sản phẩm.",
+            ActionText = "Thêm danh mục đầu tiên", ActionUrl = Url.Action("Create") }' />
+    </div>
+}
+else
+{
+    <div class="adm-card p-0">
+        <div class="adm-tree" id="catTree">
+            @foreach (var parent in Model)
+            {
+                <div class="adm-tree-branch" data-id="@parent.Id">
+                    <partial name="_CategoryRow" model="parent" />
+
+                    <div class="adm-tree-children js-sortable" data-parent="@parent.Id">
+                        @foreach (var child in parent.Children)
+                        {
+                            <partial name="_CategoryRow" model="child" />
+                        }
+                    </div>
+
+                    <div class="adm-tree-add">
+                        <a asp-action="Create" asp-route-parentId="@parent.Id">
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                            Thêm dòng sản phẩm cho “@parent.Name”
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <p class="adm-small adm-muted mt-3">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        Đổi cấp cha–con thì vào form sửa và chọn lại “Danh mục cha” — kéo-thả chỉ đổi thứ tự
+        trong cùng một cấp để tránh thao tác nhầm.
+    </p>
+}
+
+@section Scripts {
+    <script src="~/lib/sortablejs/Sortable.min.js"></script>
+    <script>
+        (function () {
+            // ----- Kéo-thả đổi thứ tự (chỉ trong cùng cấp) -----
+            document.querySelectorAll(".js-sortable").forEach(function (list) {
+                Sortable.create(list, {
+                    handle: ".adm-drag-handle",
+                    animation: 150,
+                    ghostClass: "adm-sortable-ghost",
+                    chosenClass: "adm-sortable-chosen",
+                    onEnd: function () { saveOrder(list); }
+                });
+            });
+
+            function saveOrder(list) {
+                var ids = Array.prototype.map.call(
+                    list.querySelectorAll("[data-id]"), function (el) { return parseInt(el.dataset.id, 10); });
+
+                RZAdmin.post("/admin/danh-muc/sap-xep", { ids: ids }).then(function (res) {
+                    RZAdmin.toast(res.message, res.ok ? "success" : "error");
+                    if (res.ok) { RZAdmin.announce("Đã lưu thứ tự mới."); refreshMoveButtons(); }
+                });
+            }
+
+            // ----- Nút ▲▼: phương án bàn phím thay cho kéo-thả (a11y) -----
+            document.addEventListener("click", function (e) {
+                var btn = e.target.closest(".js-move");
+                if (!btn) return;
+
+                var row = btn.closest("[data-id]");
+                var list = row.parentElement;
+                var sibling = btn.dataset.dir === "up"
+                    ? row.previousElementSibling
+                    : row.nextElementSibling;
+
+                if (!sibling || !sibling.hasAttribute("data-id")) return;
+
+                if (btn.dataset.dir === "up") { list.insertBefore(row, sibling); }
+                else { list.insertBefore(sibling, row); }
+
+                btn.focus();
+                saveOrder(list);
+            });
+
+            // Mục đầu/cuối thì nút tương ứng phải tắt, nếu không người dùng bấm vào chỗ không có tác dụng
+            function refreshMoveButtons() {
+                document.querySelectorAll(".js-sortable, .adm-tree").forEach(function (list) {
+                    var rows = list.querySelectorAll(":scope > [data-id]");
+                    rows.forEach(function (row, i) {
+                        var up = row.querySelector('.js-move[data-dir=up]');
+                        var down = row.querySelector('.js-move[data-dir=down]');
+                        if (up) up.disabled = i === 0;
+                        if (down) down.disabled = i === rows.length - 1;
+                    });
+                });
+            }
+            refreshMoveButtons();
+
+            // ----- Bật/tắt hiển thị -----
+            document.addEventListener("change", function (e) {
+                var input = e.target.closest(".js-toggle-active");
+                if (!input) return;
+
+                var id = input.closest("[data-id]").dataset.id;
+
+                RZAdmin.post("/admin/danh-muc/" + id + "/toggle", {}).then(function (res) {
+                    if (!res.ok) {
+                        input.checked = !input.checked; // trả lại trạng thái cũ khi server từ chối
+                        RZAdmin.toast(res.message, "error");
+                        return;
+                    }
+                    RZAdmin.toast(res.message, "success");
+                    RZAdmin.announce(res.message);
+                });
+            });
+        })();
+    </script>
+}

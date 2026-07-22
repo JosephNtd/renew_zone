@@ -77,6 +77,8 @@ public static class DependencyInjection
         services.AddScoped<IAdminBadgeService, AdminBadgeService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IOrderAdminService, OrderAdminService>();
+        services.AddScoped<ICategoryAdminService, CategoryAdminService>();
+        services.AddScoped<IProductAdminService, ProductAdminService>();
 
         return services;
     }

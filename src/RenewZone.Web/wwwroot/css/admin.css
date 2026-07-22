@@ -895,6 +895,67 @@ body.adm :focus-visible {
 .adm-move-btns button:hover:not(:disabled) { color: var(--brand-600); }
 .adm-move-btns button:disabled { opacity: .3; cursor: default; }
 
+/* ===================== 11b. CÂY DANH MỤC / MENU =====================
+   Dạng cây (không phải bảng phẳng) vì quan hệ cha–con là thông tin quan trọng nhất
+   của màn này — thụt lề nói lên cấu trúc nhanh hơn bất kỳ cột nào. */
+.adm-tree-branch + .adm-tree-branch { border-top: 1px solid var(--adm-border); }
+
+.adm-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  transition: background var(--t-fast);
+}
+@media (hover: hover) {
+  .adm-tree-row:hover { background: var(--brand-50); }
+}
+
+.adm-tree-children .adm-tree-row {
+  padding-left: 48px; /* thụt vào để thấy ngay đây là cấp con */
+  border-top: 1px dashed var(--adm-border);
+}
+
+.adm-tree-icon {
+  width: 34px; height: 34px;
+  border-radius: var(--adm-r-sm);
+  background: var(--adm-surface-2);
+  border: 1px solid var(--adm-border);
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  color: var(--brand-600);
+  overflow: hidden;
+}
+.adm-tree-icon img { width: 100%; height: 100%; object-fit: cover; }
+
+.adm-tree-name { flex: 1; min-width: 0; }
+.adm-tree-count { flex-shrink: 0; white-space: nowrap; }
+
+.adm-tree-add {
+  padding: 8px 16px 12px 48px;
+  border-top: 1px dashed var(--adm-border);
+  background: var(--adm-surface-2);
+}
+.adm-tree-add a { font-size: .82rem; font-weight: 600; }
+
+.adm-icon-preview {
+  width: 38px; height: 38px;
+  flex-shrink: 0;
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-sm);
+  display: grid; place-items: center;
+  font-size: 1.15rem;
+  color: var(--brand-600);
+  background: var(--adm-surface-2);
+}
+
+@media (max-width: 767.98px) {
+  .adm-tree-row { flex-wrap: wrap; padding: 10px 12px; }
+  .adm-tree-children .adm-tree-row { padding-left: 26px; }
+  .adm-tree-add { padding-left: 26px; }
+  .adm-tree-count { width: 100%; padding-left: 44px; }
+}
+
 /* ===================== 12. BADGE TRẠNG THÁI ===================== */
 .adm-badge {
   display: inline-flex; align-items: center; gap: 5px;
