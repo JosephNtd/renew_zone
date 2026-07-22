@@ -292,6 +292,16 @@ Bản design system đầy đủ nằm ở **`docs/DESIGN.md`** — Giai đoạn
 - [x] **Dọn nợ CSS (phần C)**: `.news-card` từng định nghĩa TRÙNG ở home.css + product.css → gom về site.css (mục 19) + partial `_NewsCard`; `.series-tab` → component chung `.rz-chip` (mục 18); `.rz-input`/`.co-label`/`.co-error` + `@keyframes shake` (mục 17), `.done-check` + `draw-stroke` (mục 20), `.bank-row` (mục 21) chuyển từ cart.css sang site.css
 
 ### Giai đoạn 6 — Admin panel (Area `Admin`, route `/admin`)
+
+> **Kế hoạch chi tiết: `docs/PHASE6_PROMPT.md`** (design system admin, đặc tả 15 màn, luồng dữ liệu, bẫy kỹ thuật, tiêu chí nghiệm thu).
+> **4 quyết định đã CHỐT với user (2026-07-22 — không hỏi lại):**
+> 1. Chia **3 đợt**: A (nền tảng: soft delete + cache invalidator + slug service + media service + auth + layout + dashboard + đơn hàng) · B (catalog: danh mục + sản phẩm + ảnh + biến thể) · C (nội dung: bài viết, trang tĩnh, banner, menu, content block, hộp thư, cấu hình, thùng rác). Mỗi đợt build sạch + smoke test + commit riêng.
+> 2. Editor rich text: **TinyMCE** (tải local `wwwroot/lib/tinymce/`, KHÔNG CDN) — chọn vì có sẵn công cụ chèn `<table>`, dự án nhiều bảng giá.
+> 3. Tương tác: **server-rendered + AJAX có chọn lọc** — form là POST/PRG như web khách; AJAX chỉ dùng cho kéo-thả sắp xếp, toggle IsActive, đổi trạng thái đơn, upload ảnh, xóa.
+> 4. Xóa dữ liệu: **soft delete + thùng rác** (`ISoftDeletable` + EF global query filter + chặn ở `SaveChanges`). Order/OrderItem/SiteSetting KHÔNG xóa mềm (đơn hủy thì đổi `Status`).
+>
+> **2 nợ kỹ thuật GĐ trước phải trả trong đợt A:** (a) validate slug **unique xuyên 4 bảng** (Lưu ý 6.4 — hiện chưa có gì kiểm); (b) trích logic upload từ `ContactController.TryStoreAttachmentAsync` thành `IMediaService` dùng chung thay vì copy sang admin.
+
 - [ ] Đăng nhập Identity, chặn toàn Area bằng `[Authorize(Roles="Admin")]`
 - [ ] Dashboard: đếm đơn mới, sản phẩm, bài viết, liên hệ chưa đọc
 - [ ] CRUD Danh mục (2 cấp) · CRUD Sản phẩm (kèm upload nhiều ảnh, quản lý option groups/values, editor rich text — TinyMCE/Quill)
