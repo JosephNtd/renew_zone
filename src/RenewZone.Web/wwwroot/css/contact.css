@@ -1,0 +1,291 @@
+/* =====================================================================
+   contact.css — Trang liên hệ (/lien-he), Giai đoạn 5.
+   Form control (.rz-input, .co-label, .co-error) và .done-check dùng chung ở site.css.
+   ===================================================================== */
+
+.contact-page { padding-bottom: 48px; }
+
+/* =========================== ĐẦU TRANG =========================== */
+.ct-head { margin-bottom: 24px; }
+.ct-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.9rem;
+  color: var(--ink-900);
+  margin: 0 0 8px;
+}
+.ct-intro { margin: 0; color: var(--ink-500); max-width: 70ch; }
+
+/* =========================== KÊNH LIÊN HỆ NHANH =========================== */
+.ct-channels {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.ct-channel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 14px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  text-align: center;
+  text-decoration: none;
+  transition: transform var(--t-base) var(--ease-out), box-shadow var(--t-base), border-color var(--t-base);
+}
+.ct-channel-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--brand-50);
+  color: var(--brand-600);
+  font-size: 1.35rem;
+  margin-bottom: 4px;
+  transition: background var(--t-base), color var(--t-base);
+}
+.ct-channel-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .92rem;
+  color: var(--ink-900);
+}
+.ct-channel-value { font-size: .82rem; color: var(--ink-500); }
+
+/* =========================== GRID 2 CỘT =========================== */
+.ct-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.ct-card {
+  padding: 24px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-sm);
+}
+.ct-card + .ct-card { margin-top: 20px; }
+.ct-card-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--ink-900);
+  margin: 0 0 4px;
+}
+.ct-card-sub { font-size: .86rem; color: var(--ink-500); margin: 0 0 18px; }
+
+/* =========================== FORM =========================== */
+.ct-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.ct-field-full { grid-column: 1 / -1; }
+
+.ct-counter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 20px;
+}
+.ct-counter { margin-left: auto; font-size: .76rem; color: var(--ink-400); white-space: nowrap; }
+.ct-counter.is-over { color: var(--red-500); font-weight: 700; }
+
+.ct-submit { width: 100%; }
+.ct-submit .spinner-border { width: 1rem; height: 1rem; border-width: .15em; }
+
+/* Honeypot: ẩn khỏi mắt người nhưng vẫn nằm trong DOM để bot điền vào */
+.hp-field {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* =========================== VÙNG ĐÍNH KÈM =========================== */
+/* Input file thật: KHÔNG display:none (mất khả năng focus bằng bàn phím) */
+.ct-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.ct-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 110px;
+  padding: 16px;
+  border: 2px dashed var(--line);
+  border-radius: var(--r-md);
+  background: var(--page);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--t-base), background var(--t-base);
+}
+.ct-dropzone .bi {
+  font-size: 1.7rem;
+  color: var(--brand-500);
+  transition: transform var(--t-base) var(--ease-spring);
+}
+.ct-dz-main { font-size: .88rem; color: var(--ink-700); }
+.ct-dz-hint { font-size: .76rem; color: var(--ink-400); }
+
+.ct-dropzone.is-dragover {
+  border-color: var(--brand-400);
+  background: var(--brand-50);
+}
+.ct-dropzone.is-dragover .bi { transform: scale(1.1); }
+
+/* Bàn phím tab tới input file ẩn ⇒ vẫn phải thấy được vùng chọn đang focus */
+.ct-file-input:focus-visible + .ct-dropzone {
+  border-color: var(--brand-400);
+  box-shadow: 0 0 0 4px rgba(206, 95, 154, .14);
+}
+
+.ct-file-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--brand-200);
+  border-radius: var(--r-md);
+  background: var(--brand-50);
+  animation: chip-in 280ms var(--ease-out) both;
+}
+.ct-file-thumb { width: 40px; height: 40px; border-radius: var(--r-sm); object-fit: cover; flex: 0 0 auto; }
+.ct-file-icon { font-size: 1.4rem; color: var(--brand-600); flex: 0 0 auto; }
+.ct-file-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: .86rem;
+  font-weight: 600;
+  color: var(--ink-900);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ct-file-size { font-size: .78rem; color: var(--ink-500); white-space: nowrap; }
+.ct-file-remove {
+  flex: 0 0 auto;
+  width: 28px; height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-500);
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.ct-file-remove:hover { background: var(--red-500); color: #fff; }
+
+@keyframes chip-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================== GỬI THÀNH CÔNG =========================== */
+.ct-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 44px 24px;
+}
+.ct-success-title { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; color: var(--ink-900); margin: 4px 0 8px; }
+.ct-success-sub { color: var(--ink-500); margin: 0 0 22px; }
+.ct-success-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+
+/* =========================== CỘT THÔNG TIN =========================== */
+.ct-info-col { position: sticky; top: 92px; }
+
+.ct-info-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.ct-info-list li { display: flex; align-items: flex-start; gap: 10px; font-size: .9rem; color: var(--ink-700); }
+.ct-info-list .bi { flex: 0 0 18px; color: var(--brand-500); margin-top: 2px; }
+.ct-info-list a { color: var(--ink-700); text-decoration: none; }
+.ct-info-list a:hover { color: var(--brand-600); text-decoration: underline; }
+
+/* Chấm trạng thái mở cửa — JS bật lên, parse thất bại thì để nguyên hidden */
+.ct-open-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 8px;
+  font-size: .76rem;
+  font-weight: 700;
+}
+.ct-open-dot::before {
+  content: "";
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.ct-open-dot.is-open { color: var(--success); }
+.ct-open-dot.is-closed { color: var(--ink-400); }
+
+.ct-social { display: flex; gap: 10px; flex-wrap: wrap; }
+.ct-social a {
+  display: grid;
+  place-items: center;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: var(--brand-50);
+  color: var(--brand-600);
+  font-size: 1.1rem;
+  text-decoration: none;
+  transition: transform var(--t-base) var(--ease-spring), background var(--t-base), color var(--t-base);
+}
+
+/* =========================== BẢN ĐỒ =========================== */
+.ct-map {
+  position: relative;
+  margin-top: 32px;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: var(--sh-sm);
+  aspect-ratio: 21 / 9;
+}
+.ct-map iframe { width: 100%; height: 100%; border: 0; display: block; }
+.ct-map-btn { position: absolute; top: 14px; right: 14px; box-shadow: var(--sh-md); }
+
+/* =========================== HOVER =========================== */
+@media (hover: hover) {
+  .ct-channel:hover { transform: translateY(-4px); box-shadow: var(--sh-md); border-color: var(--brand-200); }
+  .ct-channel:hover .ct-channel-icon { background: var(--grad-brand); color: #fff; }
+  .ct-social a:hover { background: var(--grad-brand); color: #fff; transform: translateY(-3px); }
+}
+
+/* =========================== RESPONSIVE =========================== */
+@media (max-width: 991.98px) {
+  /* Form lên trước thông tin cửa hàng */
+  .ct-grid { grid-template-columns: 1fr; }
+  .ct-info-col { position: static; }
+  .ct-map { aspect-ratio: 16 / 9; }
+}
+
+@media (max-width: 767.98px) {
+  .ct-channels { grid-template-columns: repeat(2, 1fr); }
+  .ct-map { aspect-ratio: 4 / 3; }
+}
+
+@media (max-width: 575.98px) {
+  .ct-title { font-size: 1.45rem; }
+  .ct-fields { grid-template-columns: 1fr; }
+  .ct-card { padding: 18px; }
+}

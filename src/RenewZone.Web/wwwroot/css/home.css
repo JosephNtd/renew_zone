@@ -164,46 +164,4 @@
 .testimonial-swiper .swiper-pagination-bullet { background: var(--brand-300); opacity: .5; }
 .testimonial-swiper .swiper-pagination-bullet-active { background: var(--brand-500); opacity: 1; }
 
-/* Tin công nghệ */
-.news-card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  transition: transform var(--t-base) var(--ease-out), box-shadow var(--t-base), border-color var(--t-base);
-}
-.news-thumb { position: relative; aspect-ratio: 2 / 1; overflow: hidden; background: var(--line); }
-.news-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--t-slow) var(--ease-out); }
-.news-tag {
-  position: absolute;
-  top: 10px; left: 10px;
-  padding: 3px 10px;
-  border-radius: var(--r-pill);
-  background: var(--brand-500);
-  color: #fff;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: .68rem;
-}
-.news-body { display: flex; flex-direction: column; gap: 6px; padding: 14px; }
-.news-date { display: flex; align-items: center; gap: 6px; color: var(--ink-400); font-size: .75rem; }
-.news-title {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: .92rem;
-  line-height: 1.45;
-  color: var(--ink-900);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  transition: color var(--t-fast);
-}
-@media (hover: hover) {
-  .news-card:hover { transform: translateY(-4px); box-shadow: var(--sh-lg); border-color: var(--brand-200); }
-  .news-card:hover .news-thumb img { transform: scale(1.05); }
-  .news-card:hover .news-title { color: var(--brand-600); }
-}
+/* Tin công nghệ — card dùng partial _NewsCard, CSS ở site.css mục 19 (dùng chung nhiều trang) */

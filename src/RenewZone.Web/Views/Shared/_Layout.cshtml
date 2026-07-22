@@ -1,35 +1,49 @@
 @using RenewZone.Domain.Entities
+@using RenewZone.Domain.Enums
 @using RenewZone.Domain.Interfaces
 @inject ISiteContentService SiteContent
+@inject INavigationService Nav
+@*
+    Menu + link footer đọc từ bảng MenuItems (Giai đoạn 5 — khử hardcode).
+    Dùng @inject thẳng thay vì ViewComponent: cùng một tập dữ liệu được render 3 kiểu markup
+    RẤT khác nhau (nav desktop có flyout, offcanvas có collapse id riêng, footer là 2 cột link)
+    và cả 3 chỉ tồn tại trong file này — tách thành 3 ViewComponent + 3 view chỉ thêm file chứ
+    không tái dùng được ở đâu. Xem CLAUDE.md mục 4.7.
+*@
 @{
     var settings = await SiteContent.GetSettingsAsync();
     var menuCats = await SiteContent.GetMenuCategoriesAsync();
 
-    string S(string key) => settings.GetValueOrDefault(key) ?? "";
+    var mainMenu = await Nav.GetMenuAsync(MenuGroup.MainMenu);
+    var footerPolicy = await Nav.GetMenuAsync(MenuGroup.FooterPolicy);
+    var footerSupport = await Nav.GetMenuAsync(MenuGroup.FooterSupport);
 
-    var storeName = S(SettingKeys.StoreName);
-    var hotline = S(SettingKeys.Hotline);
+    // Setting thiếu ⇒ lấy fallback ghi tại chỗ, KHÔNG bao giờ để lọt chuỗi rỗng ra HTML
+    string S(string key, string fallback = "")
+    {
+        var value = settings.GetValueOrDefault(key);
+        return string.IsNullOrWhiteSpace(value) ? fallback : value;
+    }
+
+    var storeName = S(SettingKeys.StoreName, "RenewZone");
+    var hotline = S(SettingKeys.Hotline, "0900.000.000");
     var hotlineTel = "tel:" + hotline.Replace(".", "").Replace(" ", "");
 
-    // Icon Bootstrap Icons theo slug danh mục cha
-    string CatIcon(string slug) => slug switch
-    {
-        "iphone" => "bi-phone",
-        "macbook" => "bi-laptop",
-        "ipad" => "bi-tablet",
-        "apple-watch" => "bi-smartwatch",
-        "airpods" => "bi-earbuds",
-        "hang-thanh-ly" => "bi-box-seam",
-        _ => "bi-grid"
-    };
+    var address = S(SettingKeys.Address);
+    var openHours = S(SettingKeys.OpenHours);
+    var email = S(SettingKeys.Email);
 
-    var policyLinks = new (string Text, string Url)[]
+    // Link social để trống thì ẩn hẳn nút — href="" sẽ trỏ về chính trang hiện tại
+    var socials = new (string Url, string Icon, string Label)[]
     {
-        ("Bảng giá thu cũ đổi mới", "/bang-gia-thu-cu-doi-moi"),
-        ("Máy mới", "/may-moi"),
-        ("Máy đã qua sử dụng", "/may-da-qua-su-dung"),
-        ("Bảo hành 20 năm", "/bao-hanh-20-nam"),
-    };
+        (S(SettingKeys.FacebookUrl), "bi-facebook", "Facebook"),
+        (S(SettingKeys.MessengerUrl), "bi-messenger", "Messenger"),
+        (S(SettingKeys.ZaloUrl), "bi-chat-dots-fill", "Zalo"),
+        (S(SettingKeys.MapUrl), "bi-geo-alt", "Bản đồ"),
+    }.Where(s => !string.IsNullOrWhiteSpace(s.Url)).ToArray();
+
+    var zaloUrl = S(SettingKeys.ZaloUrl);
+    var messengerUrl = S(SettingKeys.MessengerUrl);
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -53,10 +67,16 @@
     <div class="topbar d-none d-md-block">
         <div class="container d-flex justify-content-between">
             <div class="topbar-item text-truncate">
-                <i class="bi bi-geo-alt-fill"></i>@S(SettingKeys.Address)
+                @if (!string.IsNullOrWhiteSpace(address))
+                {
+                    <i class="bi bi-geo-alt-fill"></i>@address
+                }
             </div>
             <div class="d-flex">
-                <div class="topbar-item"><i class="bi bi-clock-fill"></i>@S(SettingKeys.OpenHours)</div>
+                @if (!string.IsNullOrWhiteSpace(openHours))
+                {
+                    <div class="topbar-item"><i class="bi bi-clock-fill"></i>@openHours</div>
+                }
                 <div class="topbar-item"><i class="bi bi-telephone-fill"></i><a href="@hotlineTel">@hotline</a></div>
             </div>
         </div>
@@ -110,56 +130,62 @@
     <nav class="mainnav d-none d-lg-block" aria-label="Menu chính">
         <div class="container">
             <ul class="mainnav-list">
-                <li class="mainnav-item"><a class="mainnav-link" href="/"><i class="bi bi-house-door"></i>Trang chủ</a></li>
-                <li class="mainnav-item"><a class="mainnav-link" href="/gioi-thieu">Giới thiệu</a></li>
-
-                <li class="mainnav-item">
-                    <a class="mainnav-link" href="/san-pham">Sản phẩm <i class="bi bi-chevron-down"></i></a>
-                    <div class="dd-panel">
-                        @foreach (var cat in menuCats)
+                @foreach (var item in mainMenu)
+                {
+                    var isMega = item.Type == MenuItemType.ProductMega;
+                    var hasPanel = isMega || item.Children.Count > 0;
+                    <li class="mainnav-item">
+                        <a class="mainnav-link" href="@(item.Url ?? "#")" target="@(item.OpenInNewTab ? "_blank" : null)">
+                            @if (!string.IsNullOrWhiteSpace(item.Icon))
+                            {
+                                <i class="bi @item.Icon"></i>
+                            }
+                            @item.Text
+                            @if (hasPanel)
+                            {
+                                <i class="bi bi-chevron-down"></i>
+                            }
+                        </a>
+                        @if (isMega)
                         {
-                            <div class="dd-item">
-                                <a class="dd-link" href="/@cat.Slug">
-                                    <i class="bi @CatIcon(cat.Slug)"></i>@cat.Name
-                                    @if (cat.Children.Count > 0)
-                                    {
-                                        <i class="bi bi-chevron-right"></i>
-                                    }
-                                </a>
-                                @if (cat.Children.Count > 0)
+                            @* Dropdown sinh động từ cây danh mục — admin thêm danh mục là menu tự có *@
+                            <div class="dd-panel">
+                                @foreach (var cat in menuCats)
                                 {
-                                    <div class="dd-sub">
-                                        @foreach (var child in cat.Children)
+                                    <div class="dd-item">
+                                        <a class="dd-link" href="/@cat.Slug">
+                                            <i class="bi @(cat.IconClass ?? "bi-grid")"></i>@cat.Name
+                                            @if (cat.Children.Count > 0)
+                                            {
+                                                <i class="bi bi-chevron-right"></i>
+                                            }
+                                        </a>
+                                        @if (cat.Children.Count > 0)
                                         {
-                                            <a class="dd-link" href="/@child.Slug">@child.Name</a>
+                                            <div class="dd-sub">
+                                                @foreach (var child in cat.Children)
+                                                {
+                                                    <a class="dd-link" href="/@child.Slug">@child.Name</a>
+                                                }
+                                            </div>
                                         }
                                     </div>
                                 }
                             </div>
                         }
-                    </div>
-                </li>
-
-                <li class="mainnav-item">
-                    <a class="mainnav-link" href="/sua-chua">Sửa chữa <i class="bi bi-chevron-down"></i></a>
-                    <div class="dd-panel">
-                        <a class="dd-link" href="/sua-chua"><i class="bi bi-tools"></i>Dịch vụ sửa chữa</a>
-                        <a class="dd-link" href="/sua-chua-phan-cung"><i class="bi bi-cpu"></i>Sửa chữa phần cứng</a>
-                    </div>
-                </li>
-
-                <li class="mainnav-item">
-                    <a class="mainnav-link" href="/chinh-sach-bao-hanh">Chính sách <i class="bi bi-chevron-down"></i></a>
-                    <div class="dd-panel">
-                        @foreach (var (text, url) in policyLinks)
+                        else if (item.Children.Count > 0)
                         {
-                            <a class="dd-link" href="@url"><i class="bi bi-shield-check"></i>@text</a>
+                            <div class="dd-panel">
+                                @foreach (var child in item.Children)
+                                {
+                                    <a class="dd-link" href="@child.Url" target="@(child.OpenInNewTab ? "_blank" : null)">
+                                        <i class="bi @(child.Icon ?? "bi-dot")"></i>@child.Text
+                                    </a>
+                                }
+                            </div>
                         }
-                    </div>
-                </li>
-
-                <li class="mainnav-item"><a class="mainnav-link" href="/tin-tuc">Tin công nghệ</a></li>
-                <li class="mainnav-item"><a class="mainnav-link" href="/lien-he">Liên hệ</a></li>
+                    </li>
+                }
             </ul>
         </div>
     </nav>
@@ -173,61 +199,67 @@
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
         </div>
         <div class="offcanvas-body">
-            <a class="mm-link" href="/"><i class="bi bi-house-door"></i>Trang chủ</a>
-            <a class="mm-link" href="/gioi-thieu"><i class="bi bi-info-circle"></i>Giới thiệu</a>
-
-            <div class="mm-group">
-                <button class="mm-link mm-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mmProducts" aria-expanded="false">
-                    <i class="bi bi-grid"></i>Sản phẩm <i class="bi bi-chevron-down"></i>
-                </button>
-                <div class="collapse" id="mmProducts">
-                    @foreach (var cat in menuCats)
-                    {
-                        if (cat.Children.Count > 0)
-                        {
-                            <button class="mm-link mm-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mmCat-@cat.Id" aria-expanded="false">
-                                <i class="bi @CatIcon(cat.Slug)"></i>@cat.Name <i class="bi bi-chevron-down"></i>
-                            </button>
-                            <div class="collapse mm-sub" id="mmCat-@cat.Id">
-                                <a class="mm-link" href="/@cat.Slug">Tất cả @cat.Name</a>
-                                @foreach (var child in cat.Children)
+            @foreach (var item in mainMenu)
+            {
+                if (item.Type == MenuItemType.ProductMega)
+                {
+                    <div class="mm-group">
+                        <button class="mm-link mm-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mmItem-@item.Id" aria-expanded="false">
+                            <i class="bi @(item.Icon ?? "bi-grid")"></i>@item.Text <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div class="collapse" id="mmItem-@item.Id">
+                            @foreach (var cat in menuCats)
+                            {
+                                if (cat.Children.Count > 0)
                                 {
-                                    <a class="mm-link" href="/@child.Slug">@child.Name</a>
+                                    <button class="mm-link mm-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mmCat-@cat.Id" aria-expanded="false">
+                                        <i class="bi @(cat.IconClass ?? "bi-grid")"></i>@cat.Name <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                    <div class="collapse mm-sub" id="mmCat-@cat.Id">
+                                        <a class="mm-link" href="/@cat.Slug">Tất cả @cat.Name</a>
+                                        @foreach (var child in cat.Children)
+                                        {
+                                            <a class="mm-link" href="/@child.Slug">@child.Name</a>
+                                        }
+                                    </div>
                                 }
-                            </div>
-                        }
-                        else
+                                else
+                                {
+                                    <a class="mm-link" href="/@cat.Slug"><i class="bi @(cat.IconClass ?? "bi-grid")"></i>@cat.Name</a>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+                else if (item.Children.Count > 0)
+                {
+                    <div class="mm-group">
+                        <button class="mm-link mm-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mmItem-@item.Id" aria-expanded="false">
+                            @if (!string.IsNullOrWhiteSpace(item.Icon))
+                            {
+                                <i class="bi @item.Icon"></i>
+                            }
+                            @item.Text <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div class="collapse mm-sub" id="mmItem-@item.Id">
+                            @foreach (var child in item.Children)
+                            {
+                                <a class="mm-link" href="@child.Url" target="@(child.OpenInNewTab ? "_blank" : null)">@child.Text</a>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <a class="mm-link" href="@(item.Url ?? "#")" target="@(item.OpenInNewTab ? "_blank" : null)">
+                        @if (!string.IsNullOrWhiteSpace(item.Icon))
                         {
-                            <a class="mm-link" href="/@cat.Slug"><i class="bi @CatIcon(cat.Slug)"></i>@cat.Name</a>
+                            <i class="bi @item.Icon"></i>
                         }
-                    }
-                </div>
-            </div>
-
-            <div class="mm-group">
-                <button class="mm-link mm-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mmRepair" aria-expanded="false">
-                    <i class="bi bi-tools"></i>Sửa chữa <i class="bi bi-chevron-down"></i>
-                </button>
-                <div class="collapse mm-sub" id="mmRepair">
-                    <a class="mm-link" href="/sua-chua">Dịch vụ sửa chữa</a>
-                    <a class="mm-link" href="/sua-chua-phan-cung">Sửa chữa phần cứng</a>
-                </div>
-            </div>
-
-            <div class="mm-group">
-                <button class="mm-link mm-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mmPolicy" aria-expanded="false">
-                    <i class="bi bi-shield-check"></i>Chính sách <i class="bi bi-chevron-down"></i>
-                </button>
-                <div class="collapse mm-sub" id="mmPolicy">
-                    @foreach (var (text, url) in policyLinks)
-                    {
-                        <a class="mm-link" href="@url">@text</a>
-                    }
-                </div>
-            </div>
-
-            <a class="mm-link" href="/tin-tuc"><i class="bi bi-newspaper"></i>Tin công nghệ</a>
-            <a class="mm-link" href="/lien-he"><i class="bi bi-envelope"></i>Liên hệ</a>
+                        @item.Text
+                    </a>
+                }
+            }
 
             <div class="mm-hotline">
                 <div class="hotline-label">Hotline hỗ trợ 24/7</div>
@@ -247,48 +279,64 @@
             <div class="row g-4">
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="f-brand-word mb-2">Renew<span class="text-brand">Zone</span><span class="brand-dot">.</span></div>
-                    <p class="mb-3">@S(SettingKeys.Tagline). Chuyên iPhone, MacBook, iPad, Apple Watch, AirPods chính hãng — mới &amp; đã qua sử dụng.</p>
-                    <div class="f-contact-item"><i class="bi bi-geo-alt-fill"></i><span>@S(SettingKeys.Address)</span></div>
-                    <div class="f-contact-item"><i class="bi bi-clock-fill"></i><span>@S(SettingKeys.OpenHours)</span></div>
+                    <p class="mb-3">@S(SettingKeys.FooterAbout, "Cửa hàng thiết bị Apple mới và đã qua sử dụng.")</p>
+                    @if (!string.IsNullOrWhiteSpace(address))
+                    {
+                        <div class="f-contact-item"><i class="bi bi-geo-alt-fill"></i><span>@address</span></div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(openHours))
+                    {
+                        <div class="f-contact-item"><i class="bi bi-clock-fill"></i><span>@openHours</span></div>
+                    }
                     <div class="f-contact-item"><i class="bi bi-telephone-fill"></i><a class="f-link d-inline p-0" href="@hotlineTel">@hotline</a></div>
-                    <div class="f-contact-item"><i class="bi bi-envelope-fill"></i><span>@S(SettingKeys.Email)</span></div>
+                    @if (!string.IsNullOrWhiteSpace(email))
+                    {
+                        <div class="f-contact-item"><i class="bi bi-envelope-fill"></i><span>@email</span></div>
+                    }
                 </div>
 
-                <div class="col-6 col-md-6 col-lg-3">
-                    <div class="f-title">Chính sách</div>
-                    <a class="f-link" href="/chinh-sach-bao-hanh">Chính sách bảo hành</a>
-                    <a class="f-link" href="/chinh-sach-thanh-toan">Chính sách thanh toán</a>
-                    <a class="f-link" href="/chinh-sach-van-chuyen">Chính sách vận chuyển</a>
-                    <a class="f-link" href="/chinh-sach-kiem-hang">Chính sách kiểm hàng</a>
-                    <a class="f-link" href="/chinh-sach-tra-gop">Chính sách trả góp</a>
-                    <a class="f-link" href="/chinh-sach-bao-mat">Chính sách bảo mật</a>
-                </div>
-
-                <div class="col-6 col-md-6 col-lg-2">
-                    <div class="f-title">Hỗ trợ</div>
-                    <a class="f-link" href="/gioi-thieu">Giới thiệu</a>
-                    <a class="f-link" href="/tin-tuc">Tin công nghệ</a>
-                    <a class="f-link" href="/sua-chua">Sửa chữa</a>
-                    <a class="f-link" href="/gio-hang">Giỏ hàng</a>
-                    <a class="f-link" href="/lien-he">Liên hệ</a>
-                </div>
-
-                <div class="col-12 col-md-6 col-lg-3">
-                    <div class="f-title">Kết nối với chúng tôi</div>
-                    <p class="mb-1">Theo dõi để nhận ưu đãi sớm nhất:</p>
-                    <div class="f-social">
-                        <a href="@S(SettingKeys.FacebookUrl)" target="_blank" rel="noopener" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
-                        <a href="@S(SettingKeys.MessengerUrl)" target="_blank" rel="noopener" aria-label="Messenger"><i class="bi bi-messenger"></i></a>
-                        <a href="@S(SettingKeys.ZaloUrl)" target="_blank" rel="noopener" aria-label="Zalo"><i class="bi bi-chat-dots-fill"></i></a>
-                        <a href="@S(SettingKeys.MapUrl)" target="_blank" rel="noopener" aria-label="Bản đồ"><i class="bi bi-geo-alt"></i></a>
+                @* Nhóm không có mục nào ⇒ ẩn cả cột, không render khung trống *@
+                @if (footerPolicy.Count > 0)
+                {
+                    <div class="col-6 col-md-6 col-lg-3">
+                        <div class="f-title">Chính sách</div>
+                        @foreach (var link in footerPolicy)
+                        {
+                            <a class="f-link" href="@link.Url" target="@(link.OpenInNewTab ? "_blank" : null)">@link.Text</a>
+                        }
                     </div>
-                </div>
+                }
+
+                @if (footerSupport.Count > 0)
+                {
+                    <div class="col-6 col-md-6 col-lg-2">
+                        <div class="f-title">Hỗ trợ</div>
+                        @foreach (var link in footerSupport)
+                        {
+                            <a class="f-link" href="@link.Url" target="@(link.OpenInNewTab ? "_blank" : null)">@link.Text</a>
+                        }
+                    </div>
+                }
+
+                @if (socials.Length > 0)
+                {
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="f-title">Kết nối với chúng tôi</div>
+                        <p class="mb-1">Theo dõi để nhận ưu đãi sớm nhất:</p>
+                        <div class="f-social">
+                            @foreach (var s in socials)
+                            {
+                                <a href="@s.Url" target="_blank" rel="noopener" aria-label="@s.Label"><i class="bi @s.Icon"></i></a>
+                            }
+                        </div>
+                    </div>
+                }
             </div>
         </div>
         <div class="footer-bottom">
             <div class="container d-flex flex-column flex-md-row justify-content-between gap-1">
-                <span>© @DateTime.Now.Year @storeName · MST: @S(SettingKeys.TaxCode)</span>
-                <span>Website học tập (clone) — không phải cửa hàng thật, không bán hàng.</span>
+                <span>© @DateTime.Now.Year @storeName · MST: @S(SettingKeys.TaxCode, "—")</span>
+                <span>@S(SettingKeys.FooterDisclaimer, "Website học tập (clone).")</span>
             </div>
         </div>
     </footer>
@@ -299,14 +347,20 @@
             <i class="bi bi-telephone-fill"></i>
             <span class="fbtn-tip">@hotline</span>
         </a>
-        <a class="fbtn fbtn-zalo" href="@S(SettingKeys.ZaloUrl)" target="_blank" rel="noopener" aria-label="Chat Zalo">
-            Zalo
-            <span class="fbtn-tip">Chat Zalo</span>
-        </a>
-        <a class="fbtn fbtn-messenger" href="@S(SettingKeys.MessengerUrl)" target="_blank" rel="noopener" aria-label="Chat Messenger">
-            <i class="bi bi-messenger"></i>
-            <span class="fbtn-tip">Chat Messenger</span>
-        </a>
+        @if (!string.IsNullOrWhiteSpace(zaloUrl))
+        {
+            <a class="fbtn fbtn-zalo" href="@zaloUrl" target="_blank" rel="noopener" aria-label="Chat Zalo">
+                Zalo
+                <span class="fbtn-tip">Chat Zalo</span>
+            </a>
+        }
+        @if (!string.IsNullOrWhiteSpace(messengerUrl))
+        {
+            <a class="fbtn fbtn-messenger" href="@messengerUrl" target="_blank" rel="noopener" aria-label="Chat Messenger">
+                <i class="bi bi-messenger"></i>
+                <span class="fbtn-tip">Chat Messenger</span>
+            </a>
+        }
     </div>
 
     <button id="backToTop" type="button" aria-label="Về đầu trang"><i class="bi bi-arrow-up"></i></button>

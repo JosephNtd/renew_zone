@@ -13,9 +13,9 @@
 
 <div class="container">
     <article class="news-detail reveal">
-        @if (!string.IsNullOrWhiteSpace(a.CategoryTag))
+        @if (a.Category is not null)
         {
-            <span class="news-tag">@a.CategoryTag</span>
+            <a class="news-tag" href="/tin-tuc?chuyenMuc=@a.Category.Slug">@a.Category.Name</a>
         }
         <h1 class="news-detail-title">@a.Title</h1>
         <div class="news-detail-meta">
@@ -41,9 +41,9 @@
                             <img src="@(r.ThumbnailUrl ?? "/images/placeholder-news.svg")" alt="@r.Title" loading="lazy" />
                         </div>
                         <div class="news-related-body">
-                            @if (!string.IsNullOrWhiteSpace(r.CategoryTag))
+                            @if (r.Category is not null)
                             {
-                                <span class="news-related-tag">@r.CategoryTag</span>
+                                <span class="news-related-tag">@r.Category.Name</span>
                             }
                             <h3 class="news-related-title">@r.Title</h3>
                             <time class="news-related-date">@r.PublishedAt.ToString("dd/MM/yyyy")</time>

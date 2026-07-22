@@ -1,0 +1,18 @@
+@using RenewZone.Domain.Interfaces
+@inject ISiteContentService SiteContent
+@*
+    Khối thông tin chuyển khoản, dùng ở /dat-hang (chưa có mã đơn) và /dat-hang-thanh-cong.
+    Model = mã đơn hàng, null ⇒ hiện chỗ dành sẵn "[Mã đơn]".
+    Toàn bộ số liệu đọc từ SiteSettings (giả lập — Lưu ý 6.2), CSS ở site.css mục 21.
+*@
+@model string
+@{
+    var settings = await SiteContent.GetSettingsAsync();
+
+    var noteTemplate = settings.Get(SettingKeys.BankTransferNoteTemplate, "Thanh toan don {0}");
+    var transferNote = string.Format(noteTemplate, Model ?? "[Mã đơn]");
+}
+<div class="bank-row"><span>Ngân hàng</span><strong>@settings.Get(SettingKeys.BankName, "Đang cập nhật")</strong></div>
+<div class="bank-row"><span>Số tài khoản</span><strong>@settings.Get(SettingKeys.BankAccountNumber, "Đang cập nhật")</strong></div>
+<div class="bank-row"><span>Chủ tài khoản</span><strong>@settings.Get(SettingKeys.BankAccountName, "Đang cập nhật")</strong></div>
+<div class="bank-row"><span>Nội dung</span><strong>@transferNote</strong></div>

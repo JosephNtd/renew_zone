@@ -482,3 +482,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# File khách upload qua form liên hệ (Giai đoạn 5) — dữ liệu runtime, không commit
+src/RenewZone.Web/wwwroot/uploads/contact/

@@ -47,6 +47,10 @@ public static class DependencyInjection
         services.AddScoped<IContentQueryService, ContentQueryService>();
         services.AddScoped<ICatalogQueryService, CatalogQueryService>();
         services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<INavigationService, NavigationService>();
+        services.AddScoped<IContentBlockService, ContentBlockService>();
+        services.AddScoped<INewsQueryService, NewsQueryService>();
+        services.AddScoped<IContactService, ContactService>();
 
         return services;
     }

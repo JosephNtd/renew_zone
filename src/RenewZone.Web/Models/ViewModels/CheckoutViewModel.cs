@@ -57,14 +57,6 @@ public class CheckoutViewModel
     public required Cart Cart { get; init; }
 }
 
-/// <summary>
-/// Thông tin chuyển khoản GIẢ LẬP cho demo (Lưu ý 6.2 — tuyệt đối không dùng tài khoản thật).
-/// </summary>
-public static class DemoBankInfo
-{
-    public const string BankName = "Demo Bank (ngân hàng giả lập)";
-    public const string AccountNumber = "0000 0000 0000";
-    public const string AccountName = "CTY RENEWZONE DEMO";
-
-    public static string TransferNote(string orderCode) => $"Thanh toan don {orderCode}";
-}
+// Ghi chú Giai đoạn 5: class DemoBankInfo (hardcode tên ngân hàng/STK trong C#) đã bị XÓA.
+// Thông tin chuyển khoản giờ đọc từ SiteSettings qua partial Views/Shared/_BankInfo.cshtml
+// để admin sửa được ở Giai đoạn 6 — xem CLAUDE.md mục 4.7.

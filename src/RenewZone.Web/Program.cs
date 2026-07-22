@@ -1,5 +1,6 @@
 using RenewZone.Infrastructure;
 using RenewZone.Infrastructure.Data.Seed;
+using RenewZone.Web.Models.Options;
 using RenewZone.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +31,10 @@ builder.Services.AddSession(options =>
 // Giỏ hàng đọc/ghi Session ngoài phạm vi controller (ViewComponent, service) ⇒ cần accessor
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICartService, CartService>();
+
+// Cấu hình KỸ THUẬT (dung lượng/đuôi file cho phép) — thuộc appsettings.json, không vào DB
+builder.Services.Configure<ContactUploadOptions>(
+    builder.Configuration.GetSection(ContactUploadOptions.SectionName));
 
 builder.Services.AddControllersWithViews();
 

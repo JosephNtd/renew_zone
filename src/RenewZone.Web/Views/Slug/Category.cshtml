@@ -30,11 +30,11 @@
 
     @if (data.Series.Count > 0)
     {
-        <nav class="series-tabs reveal" aria-label="Lọc theo dòng máy">
-            <a class="series-tab @(data.ActiveSeries is null ? "is-active" : "")" href="@Model.SeriesUrl(null)">Tất cả</a>
+        <nav class="rz-chips series-tabs reveal" aria-label="Lọc theo dòng máy">
+            <a class="rz-chip @(data.ActiveSeries is null ? "is-active" : "")" href="@Model.SeriesUrl(null)">Tất cả</a>
             @foreach (var s in data.Series)
             {
-                <a class="series-tab @(Model.IsActiveSeries(s) ? "is-active" : "")" href="@Model.SeriesUrl(s)">@s.Name</a>
+                <a class="rz-chip @(Model.IsActiveSeries(s) ? "is-active" : "")" href="@Model.SeriesUrl(s)">@s.Name</a>
             }
         </nav>
     }

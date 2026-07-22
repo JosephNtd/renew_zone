@@ -1,0 +1,172 @@
+@using RenewZone.Domain.Interfaces
+@inject ISiteContentService SiteContent
+@model NewsListViewModel
+@{
+    var data = Model.Data;
+    var settings = await SiteContent.GetSettingsAsync();
+    var hotline = settings.Get(SettingKeys.Hotline, "0900.000.000");
+    var hotlineTel = "tel:" + hotline.Replace(".", "").Replace(" ", "");
+
+    var lead = data.Featured.FirstOrDefault();
+    var secondary = data.Featured.Skip(1).ToList();
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/news.css" asp-append-version="true" />
+}
+
+@* ---------------- HERO ---------------- *@
+<div class="news-hero">
+    <div class="container">
+        @await Html.PartialAsync("_Breadcrumb", new BreadcrumbViewModel { Items = new[] { new Crumb(Model.PageTitle) } })
+
+        <div class="news-hero-row">
+            <div class="news-hero-text">
+                <h1 class="news-hero-title">@Model.PageTitle</h1>
+                <p class="news-hero-sub">@Model.PageIntro</p>
+            </div>
+
+            <form class="search-pill news-search" action="/tin-tuc" method="get" role="search">
+                @if (data.ActiveCategory is not null)
+                {
+                    <input type="hidden" name="chuyenMuc" value="@data.ActiveCategory.Slug" />
+                }
+                <input type="search" name="q" value="@data.Keyword" placeholder="Tìm bài viết..." aria-label="Tìm bài viết" />
+                <button class="search-btn" type="submit" aria-label="Tìm bài viết"><i class="bi bi-search"></i></button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="container news-page">
+    @* ---------------- BÀI NỔI BẬT (chỉ trang 1, không lọc, không tìm) ---------------- *@
+    @if (lead is not null)
+    {
+        <section class="nf-grid reveal" aria-label="Bài viết nổi bật">
+            <article class="nf-lead">
+                <img src="@(lead.ThumbnailUrl ?? "/images/placeholder-news.svg")" alt="@lead.Title" />
+                <div class="nf-lead-overlay">
+                    @if (lead.Category is not null)
+                    {
+                        <span class="nf-tag">@lead.Category.Name</span>
+                    }
+                    <h2 class="nf-lead-title">
+                        <a class="stretched-link" href="/@lead.Slug">@lead.Title</a>
+                    </h2>
+                    <div class="nf-lead-meta">
+                        <span><i class="bi bi-calendar3"></i>@lead.PublishedAt.ToString("dd/MM/yyyy")</span>
+                        <span><i class="bi bi-eye"></i>@lead.ViewCount lượt xem</span>
+                    </div>
+                </div>
+            </article>
+
+            @if (secondary.Count > 0)
+            {
+                <div class="nf-side">
+                    @foreach (var item in secondary)
+                    {
+                        <article class="nf-mini">
+                            <div class="nf-mini-thumb">
+                                <img src="@(item.ThumbnailUrl ?? "/images/placeholder-news.svg")" alt="@item.Title" loading="lazy" />
+                            </div>
+                            <div class="nf-mini-body">
+                                @if (item.Category is not null)
+                                {
+                                    <span class="nf-mini-tag">@item.Category.Name</span>
+                                }
+                                <h3 class="nf-mini-title">
+                                    <a class="stretched-link" href="/@item.Slug">@item.Title</a>
+                                </h3>
+                                <time class="nf-mini-date">@item.PublishedAt.ToString("dd/MM/yyyy")</time>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+        </section>
+    }
+
+    @* ---------------- CHIP LỌC CHUYÊN MỤC ---------------- *@
+    @if (data.Categories.Count > 0)
+    {
+        <nav class="rz-chips news-filter" aria-label="Lọc theo chuyên mục">
+            <a class="rz-chip @(data.ActiveCategory is null ? "is-active" : "")"
+               href="@Model.CategoryUrl(null)"
+               @(data.ActiveCategory is null ? Html.Raw("aria-current=\"page\"") : null)>Tất cả</a>
+
+            @foreach (var c in data.Categories)
+            {
+                var isActive = data.ActiveCategory?.Id == c.Category.Id;
+                <a class="rz-chip @(isActive ? "is-active" : "")"
+                   href="@Model.CategoryUrl(c.Category.Slug)"
+                   @(isActive ? Html.Raw("aria-current=\"page\"") : null)>
+                    @c.Category.Name <span class="rz-chip-count">(@c.ArticleCount)</span>
+                </a>
+            }
+        </nav>
+    }
+
+    @* ---------------- DÒNG KẾT QUẢ khi đang lọc/tìm ---------------- *@
+    @if (data.IsFiltered)
+    {
+        <div class="news-result" aria-live="polite">
+            <p class="news-result-text">
+                Tìm thấy <strong>@data.Articles.TotalItems</strong> bài viết
+                @if (!string.IsNullOrWhiteSpace(data.Keyword))
+                {
+                    <text>cho «<strong>@data.Keyword</strong>»</text>
+                }
+                @if (data.ActiveCategory is not null)
+                {
+                    <text>trong chuyên mục <strong>@data.ActiveCategory.Name</strong></text>
+                }
+            </p>
+            <a class="rz-chip rz-chip-clear" href="/tin-tuc"><i class="bi bi-x"></i> Xóa bộ lọc</a>
+        </div>
+    }
+
+    @* ---------------- DANH SÁCH BÀI ---------------- *@
+    @if (data.Articles.Items.Count > 0)
+    {
+        <div class="nw-list">
+            @foreach (var article in data.Articles.Items)
+            {
+                <div class="reveal">
+                    @await Html.PartialAsync("_NewsCardWide", article)
+                </div>
+            }
+        </div>
+
+        @await Html.PartialAsync("_Pagination", new PaginationViewModel
+        {
+            Page = data.Articles.Page,
+            TotalPages = data.Articles.TotalPages,
+            Url = Model.PageUrl
+        })
+    }
+    else if (lead is null)
+    {
+        @* Không có bài nào khớp VÀ cũng không có khối nổi bật ⇒ trạng thái rỗng *@
+        <div class="news-empty">
+            <i class="bi bi-newspaper"></i>
+            <h2>Chưa có bài viết nào phù hợp</h2>
+            <p>Thử bỏ bớt bộ lọc hoặc tìm với từ khóa ngắn hơn.</p>
+            <a class="btn-rz btn-brand" href="/tin-tuc">Xem tất cả bài viết</a>
+        </div>
+    }
+
+    @* ---------------- CTA CUỐI TRANG ---------------- *@
+    <section class="news-cta reveal">
+        <div class="news-cta-text">
+            <h2>Cần tư vấn chọn máy?</h2>
+            <p>Gọi ngay <strong>@hotline</strong> — shop hỗ trợ trong giờ làm việc.</p>
+        </div>
+        <a class="btn-rz news-cta-btn" href="@hotlineTel">
+            <i class="bi bi-telephone-fill"></i> Gọi @hotline
+        </a>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/news.js" asp-append-version="true"></script>
+}

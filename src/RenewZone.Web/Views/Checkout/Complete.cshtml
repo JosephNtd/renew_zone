@@ -44,10 +44,7 @@
         {
             <div class="done-bank">
                 <h2 class="done-bank-title"><i class="bi bi-bank"></i> Thông tin chuyển khoản</h2>
-                <div class="bank-row"><span>Ngân hàng</span><strong>@DemoBankInfo.BankName</strong></div>
-                <div class="bank-row"><span>Số tài khoản</span><strong>@DemoBankInfo.AccountNumber</strong></div>
-                <div class="bank-row"><span>Chủ tài khoản</span><strong>@DemoBankInfo.AccountName</strong></div>
-                <div class="bank-row"><span>Nội dung</span><strong>@DemoBankInfo.TransferNote(Model.Code)</strong></div>
+                @await Html.PartialAsync("_BankInfo", Model.Code)
                 <p class="bank-hint">
                     <i class="bi bi-info-circle"></i>
                     Tài khoản giả lập của website học tập — vui lòng KHÔNG chuyển tiền thật.

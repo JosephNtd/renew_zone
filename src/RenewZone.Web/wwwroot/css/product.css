@@ -13,31 +13,13 @@
 .cat-title { font-size: 1.65rem; font-weight: 800; color: var(--ink-900); margin: 0; }
 .cat-count { font-size: .9rem; color: var(--ink-500); }
 
-/* =========================== TAB SERIES =========================== */
+/* =========================== TAB SERIES ===========================
+   Chip dùng chung `.rz-chip` ở site.css mục 18 (trang danh mục + /tin-tuc chung 1 bản).
+   Ở đây chỉ chỉnh cách xếp hàng: desktop xuống dòng thay vì cuộn ngang như trang tin. */
 .series-tabs {
-  display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  overflow-x: visible;
   margin-bottom: 24px;
-}
-.series-tab {
-  padding: 8px 18px;
-  border-radius: var(--r-pill);
-  border: 1.5px solid var(--line);
-  background: var(--paper);
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: .85rem;
-  color: var(--ink-700);
-  transition: all var(--t-base) var(--ease-out);
-  white-space: nowrap;
-}
-.series-tab:hover { border-color: var(--brand-400); color: var(--brand-600); }
-.series-tab.is-active {
-  background: var(--grad-brand);
-  border-color: transparent;
-  color: #fff;
-  box-shadow: var(--sh-brand);
 }
 
 /* =========================== PHÂN TRANG =========================== */
@@ -263,9 +245,17 @@ a.rz-pager-btn:hover { border-color: var(--brand-400); color: var(--brand-600); 
 .prose li { margin-bottom: .4em; }
 .prose a { color: var(--brand-600); text-decoration: underline; }
 .prose img { max-width: 100%; height: auto; border-radius: var(--r-md); margin: 1em 0; }
-.prose table { width: 100%; border-collapse: collapse; margin: 1em 0; }
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  box-shadow: 0 0 0 1px var(--line);
+}
 .prose th, .prose td { border: 1px solid var(--line); padding: 10px 14px; text-align: left; }
-.prose th { background: var(--brand-50); font-weight: 700; }
+.prose th { background: var(--brand-50); font-weight: 700; color: var(--ink-900); }
+.prose tbody tr:nth-child(even) { background: rgba(250, 247, 250, .7); }
 .prose blockquote {
   border-left: 3px solid var(--brand-400);
   padding: 4px 16px;
@@ -282,8 +272,12 @@ a.rz-pager-btn:hover { border-color: var(--brand-400); color: var(--brand-600); 
 
 /* =========================== TIN CHI TIẾT =========================== */
 .news-detail { max-width: 820px; margin: 16px auto 40px; }
-.news-tag,
+
+/* Tag chuyên mục dạng "pill nhạt" — ở trang chi tiết bài viết nó nằm trong luồng văn bản
+   (không đè lên ảnh như .news-tag của card ở site.css mục 19) nên phải ghi đè position. */
+.news-detail .news-tag,
 .news-related-tag {
+  position: static;
   display: inline-block;
   padding: 3px 12px;
   border-radius: var(--r-pill);
@@ -295,6 +289,7 @@ a.rz-pager-btn:hover { border-color: var(--brand-400); color: var(--brand-600); 
   text-transform: uppercase;
   letter-spacing: .5px;
 }
+.news-detail .news-tag:hover { background: var(--brand-200); }
 .news-detail-title { font-size: 1.9rem; font-weight: 800; color: var(--ink-900); margin: 12px 0 14px; line-height: 1.3; }
 .news-detail-meta { display: flex; gap: 16px; align-items: center; font-size: .85rem; color: var(--ink-500); margin-bottom: 20px; }
 .news-detail-excerpt {
@@ -330,6 +325,17 @@ a.rz-pager-btn:hover { border-color: var(--brand-400); color: var(--brand-600); 
 .news-related-date { font-size: .78rem; color: var(--ink-400); }
 
 /* =========================== RESPONSIVE =========================== */
+@media (max-width: 767.98px) {
+  /* Bảng giá trong nội dung rich text: cho cuộn ngang thay vì ép vỡ layout.
+     Làm bằng CSS (không bọc thêm div) để nội dung admin soạn ở Giai đoạn 6 cũng hưởng. */
+  .prose table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 @media (max-width: 575.98px) {
   .cat-title, .pdp-name { font-size: 1.3rem; }
   .pdp-price-now { font-size: 1.5rem; }

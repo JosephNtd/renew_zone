@@ -1,0 +1,265 @@
+@using RenewZone.Domain.Interfaces
+@inject ISiteContentService SiteContent
+@model ContactViewModel
+@{
+    ViewData["Title"] = "Liên hệ";
+
+    var settings = await SiteContent.GetSettingsAsync();
+    var storeName = settings.Get(SettingKeys.StoreName, "RenewZone");
+    var hotline = settings.Get(SettingKeys.Hotline, "0900.000.000");
+    var hotlineTel = "tel:" + hotline.Replace(".", "").Replace(" ", "");
+    var address = settings.Get(SettingKeys.Address);
+    var openHours = settings.Get(SettingKeys.OpenHours);
+    var email = settings.Get(SettingKeys.Email);
+    var taxCode = settings.Get(SettingKeys.TaxCode);
+    var mapEmbedUrl = settings.Get(SettingKeys.MapEmbedUrl);
+    var mapUrl = settings.Get(SettingKeys.MapUrl);
+    var contactIntro = settings.Get(SettingKeys.ContactIntro,
+        "Để lại thông tin, shop sẽ liên hệ lại với bạn sớm nhất.");
+
+    var socials = new (string Url, string Icon, string Label)[]
+    {
+        (settings.Get(SettingKeys.FacebookUrl), "bi-facebook", "Facebook"),
+        (settings.Get(SettingKeys.MessengerUrl), "bi-messenger", "Messenger"),
+        (settings.Get(SettingKeys.ZaloUrl), "bi-chat-dots-fill", "Zalo"),
+        (settings.Get(SettingKeys.MapUrl), "bi-geo-alt-fill", "Bản đồ"),
+    }.Where(s => !string.IsNullOrWhiteSpace(s.Url)).ToArray();
+
+    ViewData["MetaDescription"] = contactIntro;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/contact.css" asp-append-version="true" />
+}
+
+@await Html.PartialAsync("_Breadcrumb", new BreadcrumbViewModel { Items = new[] { new Crumb("Liên hệ") } })
+
+<div class="container contact-page">
+    <header class="ct-head reveal">
+        <h1 class="ct-title">Liên hệ</h1>
+        <p class="ct-intro">@contactIntro</p>
+    </header>
+
+    @* ---------------- KÊNH LIÊN HỆ NHANH (rỗng ⇒ ẩn cả hàng) ---------------- *@
+    @if (Model.Channels.Count > 0)
+    {
+        <div class="ct-channels reveal">
+            @foreach (var channel in Model.Channels)
+            {
+                <a class="ct-channel" href="@(channel.LinkUrl ?? "#")"
+                   target="@(channel.LinkUrl is not null && channel.LinkUrl.StartsWith("http") ? "_blank" : null)"
+                   rel="noopener">
+                    <span class="ct-channel-icon"><i class="bi @(channel.Icon ?? "bi-dot")"></i></span>
+                    <span class="ct-channel-name">@channel.Title</span>
+                    @if (!string.IsNullOrWhiteSpace(channel.Subtitle))
+                    {
+                        <span class="ct-channel-value">@channel.Subtitle</span>
+                    }
+                </a>
+            }
+        </div>
+    }
+
+    <div class="ct-grid">
+        @* ================= CỘT TRÁI: FORM ================= *@
+        <div class="ct-form-col reveal">
+            @if (Model.JustSent)
+            {
+                @* Trạng thái sau PRG — SVG check vẽ nét dùng chung với trang cảm ơn đặt hàng *@
+                <div class="ct-card ct-success">
+                    <svg class="done-check" viewBox="0 0 100 100" aria-hidden="true">
+                        <circle class="done-circle" cx="50" cy="50" r="32" />
+                        <path class="done-tick" d="M34 51l11 11 21-23" />
+                    </svg>
+                    <h2 class="ct-success-title">Đã gửi liên hệ thành công!</h2>
+                    <p class="ct-success-sub">Shop sẽ phản hồi trong thời gian sớm nhất.</p>
+                    <div class="ct-success-actions">
+                        <a class="btn-rz btn-brand" href="/">Về trang chủ</a>
+                        <a class="btn-rz btn-ghost" href="/lien-he">Gửi liên hệ khác</a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="ct-card">
+                    <h2 class="ct-card-title">Gửi tin nhắn cho chúng tôi</h2>
+                    <p class="ct-card-sub">Shop phản hồi trong giờ làm việc.</p>
+
+                    @* asp-antiforgery="true": action viết tay nên tag helper không tự thêm token.
+                       KHÔNG thêm @Html.AntiForgeryToken() nữa — 2 token trùng tên làm hỏng validate. *@
+                    <form method="post" action="/lien-he" id="contactForm"
+                          enctype="multipart/form-data" asp-antiforgery="true" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="co-summary-errors"></div>
+
+                        @* Field name do asp-for sinh ra là "Input.X" ⇒ action bind bằng
+                           [Bind(Prefix = "Input")] để key ModelState khớp đúng khi render lại lỗi. *@
+                        <div class="ct-fields">
+                            <div>
+                                <label class="co-label" asp-for="Input.FullName">Họ và tên <b>*</b></label>
+                                <input class="rz-input" asp-for="Input.FullName"
+                                       placeholder="Nguyễn Văn A" aria-describedby="err-FullName" />
+                                <span class="co-error" id="err-FullName" asp-validation-for="Input.FullName"></span>
+                            </div>
+
+                            <div>
+                                <label class="co-label" asp-for="Input.Phone">Số điện thoại <b>*</b></label>
+                                <input class="rz-input" asp-for="Input.Phone"
+                                       inputmode="tel" placeholder="0900000000" aria-describedby="err-Phone" />
+                                <span class="co-error" id="err-Phone" asp-validation-for="Input.Phone"></span>
+                            </div>
+
+                            <div>
+                                <label class="co-label" asp-for="Input.Email">Email <i>(không bắt buộc)</i></label>
+                                <input class="rz-input" asp-for="Input.Email"
+                                       inputmode="email" placeholder="ban@email.com" aria-describedby="err-Email" />
+                                <span class="co-error" id="err-Email" asp-validation-for="Input.Email"></span>
+                            </div>
+
+                            <div>
+                                <label class="co-label" asp-for="Input.Address">Địa chỉ <i>(không bắt buộc)</i></label>
+                                <input class="rz-input" asp-for="Input.Address"
+                                       placeholder="Quận/Huyện, Tỉnh/TP" aria-describedby="err-Address" />
+                                <span class="co-error" id="err-Address" asp-validation-for="Input.Address"></span>
+                            </div>
+
+                            <div class="ct-field-full">
+                                <label class="co-label" asp-for="Input.Subject">Chủ đề</label>
+                                @if (Model.Subjects.Count > 0)
+                                {
+                                    <select class="rz-input" asp-for="Input.Subject">
+                                        <option value="">-- Chọn chủ đề --</option>
+                                        @foreach (var subject in Model.Subjects)
+                                        {
+                                            <option value="@subject">@subject</option>
+                                        }
+                                    </select>
+                                }
+                                else
+                                {
+                                    @* Chưa cấu hình danh sách chủ đề ⇒ cho khách tự nhập, không hiện select rỗng *@
+                                    <input class="rz-input" asp-for="Input.Subject" placeholder="Bạn cần hỗ trợ việc gì?" />
+                                }
+                                <span class="co-error" asp-validation-for="Input.Subject"></span>
+                            </div>
+
+                            <div class="ct-field-full">
+                                <label class="co-label" asp-for="Input.Content">Nội dung <b>*</b></label>
+                                <textarea class="rz-input rz-textarea" asp-for="Input.Content"
+                                          rows="5" maxlength="1000" placeholder="Mô tả nhu cầu của bạn..."
+                                          aria-describedby="err-Content contentCounter"></textarea>
+                                <div class="ct-counter-row">
+                                    <span class="co-error" id="err-Content" asp-validation-for="Input.Content"></span>
+                                    <span class="ct-counter" id="contentCounter" aria-live="polite">0/1000</span>
+                                </div>
+                            </div>
+
+                            @* ---------- ĐÍNH KÈM FILE ---------- *@
+                            <div class="ct-field-full">
+                                <span class="co-label">Đính kèm <i>(không bắt buộc)</i></span>
+
+                                @* Input file thật: ẩn bằng opacity chứ KHÔNG display:none để vẫn focus được bằng bàn phím *@
+                                <input type="file" id="attachment" name="attachment" class="ct-file-input"
+                                       accept="@Model.AcceptAttribute" aria-describedby="err-attachment"
+                                       data-max-mb="@Model.MaxFileSizeMb" />
+
+                                <label class="ct-dropzone" id="ctDropzone" for="attachment">
+                                    <i class="bi bi-cloud-arrow-up"></i>
+                                    <span class="ct-dz-main">Kéo thả file vào đây hoặc <strong>bấm để chọn</strong></span>
+                                    <span class="ct-dz-hint">JPG, PNG, WEBP, PDF · tối đa @(Model.MaxFileSizeMb)MB</span>
+                                </label>
+
+                                <div class="ct-file-chip" id="ctFileChip" hidden>
+                                    <img class="ct-file-thumb" id="ctFileThumb" alt="" hidden />
+                                    <i class="bi bi-file-earmark-text ct-file-icon" id="ctFileIcon"></i>
+                                    <span class="ct-file-name" id="ctFileName"></span>
+                                    <span class="ct-file-size" id="ctFileSize"></span>
+                                    <button type="button" class="ct-file-remove" id="ctFileRemove" aria-label="Xóa file đã chọn">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+
+                                @Html.ValidationMessage("attachment", new { @class = "co-error", id = "err-attachment" })
+                            </div>
+
+                            @* Honeypot — người thật không nhìn thấy, bot điền vào là lộ *@
+                            <div class="hp-field" aria-hidden="true">
+                                <label asp-for="Input.Website">Website</label>
+                                <input asp-for="Input.Website" type="text" tabindex="-1" autocomplete="off" />
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-rz btn-buy btn-lg ct-submit" id="contactSubmit">
+                            <span class="ct-submit-text"><i class="bi bi-send"></i> Gửi liên hệ</span>
+                        </button>
+                    </form>
+                </div>
+            }
+        </div>
+
+        @* ================= CỘT PHẢI: THÔNG TIN CỬA HÀNG ================= *@
+        <aside class="ct-info-col">
+            <div class="ct-card ct-info reveal">
+                <h2 class="ct-card-title">Thông tin cửa hàng</h2>
+                <ul class="ct-info-list">
+                    <li><i class="bi bi-shop"></i><span>@storeName</span></li>
+                    @if (!string.IsNullOrWhiteSpace(address))
+                    {
+                        <li><i class="bi bi-geo-alt-fill"></i><span>@address</span></li>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(openHours))
+                    {
+                        <li>
+                            <i class="bi bi-clock-fill"></i>
+                            <span>
+                                @openHours
+                                <span class="ct-open-dot" id="ctOpenDot" data-hours="@openHours" hidden></span>
+                            </span>
+                        </li>
+                    }
+                    <li><i class="bi bi-telephone-fill"></i><a href="@hotlineTel">@hotline</a></li>
+                    @if (!string.IsNullOrWhiteSpace(email))
+                    {
+                        <li><i class="bi bi-envelope-fill"></i><a href="mailto:@email">@email</a></li>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(taxCode))
+                    {
+                        <li><i class="bi bi-receipt"></i><span>MST: @taxCode</span></li>
+                    }
+                </ul>
+            </div>
+
+            @if (socials.Length > 0)
+            {
+                <div class="ct-card ct-connect reveal">
+                    <h2 class="ct-card-title">Kết nối</h2>
+                    <div class="ct-social">
+                        @foreach (var s in socials)
+                        {
+                            <a href="@s.Url" target="_blank" rel="noopener" aria-label="@s.Label"><i class="bi @s.Icon"></i></a>
+                        }
+                    </div>
+                </div>
+            }
+        </aside>
+    </div>
+
+    @* ---------------- BẢN ĐỒ (setting rỗng ⇒ ẩn hẳn, không hiện iframe trắng) ---------------- *@
+    @if (!string.IsNullOrWhiteSpace(mapEmbedUrl))
+    {
+        <section class="ct-map reveal">
+            <iframe src="@mapEmbedUrl" title="Bản đồ đường tới @storeName"
+                    loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            @if (!string.IsNullOrWhiteSpace(mapUrl))
+            {
+                <a class="btn-rz btn-brand btn-sm ct-map-btn" href="@mapUrl" target="_blank" rel="noopener">
+                    <i class="bi bi-signpost-2"></i> Chỉ đường
+                </a>
+            }
+        </section>
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/contact.js" asp-append-version="true"></script>
+}

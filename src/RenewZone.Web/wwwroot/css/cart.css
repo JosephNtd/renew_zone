@@ -268,15 +268,19 @@
 }
 
 .sum-cta { width: 100%; }
+/* Nội dung đến từ ContentBlock group "cart.assurance" ⇒ là <ul>, không còn <p> như trước */
 .sum-assure {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  justify-content: center;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
   font-size: .8rem;
   color: var(--ink-500);
   margin: 14px 0 0;
 }
+.sum-assure li { display: flex; align-items: center; gap: 8px; }
 .sum-assure .bi { color: var(--success); }
 
 .sum-pay { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
@@ -362,58 +366,8 @@
 .co-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .co-field-full { grid-column: 1 / -1; }
 
-.co-label {
-  display: block;
-  font-size: .82rem;
-  font-weight: 700;
-  color: var(--ink-700);
-  margin-bottom: 6px;
-}
-.co-label b { color: var(--red-500); }
-.co-label i { font-weight: 400; color: var(--ink-400); font-style: normal; }
-
-.rz-input {
-  width: 100%;
-  height: 46px;
-  padding: 0 14px;
-  border: 1.5px solid var(--line);
-  border-radius: var(--r-sm);
-  background: var(--paper);
-  color: var(--ink-700);
-  font-family: var(--font-body);
-  font-size: .95rem;
-  transition: border-color var(--t-fast), box-shadow var(--t-fast);
-}
-.rz-input::placeholder { color: var(--ink-400); }
-.rz-input:focus {
-  outline: none;
-  border-color: var(--brand-400);
-  box-shadow: 0 0 0 4px rgba(206, 95, 154, .14);
-}
-.rz-textarea { height: auto; padding: 10px 14px; resize: vertical; line-height: 1.5; }
-
-.rz-input.input-validation-error {
-  border-color: var(--red-500);
-  animation: shake 300ms var(--ease-out);
-}
-.rz-input.input-validation-error:focus { box-shadow: 0 0 0 4px rgba(236, 45, 63, .14); }
-
-.co-error { display: none; }
-.co-error.field-validation-error {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  font-size: .78rem;
-  font-weight: 600;
-  color: var(--red-500);
-}
-.co-error.field-validation-error::before {
-  content: "";
-  flex: 0 0 14px;
-  width: 14px; height: 14px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23EC2D3F'%3E%3Cpath d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0-11a.9.9 0 0 0-.9 1l.3 3.6a.6.6 0 0 0 1.2 0l.3-3.6A.9.9 0 0 0 8 4zm0 8a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8z'/%3E%3C/svg%3E") center / contain no-repeat;
-}
+/* .co-label / .rz-input / .rz-textarea / .co-error đã chuyển sang site.css mục 17
+   (form liên hệ ở /lien-he dùng chung — CSS dùng chung phải nằm ở site.css). */
 
 .co-summary-errors:empty,
 .co-summary-errors.validation-summary-valid { display: none; }
@@ -492,25 +446,7 @@
   border-radius: var(--r-md);
   background: var(--brand-50);
 }
-.bank-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 6px 0;
-  font-size: .88rem;
-  color: var(--ink-500);
-  border-bottom: 1px dashed var(--brand-200);
-}
-.bank-row:last-of-type { border-bottom: 0; }
-.bank-row strong { font-family: var(--font-display); color: var(--ink-900); text-align: right; }
-.bank-hint {
-  display: flex;
-  gap: 8px;
-  margin: 10px 0 0;
-  font-size: .78rem;
-  color: var(--ink-500);
-}
-.bank-hint .bi { color: var(--brand-500); }
+/* .bank-row / .bank-hint đã chuyển sang site.css mục 21 (partial _BankInfo dùng chung). */
 
 .co-submit { width: 100%; }
 .co-submit .spinner-border { width: 1rem; height: 1rem; border-width: .15em; }
@@ -598,25 +534,8 @@
   box-shadow: var(--sh-md);
 }
 
-.done-check { width: 92px; height: 92px; margin-bottom: 8px; }
-.done-circle {
-  fill: none;
-  stroke: var(--success);
-  stroke-width: 5;
-  stroke-dasharray: 202;
-  stroke-dashoffset: 202;
-  animation: draw-stroke 600ms var(--ease-out) 200ms forwards;
-}
-.done-tick {
-  fill: none;
-  stroke: var(--success);
-  stroke-width: 6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 48;
-  stroke-dashoffset: 48;
-  animation: draw-stroke 420ms var(--ease-out) 700ms forwards;
-}
+/* .done-check / .done-circle / .done-tick đã chuyển sang site.css mục 20
+   (trang liên hệ dùng lại cho trạng thái gửi thành công). */
 
 .done-title { font-size: 1.6rem; font-weight: 800; margin: 0 0 8px; }
 .done-sub { color: var(--ink-500); margin-bottom: 22px; }
@@ -683,17 +602,8 @@
 .done-hotline { margin: 18px 0 0; font-size: .85rem; color: var(--ink-500); }
 .done-hotline a { font-weight: 700; color: var(--red-500); }
 
-/* =========================== KEYFRAMES RIÊNG =========================== */
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-6px); }
-  40% { transform: translateX(6px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(4px); }
-}
-@keyframes draw-stroke {
-  to { stroke-dashoffset: 0; }
-}
+/* =========================== KEYFRAMES RIÊNG ===========================
+   `shake` + `draw-stroke` đã chuyển sang site.css (mục 17 và 20) vì trang liên hệ dùng lại. */
 @keyframes step-line {
   to { transform: scaleX(1); }
 }

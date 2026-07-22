@@ -1,0 +1,18 @@
+@model NewsArticle
+@*
+    Card tin dọc dùng chung: trang chủ (section "Tin công nghệ") + bài liên quan ở trang chi tiết.
+    CSS ở site.css mục 18 (partial Shared ⇒ CSS phải ở site.css — xem CLAUDE.md mục 4.6).
+*@
+<a class="news-card" href="/@Model.Slug">
+    <span class="news-thumb">
+        <img src="@(Model.ThumbnailUrl ?? "/images/placeholder-news.svg")" alt="@Model.Title" loading="lazy" />
+        @if (Model.Category is not null)
+        {
+            <span class="news-tag">@Model.Category.Name</span>
+        }
+    </span>
+    <span class="news-body">
+        <span class="news-date"><i class="bi bi-clock"></i>@Model.PublishedAt.ToString("dd/MM/yyyy")</span>
+        <span class="news-title">@Model.Title</span>
+    </span>
+</a>

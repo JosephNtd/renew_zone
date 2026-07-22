@@ -1,6 +1,9 @@
+@using RenewZone.Domain.Interfaces
+@inject ISiteContentService SiteContent
 @model CheckoutViewModel
 @{
     var cart = Model.Cart;
+    var settings = await SiteContent.GetSettingsAsync();
 }
 
 @section Styles {
@@ -102,10 +105,7 @@
                     @* Panel này chỉ hé lộ khi chọn "Chuyển khoản" — thông tin GIẢ LẬP cho demo học tập *@
                     <div class="bank-panel" id="bankPanel">
                         <div class="bank-panel-inner">
-                            <div class="bank-row"><span>Ngân hàng</span><strong>@DemoBankInfo.BankName</strong></div>
-                            <div class="bank-row"><span>Số tài khoản</span><strong>@DemoBankInfo.AccountNumber</strong></div>
-                            <div class="bank-row"><span>Chủ tài khoản</span><strong>@DemoBankInfo.AccountName</strong></div>
-                            <div class="bank-row"><span>Nội dung</span><strong>Thanh toan don [Mã đơn]</strong></div>
+                            @await Html.PartialAsync("_BankInfo", (string?)null)
                             <p class="bank-hint">
                                 <i class="bi bi-info-circle"></i>
                                 Mã đơn hiện ở màn hình sau khi đặt. Đây là tài khoản giả lập của website học tập.
@@ -163,7 +163,7 @@
                         </div>
                         <div class="sum-row">
                             <span>Phí vận chuyển</span>
-                            <span class="sum-note">Shop báo khi xác nhận</span>
+                            <span class="sum-note">@settings.Get(SettingKeys.ShippingNote, "Shop báo khi xác nhận")</span>
                         </div>
 
                         <div class="sum-div"></div>
@@ -173,9 +173,8 @@
                             <strong>@cart.Subtotal.ToVnd()</strong>
                         </div>
 
-                        <p class="sum-assure">
-                            <i class="bi bi-shield-check"></i> Thu cũ đổi mới · Bảo hành dài hạn
-                        </p>
+                        @await Component.InvokeAsync("ContentBlocks",
+                            new { groupKey = ContentBlockGroups.CartAssurance, cssClass = "sum-assure" })
                     </div>
                 </div>
             </aside>

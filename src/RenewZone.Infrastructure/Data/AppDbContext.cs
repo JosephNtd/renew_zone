@@ -29,9 +29,14 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
     // ----- Nội dung -----
     public DbSet<NewsArticle> NewsArticles => Set<NewsArticle>();
+    public DbSet<NewsCategory> NewsCategories => Set<NewsCategory>();
     public DbSet<StaticPage> StaticPages => Set<StaticPage>();
     public DbSet<Banner> Banners => Set<Banner>();
     public DbSet<Testimonial> Testimonials => Set<Testimonial>();
+
+    // ----- Điều hướng & khối nội dung (Giai đoạn 5 — khử hardcode) -----
+    public DbSet<MenuItem> MenuItems => Set<MenuItem>();
+    public DbSet<ContentBlock> ContentBlocks => Set<ContentBlock>();
 
     // ----- Tương tác & cấu hình -----
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();

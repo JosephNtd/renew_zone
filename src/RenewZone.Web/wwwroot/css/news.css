@@ -1,0 +1,370 @@
+/* =====================================================================
+   news.css — Trang listing tin công nghệ (/tin-tuc), Giai đoạn 5.
+   Component dùng chung (.rz-chip, .news-card, .rz-pager, .btn-rz) nằm ở site.css.
+   ===================================================================== */
+
+/* =========================== HERO =========================== */
+.news-hero {
+  position: relative;
+  background: var(--brand-50);
+  border-bottom-left-radius: var(--r-xl);
+  border-bottom-right-radius: var(--r-xl);
+  padding: 4px 0 32px;
+  margin-bottom: 32px;
+  overflow: hidden;
+}
+/* Vệt gradient hồng nhạt góc phải — thuần trang trí, không chắn nội dung */
+.news-hero::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  right: -6%;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(206, 95, 154, .18), transparent 70%);
+  pointer-events: none;
+}
+.news-hero > .container { position: relative; z-index: 1; }
+
+.news-hero-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.news-hero-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2rem;
+  color: var(--ink-900);
+  margin: 0 0 6px;
+}
+.news-hero-sub {
+  margin: 0;
+  color: var(--ink-500);
+  font-size: .95rem;
+  max-width: 60ch;
+}
+.news-search { flex: 0 1 340px; max-width: 100%; }
+
+/* =========================== BÀI NỔI BẬT =========================== */
+.nf-grid {
+  display: grid;
+  grid-template-columns: 7fr 5fr;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.nf-lead {
+  position: relative;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  min-height: 380px;
+  background: var(--brand-100);
+  box-shadow: var(--sh-sm);
+}
+.nf-lead img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 600ms var(--ease-out);
+}
+.nf-lead-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 24px;
+  /* Overlay đủ đậm để chữ trắng đạt tương phản AA kể cả trên ảnh sáng */
+  background: linear-gradient(to top, rgba(23, 20, 26, .88), rgba(23, 20, 26, .35) 45%, transparent 72%);
+  transition: background var(--t-base);
+}
+.nf-tag {
+  align-self: flex-start;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  background: var(--brand-500);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .7rem;
+  animation: badge-pop 420ms var(--ease-spring) both;
+}
+.nf-lead-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.6rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.nf-lead-title a { color: #fff; text-decoration: none; }
+.nf-lead-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: .82rem;
+  color: rgba(255, 255, 255, .82);
+}
+.nf-lead-meta .bi { margin-right: 6px; }
+
+.nf-side { display: flex; flex-direction: column; gap: 20px; }
+.nf-mini {
+  position: relative;
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 14px;
+  flex: 1;
+  align-items: center;
+  padding: 12px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  transition: background var(--t-base), transform var(--t-base) var(--ease-out), border-color var(--t-base);
+}
+.nf-mini-thumb {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--brand-50);
+}
+.nf-mini-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.nf-mini-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.nf-mini-tag {
+  align-self: flex-start;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  background: var(--brand-100);
+  color: var(--brand-700);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .66rem;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.nf-mini-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .95rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.nf-mini-title a { color: var(--ink-900); text-decoration: none; transition: color var(--t-fast); }
+.nf-mini-date { font-size: .76rem; color: var(--ink-400); }
+
+/* =========================== CHIP LỌC + DÒNG KẾT QUẢ =========================== */
+.news-filter { margin-bottom: 20px; }
+
+.news-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  background: var(--brand-50);
+  border-radius: var(--r-md);
+}
+.news-result-text { margin: 0; font-size: .9rem; color: var(--ink-700); }
+.news-result-text strong { color: var(--brand-700); }
+
+/* =========================== DANH SÁCH BÀI (card ngang) =========================== */
+.nw-list { display: flex; flex-direction: column; gap: 20px; margin-bottom: 32px; }
+
+.nw-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  padding: 14px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-sm);
+  transition: transform var(--t-base) var(--ease-out), box-shadow var(--t-base), border-color var(--t-base);
+}
+.nw-thumb {
+  aspect-ratio: 16 / 10;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--brand-50);
+}
+.nw-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 600ms var(--ease-out);
+}
+.nw-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  min-width: 0;
+  padding-right: 6px;
+}
+.nw-tag {
+  align-self: flex-start;
+  padding: 3px 12px;
+  border-radius: var(--r-pill);
+  background: var(--brand-100);
+  color: var(--brand-700);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.nw-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.nw-title a { color: var(--ink-900); text-decoration: none; transition: color var(--t-fast); }
+.nw-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: .78rem;
+  color: var(--ink-400);
+}
+.nw-meta .bi { margin-right: 5px; }
+.nw-excerpt {
+  margin: 0;
+  font-size: .9rem;
+  line-height: 1.6;
+  color: var(--ink-500);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.nw-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .85rem;
+  color: var(--brand-600);
+}
+.nw-more .bi { transition: transform var(--t-base) var(--ease-out); }
+
+/* =========================== TRẠNG THÁI RỖNG =========================== */
+.news-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 56px 20px;
+  text-align: center;
+}
+.news-empty .bi { font-size: 4rem; color: var(--brand-200); line-height: 1; }
+.news-empty h2 { font-size: 1.25rem; font-weight: 800; color: var(--ink-900); margin: 6px 0 0; }
+.news-empty p { color: var(--ink-500); margin: 0 0 10px; }
+
+/* =========================== CTA CUỐI TRANG =========================== */
+.news-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 24px 28px;
+  margin: 40px 0 48px;
+  border-radius: var(--r-lg);
+  background: var(--grad-brand);
+  color: #fff;
+  box-shadow: var(--sh-brand);
+}
+.news-cta h2 { font-size: 1.3rem; font-weight: 800; margin: 0 0 4px; }
+.news-cta p { margin: 0; opacity: .92; font-size: .92rem; }
+.news-cta-btn {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  color: var(--brand-700);
+  font-weight: 700;
+  white-space: nowrap;
+}
+/* Quét sáng khi hover (DESIGN mục 4) */
+.news-cta-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--grad-shine);
+  transform: translateX(-120%);
+  transition: transform 620ms var(--ease-out);
+}
+
+/* =========================== HOVER (chỉ thiết bị có chuột) =========================== */
+@media (hover: hover) {
+  .nf-lead:hover img { transform: scale(1.06); }
+  .nf-lead:hover .nf-lead-overlay {
+    background: linear-gradient(to top, rgba(23, 20, 26, .94), rgba(23, 20, 26, .5) 45%, rgba(23, 20, 26, .1) 78%);
+  }
+
+  .nf-mini:hover { background: var(--brand-50); border-color: var(--brand-200); transform: translateX(4px); }
+  .nf-mini:hover .nf-mini-title a { color: var(--brand-600); }
+
+  .nw-card:hover { transform: translateY(-4px); box-shadow: var(--sh-md); border-color: var(--brand-200); }
+  .nw-card:hover .nw-thumb img { transform: scale(1.05); }
+  .nw-card:hover .nw-title a { color: var(--brand-600); }
+  .nw-card:hover .nw-more .bi { transform: translateX(4px); }
+
+  .news-cta-btn:hover::after { transform: translateX(120%); }
+}
+
+/* =========================== RESPONSIVE =========================== */
+@media (max-width: 991.98px) {
+  .nf-grid { grid-template-columns: 1fr; }
+  .nf-lead { min-height: 300px; }
+  .nf-side { flex-direction: row; }
+  .nf-mini { flex: 1 1 0; }
+  .nw-card { grid-template-columns: 240px 1fr; }
+  .news-hero-title { font-size: 1.7rem; }
+}
+
+@media (max-width: 767.98px) {
+  .news-hero { padding-bottom: 24px; margin-bottom: 24px; }
+  .news-hero-row { flex-direction: column; align-items: stretch; }
+  .news-search { flex: 1 1 auto; }
+
+  .nf-side { flex-direction: column; }
+  .nf-mini { grid-template-columns: 100px 1fr; }
+  .nf-lead { min-height: 240px; }
+  .nf-lead-title { font-size: 1.25rem; }
+
+  /* Card xếp dọc: ảnh 16:9 tràn ngang, nội dung xuống dưới */
+  .nw-card { grid-template-columns: 1fr; }
+  .nw-thumb { aspect-ratio: 16 / 9; }
+  .nw-title { font-size: 1.05rem; }
+
+  .news-cta { padding: 20px; }
+  .news-cta-btn { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 575.98px) {
+  .news-hero-title { font-size: 1.45rem; }
+  .news-result { flex-direction: column; align-items: flex-start; }
+}

@@ -1,0 +1,39 @@
+@model NewsArticle
+@{
+    // "≈ N phút đọc" ước lượng từ độ dài nội dung (bỏ thẻ HTML, ~200 từ/phút)
+    var plainText = System.Text.RegularExpressions.Regex.Replace(Model.ContentHtml ?? "", "<[^>]+>", " ");
+    var wordCount = plainText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+    var readMinutes = Math.Max(1, (int)Math.Ceiling(wordCount / 200.0));
+}
+@*
+    Card ngang cho listing /tin-tuc. Cả card là 1 link nhờ .stretched-link
+    (không lồng <a> trong <a> — đúng cách _ProductCard đang làm). CSS ở news.css.
+*@
+<article class="nw-card">
+    <div class="nw-thumb">
+        <img src="@(Model.ThumbnailUrl ?? "/images/placeholder-news.svg")" alt="@Model.Title" loading="lazy" />
+    </div>
+    <div class="nw-body">
+        @if (Model.Category is not null)
+        {
+            <span class="nw-tag">@Model.Category.Name</span>
+        }
+
+        <h3 class="nw-title">
+            <a class="stretched-link" href="/@Model.Slug">@Model.Title</a>
+        </h3>
+
+        <div class="nw-meta">
+            <span><i class="bi bi-calendar3"></i>@Model.PublishedAt.ToString("HH:mm - dd/MM/yyyy")</span>
+            <span><i class="bi bi-eye"></i>@Model.ViewCount lượt xem</span>
+            <span><i class="bi bi-clock"></i>≈ @readMinutes phút đọc</span>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Excerpt))
+        {
+            <p class="nw-excerpt">@Model.Excerpt</p>
+        }
+
+        <span class="nw-more">Đọc tiếp <i class="bi bi-arrow-right"></i></span>
+    </div>
+</article>

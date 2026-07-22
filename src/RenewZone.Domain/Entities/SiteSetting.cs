@@ -26,4 +26,24 @@ public static class SettingKeys
     public const string ZaloUrl = "ZaloUrl";
     public const string MapUrl = "MapUrl";
     public const string MapEmbedUrl = "MapEmbedUrl";
+
+    // ----- Thanh toán chuyển khoản (GIẢ LẬP — Lưu ý 6.2) -----
+    public const string BankName = "BankName";
+    public const string BankAccountNumber = "BankAccountNumber";
+    public const string BankAccountName = "BankAccountName";
+
+    /// <summary>Mẫu nội dung chuyển khoản, <c>{0}</c> = mã đơn hàng.</summary>
+    public const string BankTransferNoteTemplate = "BankTransferNoteTemplate";
+
+    // ----- Nội dung rời rạc trên các trang -----
+    public const string ShippingNote = "ShippingNote";
+
+    /// <summary>Danh sách chủ đề form liên hệ, ngăn cách bằng ký tự <c>|</c>.</summary>
+    public const string ContactSubjects = "ContactSubjects";
+
+    public const string ContactIntro = "ContactIntro";
+    public const string NewsPageTitle = "NewsPageTitle";
+    public const string NewsPageIntro = "NewsPageIntro";
+    public const string FooterAbout = "FooterAbout";
+    public const string FooterDisclaimer = "FooterDisclaimer";
 }

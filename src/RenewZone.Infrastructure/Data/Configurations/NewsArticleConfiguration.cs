@@ -12,8 +12,13 @@ public class NewsArticleConfiguration : IEntityTypeConfiguration<NewsArticle>
         builder.Property(x => x.Slug).HasMaxLength(250).IsRequired();
         builder.Property(x => x.ThumbnailUrl).HasMaxLength(500);
         builder.Property(x => x.Excerpt).HasMaxLength(500);
-        builder.Property(x => x.CategoryTag).HasMaxLength(100);
         builder.Property(x => x.ContentHtml).IsRequired();
+
+        // SetNull: xóa chuyên mục KHÔNG được kéo theo bài viết — bài chỉ về trạng thái chưa phân loại
+        builder.HasOne(x => x.Category)
+            .WithMany(c => c.Articles)
+            .HasForeignKey(x => x.CategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(x => x.Slug).IsUnique();
         // Listing sắp xếp theo ngày đăng mới nhất

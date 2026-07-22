@@ -16,11 +16,13 @@ public class NewsArticle : AuditableEntity
 
     public string ContentHtml { get; set; } = null!;
 
-    /// <summary>Tag chuyên mục dạng chuỗi đơn giản, vd "Khoa học công nghệ", "Thiết bị".</summary>
-    public string? CategoryTag { get; set; }
+    /// <summary>Chuyên mục bài viết. Null = chưa phân loại (xóa chuyên mục ⇒ SetNull, không mất bài).</summary>
+    public int? CategoryId { get; set; }
 
     public bool IsFeatured { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime PublishedAt { get; set; }
     public int ViewCount { get; set; }
+
+    public NewsCategory? Category { get; set; }
 }

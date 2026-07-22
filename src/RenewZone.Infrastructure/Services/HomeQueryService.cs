@@ -65,7 +65,9 @@ public class HomeQueryService(AppDbContext db, IMemoryCache cache) : IHomeQueryS
                 .OrderBy(t => t.DisplayOrder)
                 .ToListAsync();
 
+            // Include Category: partial _NewsCard render tag chuyên mục
             var news = await db.NewsArticles.AsNoTracking()
+                .Include(n => n.Category)
                 .Where(n => n.IsActive)
                 .OrderByDescending(n => n.PublishedAt)
                 .Take(MaxNews)

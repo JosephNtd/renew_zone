@@ -204,6 +204,10 @@ namespace RenewZone.Infrastructure.Data.Migrations
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("int");
 
+                    b.Property<string>("IconClass")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -292,6 +296,101 @@ namespace RenewZone.Infrastructure.Data.Migrations
                     b.ToTable("ContactMessages");
                 });
 
+            modelBuilder.Entity("RenewZone.Domain.Entities.ContentBlock", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("GroupKey")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LinkUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Subtitle")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupKey", "DisplayOrder");
+
+                    b.ToTable("ContentBlocks");
+                });
+
+            modelBuilder.Entity("RenewZone.Domain.Entities.MenuItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Group")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("OpenInNewTab")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Url")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
+
+                    b.HasIndex("Group", "DisplayOrder");
+
+                    b.ToTable("MenuItems");
+                });
+
             modelBuilder.Entity("RenewZone.Domain.Entities.NewsArticle", b =>
                 {
                     b.Property<int>("Id")
@@ -300,9 +399,8 @@ namespace RenewZone.Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CategoryTag")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("int");
 
                     b.Property<string>("ContentHtml")
                         .IsRequired()
@@ -346,12 +444,46 @@ namespace RenewZone.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
                     b.HasIndex("PublishedAt");
 
                     b.HasIndex("Slug")
                         .IsUnique();
 
                     b.ToTable("NewsArticles");
+                });
+
+            modelBuilder.Entity("RenewZone.Domain.Entities.NewsCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("NewsCategories");
                 });
 
             modelBuilder.Entity("RenewZone.Domain.Entities.Order", b =>
@@ -832,6 +964,26 @@ namespace RenewZone.Infrastructure.Data.Migrations
                     b.Navigation("Parent");
                 });
 
+            modelBuilder.Entity("RenewZone.Domain.Entities.MenuItem", b =>
+                {
+                    b.HasOne("RenewZone.Domain.Entities.MenuItem", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("RenewZone.Domain.Entities.NewsArticle", b =>
+                {
+                    b.HasOne("RenewZone.Domain.Entities.NewsCategory", "Category")
+                        .WithMany("Articles")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Category");
+                });
+
             modelBuilder.Entity("RenewZone.Domain.Entities.OrderItem", b =>
                 {
                     b.HasOne("RenewZone.Domain.Entities.Order", "Order")
@@ -899,6 +1051,16 @@ namespace RenewZone.Infrastructure.Data.Migrations
                     b.Navigation("Children");
 
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("RenewZone.Domain.Entities.MenuItem", b =>
+                {
+                    b.Navigation("Children");
+                });
+
+            modelBuilder.Entity("RenewZone.Domain.Entities.NewsCategory", b =>
+                {
+                    b.Navigation("Articles");
                 });
 
             modelBuilder.Entity("RenewZone.Domain.Entities.Order", b =>

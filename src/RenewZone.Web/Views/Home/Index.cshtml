@@ -167,19 +167,7 @@
                 @foreach (var n in Model.LatestNews)
                 {
                     <div class="col reveal">
-                        <a class="news-card" href="/@n.Slug">
-                            <span class="news-thumb">
-                                <img src="@(n.ThumbnailUrl ?? "/images/placeholder-news.svg")" alt="@n.Title" loading="lazy" />
-                                @if (!string.IsNullOrEmpty(n.CategoryTag))
-                                {
-                                    <span class="news-tag">@n.CategoryTag</span>
-                                }
-                            </span>
-                            <span class="news-body">
-                                <span class="news-date"><i class="bi bi-clock"></i>@n.PublishedAt.ToString("dd/MM/yyyy")</span>
-                                <span class="news-title">@n.Title</span>
-                            </span>
-                        </a>
+                        @await Html.PartialAsync("_NewsCard", n)
                     </div>
                 }
             </div>

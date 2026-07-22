@@ -145,13 +145,9 @@
                 </a>
             }
 
-            @* ---------- CAM KẾT ---------- *@
-            <ul class="pdp-commit">
-                <li><i class="bi bi-patch-check-fill"></i> Hàng chính hãng, nguyên seal / đúng mô tả</li>
-                <li><i class="bi bi-arrow-repeat"></i> Thu cũ đổi mới, thu giá cao</li>
-                <li><i class="bi bi-shield-check"></i> Bảo hành dài hạn, 1 đổi 1</li>
-                <li><i class="bi bi-truck"></i> Giao nhanh nội thành, kiểm tra khi nhận</li>
-            </ul>
+            @* ---------- CAM KẾT (nội dung từ bảng ContentBlocks — rỗng thì tự ẩn) ---------- *@
+            @await Component.InvokeAsync("ContentBlocks",
+                new { groupKey = ContentBlockGroups.ProductCommitments, cssClass = "pdp-commit" })
         </div>
     </div>
 

@@ -1,0 +1,27 @@
+@using RenewZone.Web.ViewComponents
+@model ContentBlocksViewModel
+@*
+    Nhóm rỗng ⇒ không render gì (luật fallback CLAUDE.md mục 4.7): view gọi không phải tự if.
+*@
+@if (Model.Items.Count > 0)
+{
+    <ul class="@Model.CssClass">
+        @foreach (var block in Model.Items)
+        {
+            <li>
+                @if (!string.IsNullOrWhiteSpace(block.Icon))
+                {
+                    <i class="bi @block.Icon"></i>
+                }
+                @if (string.IsNullOrWhiteSpace(block.LinkUrl))
+                {
+                    @block.Title
+                }
+                else
+                {
+                    <a href="@block.LinkUrl">@block.Title</a>
+                }
+            </li>
+        }
+    </ul>
+}

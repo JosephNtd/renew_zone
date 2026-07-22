@@ -15,6 +15,10 @@ public class Category : AuditableEntity
 
     public int? ParentId { get; set; }
     public string? ImageUrl { get; set; }
+
+    /// <summary>Class icon Bootstrap Icons hiện ở menu, vd "bi-phone". Null ⇒ view dùng icon mặc định.</summary>
+    public string? IconClass { get; set; }
+
     public int DisplayOrder { get; set; }
     public bool IsActive { get; set; } = true;
 
