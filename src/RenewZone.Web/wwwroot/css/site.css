@@ -876,7 +876,28 @@ img { max-width: 100%; }
 .carousel-nav:hover { background: var(--brand-500); color: #fff; border-color: var(--brand-500); }
 .carousel-nav.swiper-button-disabled { opacity: .3; pointer-events: none; }
 
-/* =========================== 15. GIỎ HÀNG — PHẦN GLOBAL (Giai đoạn 4) ===========================
+/* =========================== 15. BREADCRUMB (partial _Breadcrumb) ===========================
+   Partial dùng chung ⇒ CSS phải ở site.css. Trước đây nằm trong product.css nên
+   trang giỏ/đặt hàng (chỉ nạp cart.css) rơi về <ol> mặc định "1. 2. 3.". */
+.rz-breadcrumb { padding: 16px 0 4px; }
+.rz-breadcrumb ol {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  font-size: .85rem;
+  color: var(--ink-500);
+}
+.rz-breadcrumb li { display: inline-flex; align-items: center; gap: 6px; }
+.rz-breadcrumb li + li::before { content: "/"; color: var(--ink-400); margin-right: 6px; }
+.rz-breadcrumb a { color: var(--ink-500); transition: color var(--t-fast); }
+.rz-breadcrumb a:hover { color: var(--brand-600); }
+.rz-breadcrumb li[aria-current] { color: var(--ink-900); font-weight: 600; }
+
+/* =========================== 16. GIỎ HÀNG — PHẦN GLOBAL (Giai đoạn 4) ===========================
    Ở đây CHỈ những thứ xuất hiện trên MỌI trang (offcanvas mini-cart, toast thêm giỏ,
    clone bay vào giỏ, stepper dùng chung). Style riêng trang giỏ/checkout nằm ở cart.css. */
 
@@ -1066,7 +1087,7 @@ img { max-width: 100%; }
   will-change: transform, opacity;
 }
 
-/* =========================== 16. RESPONSIVE =========================== */
+/* =========================== 17. RESPONSIVE =========================== */
 @media (max-width: 991.98px) {
   :root { --header-h: 64px; --header-h-shrink: 58px; }
   .brand-word { font-size: 1.35rem; }

@@ -1,6 +1,90 @@
 /* cart.css — trang giỏ hàng (/gio-hang), đặt hàng (/dat-hang) và cảm ơn (/dat-hang-thanh-cong).
    Phần dùng chung mọi trang (mini-cart offcanvas, toast thêm giỏ, fly-clone, stepper) nằm ở site.css mục 15. */
 
+/* =========================== THANH TIẾN TRÌNH MUA HÀNG ===========================
+   Giỏ hàng (1) → Đặt hàng (2) → Hoàn tất (3). Partial _CheckoutSteps.
+   Nét nối gồm 2 lớp: ::before nền xám + ::after hồng scaleX(0→1) khi bước đã tới. */
+.rz-steps { padding: 24px 0 8px; }
+.rz-steps ol {
+  display: flex;
+  list-style: none;
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.rz-step {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+}
+
+.rz-step:not(:first-child)::before,
+.rz-step:not(:first-child)::after {
+  content: "";
+  position: absolute;
+  top: 19px;            /* nửa chấm 40px trừ nửa độ dày nét 3px */
+  left: -50%;
+  right: 50%;           /* trải đúng từ tâm bước trước tới tâm bước này */
+  height: 3px;
+  border-radius: var(--r-pill);
+}
+.rz-step:not(:first-child)::before { background: var(--line); }
+.rz-step:not(:first-child)::after {
+  background: var(--grad-brand);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+/* Nét dẫn vào bước đã qua / đang đứng thì sáng lên, chạy nối tiếp nhau */
+.rz-step.is-done:not(:first-child)::after,
+.rz-step.is-current:not(:first-child)::after {
+  animation: step-line 520ms var(--ease-out) forwards;
+  animation-delay: calc(var(--step-index, 0) * 160ms);
+}
+
+.rz-step-dot {
+  position: relative;
+  z-index: 1;
+  width: 40px; height: 40px;
+  margin: 0 auto 10px;
+  border: 2px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  color: var(--ink-400);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: .95rem;
+  display: grid;
+  place-items: center;
+  transition: transform var(--t-base) var(--ease-out), box-shadow var(--t-base);
+}
+.rz-step.is-done .rz-step-dot,
+.rz-step.is-current .rz-step-dot {
+  border-color: transparent;
+  background: var(--grad-brand);
+  color: #fff;
+}
+.rz-step.is-current .rz-step-dot {
+  box-shadow: var(--sh-brand), 0 0 0 5px var(--brand-100);
+  animation: step-pop var(--t-slow) var(--ease-spring);
+}
+
+.rz-step-label {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: .85rem;
+  color: var(--ink-400);
+  transition: color var(--t-base);
+}
+.rz-step.is-done .rz-step-label { color: var(--brand-700); }
+.rz-step.is-current .rz-step-label { color: var(--ink-900); font-weight: 800; }
+
+/* Bước đã qua bấm được để quay lại */
+.rz-step:has(.rz-step-link):hover .rz-step-dot { transform: translateY(-3px); }
+.rz-step:has(.rz-step-link):hover .rz-step-label { color: var(--brand-600); }
+
 /* =========================== HEAD TRANG =========================== */
 .cart-page,
 .checkout-page { padding-bottom: 48px; }
@@ -610,6 +694,14 @@
 @keyframes draw-stroke {
   to { stroke-dashoffset: 0; }
 }
+@keyframes step-line {
+  to { transform: scaleX(1); }
+}
+@keyframes step-pop {
+  0% { transform: scale(.6); }
+  60% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
 
 /* =========================== RESPONSIVE =========================== */
 @media (max-width: 1199.98px) {
@@ -653,6 +745,12 @@
 }
 
 @media (max-width: 575.98px) {
+  .rz-steps { padding: 18px 0 4px; }
+  .rz-step-dot { width: 34px; height: 34px; font-size: .85rem; margin-bottom: 8px; }
+  .rz-step:not(:first-child)::before,
+  .rz-step:not(:first-child)::after { top: 16px; }
+  .rz-step-label { font-size: .78rem; }
+
   .co-fields { grid-template-columns: 1fr; }
   .done-info { grid-template-columns: 1fr; }
   .done-card { padding: 28px 18px; }

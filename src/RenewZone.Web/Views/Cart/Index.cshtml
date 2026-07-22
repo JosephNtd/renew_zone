@@ -7,7 +7,9 @@
     <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
 }
 
-@await Html.PartialAsync("_Breadcrumb", new BreadcrumbViewModel { Items = new[] { new Crumb("Giỏ hàng") } })
+<div class="container">
+    @await Html.PartialAsync("_CheckoutSteps", 1)
+</div>
 
 <div class="container cart-page">
     <header class="cart-head">

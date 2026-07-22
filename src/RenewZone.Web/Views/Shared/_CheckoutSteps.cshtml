@@ -1,0 +1,49 @@
+@model int
+@*
+    Thanh tiến trình mua hàng — dùng ở /gio-hang (1), /dat-hang (2), /dat-hang-thanh-cong (3).
+    Model = bước hiện tại. Bước đã qua hiện dấu tick và bấm được để quay lại;
+    riêng ở bước cuối (đơn đã đặt xong) thì không cho quay lại nữa.
+    CSS nằm ở cart.css — 3 trang này đều nạp file đó.
+*@
+@{
+    var steps = new[]
+    {
+        (Label: "Giỏ hàng", Url: "/gio-hang"),
+        (Label: "Đặt hàng", Url: "/dat-hang"),
+        (Label: "Hoàn tất", Url: "")
+    };
+
+    var current = Math.Clamp(Model, 1, steps.Length);
+}
+<nav class="rz-steps" aria-label="Tiến trình đặt hàng">
+    <ol>
+        @for (var i = 0; i < steps.Length; i++)
+        {
+            var number = i + 1;
+            var isDone = number < current;
+            var isCurrent = number == current;
+            var state = isDone ? "rz-step is-done" : isCurrent ? "rz-step is-current" : "rz-step";
+            var backUrl = isDone && current < steps.Length ? steps[i].Url : null;
+
+            <li class="@state" style="--step-index:@i" aria-current="@(isCurrent ? "step" : null)">
+                <span class="rz-step-dot">
+                    @if (isDone)
+                    {
+                        <i class="bi bi-check-lg"></i>
+                    }
+                    else
+                    {
+                        @number
+                    }
+                </span>
+                <span class="rz-step-label">@steps[i].Label</span>
+
+                @if (backUrl is not null)
+                {
+                    @* stretched-link: cả ô bước bấm được mà không lồng thẻ <a> vào nhau *@
+                    <a class="rz-step-link stretched-link" href="@backUrl" aria-label="Quay lại @steps[i].Label"></a>
+                }
+            </li>
+        }
+    </ol>
+</nav>

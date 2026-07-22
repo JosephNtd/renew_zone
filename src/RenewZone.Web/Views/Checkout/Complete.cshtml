@@ -11,6 +11,8 @@
 }
 
 <div class="container done-page">
+    @await Html.PartialAsync("_CheckoutSteps", 3)
+
     <div class="done-card">
         <svg class="done-check" viewBox="0 0 72 72" role="img" aria-label="Đặt hàng thành công">
             <circle class="done-circle" cx="36" cy="36" r="32" />

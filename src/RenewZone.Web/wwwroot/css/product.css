@@ -1,24 +1,7 @@
 /* product.css — trang danh mục, chi tiết sản phẩm (PDP), trang tĩnh & tin chi tiết.
-   Tokens + card + section-head + carousel-nav dùng chung nằm ở site.css. */
-
-/* =========================== BREADCRUMB =========================== */
-.rz-breadcrumb { padding: 16px 0 4px; }
-.rz-breadcrumb ol {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  font-size: .85rem;
-  color: var(--ink-500);
-}
-.rz-breadcrumb li { display: inline-flex; align-items: center; gap: 6px; }
-.rz-breadcrumb li + li::before { content: "/"; color: var(--ink-400); margin-right: 6px; }
-.rz-breadcrumb a { color: var(--ink-500); transition: color var(--t-fast); }
-.rz-breadcrumb a:hover { color: var(--brand-600); }
-.rz-breadcrumb li[aria-current] { color: var(--ink-900); font-weight: 600; }
+   Tokens + card + section-head + carousel-nav + BREADCRUMB dùng chung nằm ở site.css.
+   (Breadcrumb đã chuyển sang site.css mục 15: partial _Breadcrumb là component
+   dùng chung, để CSS ở đây thì trang nào không nạp product.css sẽ vỡ layout.) */
 
 /* =========================== HEAD DANH MỤC =========================== */
 .cat-head {
