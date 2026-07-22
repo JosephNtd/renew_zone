@@ -1,0 +1,190 @@
+@model CheckoutViewModel
+@{
+    var cart = Model.Cart;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
+}
+
+@await Html.PartialAsync("_Breadcrumb", new BreadcrumbViewModel
+{
+    Items = new[] { new Crumb("Giỏ hàng", "/gio-hang"), new Crumb("Đặt hàng") }
+})
+
+<div class="container checkout-page">
+    <header class="cart-head">
+        <h1 class="cart-title">Đặt hàng</h1>
+        <a class="co-back" href="/gio-hang"><i class="bi bi-arrow-left"></i> Quay lại giỏ hàng</a>
+    </header>
+
+    @* asp-antiforgery="true": để FormTagHelper phát ĐÚNG MỘT token (action viết tay nên
+       mặc định tag helper không tự thêm) — tránh cả trường hợp phát trùng làm hỏng validate. *@
+    <form method="post" action="/dat-hang" id="checkoutForm" asp-antiforgery="true" novalidate>
+        <div class="checkout-grid">
+            @* ---------------- CỘT TRÁI: FORM ---------------- *@
+            <div class="co-form reveal">
+                <div asp-validation-summary="ModelOnly" class="co-summary-errors"></div>
+
+                <section class="co-block">
+                    <h2 class="co-block-title"><span class="co-step">1</span> Thông tin nhận hàng</h2>
+
+                    <div class="co-fields">
+                        <div class="co-field">
+                            <label asp-for="Input.CustomerName" class="co-label">Họ và tên <b>*</b></label>
+                            <input asp-for="Input.CustomerName" class="rz-input" autocomplete="name"
+                                   placeholder="Nguyễn Văn A" />
+                            <span asp-validation-for="Input.CustomerName" class="co-error"></span>
+                        </div>
+
+                        <div class="co-field">
+                            <label asp-for="Input.Phone" class="co-label">Số điện thoại <b>*</b></label>
+                            <input asp-for="Input.Phone" class="rz-input" type="tel" inputmode="tel"
+                                   autocomplete="tel" placeholder="0900000000" />
+                            <span asp-validation-for="Input.Phone" class="co-error"></span>
+                        </div>
+
+                        <div class="co-field">
+                            <label asp-for="Input.Email" class="co-label">Email <i>(không bắt buộc)</i></label>
+                            <input asp-for="Input.Email" class="rz-input" type="email" autocomplete="email"
+                                   placeholder="ban@example.com" />
+                            <span asp-validation-for="Input.Email" class="co-error"></span>
+                        </div>
+
+                        <div class="co-field co-field-full">
+                            <label asp-for="Input.Address" class="co-label">Địa chỉ nhận hàng <b>*</b></label>
+                            <textarea asp-for="Input.Address" class="rz-input rz-textarea" rows="2"
+                                      autocomplete="street-address"
+                                      placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành"></textarea>
+                            <span asp-validation-for="Input.Address" class="co-error"></span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="co-block">
+                    <h2 class="co-block-title"><span class="co-step">2</span> Ghi chú</h2>
+                    <div class="co-field">
+                        <label asp-for="Input.Note" class="co-label">Ghi chú cho cửa hàng <i>(không bắt buộc)</i></label>
+                        <textarea asp-for="Input.Note" class="rz-input rz-textarea" rows="2"
+                                  placeholder="Thời gian nhận hàng, yêu cầu kiểm tra máy..."></textarea>
+                        <span asp-validation-for="Input.Note" class="co-error"></span>
+                    </div>
+                </section>
+
+                <section class="co-block">
+                    <h2 class="co-block-title"><span class="co-step">3</span> Phương thức thanh toán</h2>
+
+                    <div class="pay-cards">
+                        <label class="pay-card">
+                            <input asp-for="Input.PaymentMethod" type="radio" value="Cod" class="pay-radio" />
+                            <span class="pay-body">
+                                <span class="pay-icon"><i class="bi bi-cash-coin"></i></span>
+                                <span>
+                                    <span class="pay-name">Thanh toán khi nhận hàng (COD)</span>
+                                    <span class="pay-desc">Kiểm tra máy rồi mới thanh toán cho shipper</span>
+                                </span>
+                                <span class="pay-tick"><i class="bi bi-check-lg"></i></span>
+                            </span>
+                        </label>
+
+                        <label class="pay-card">
+                            <input asp-for="Input.PaymentMethod" type="radio" value="BankTransfer" class="pay-radio" />
+                            <span class="pay-body">
+                                <span class="pay-icon"><i class="bi bi-bank"></i></span>
+                                <span>
+                                    <span class="pay-name">Chuyển khoản ngân hàng</span>
+                                    <span class="pay-desc">Chuyển trước, shop xác nhận và giao ngay</span>
+                                </span>
+                                <span class="pay-tick"><i class="bi bi-check-lg"></i></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    @* Panel này chỉ hé lộ khi chọn "Chuyển khoản" — thông tin GIẢ LẬP cho demo học tập *@
+                    <div class="bank-panel" id="bankPanel">
+                        <div class="bank-panel-inner">
+                            <div class="bank-row"><span>Ngân hàng</span><strong>@DemoBankInfo.BankName</strong></div>
+                            <div class="bank-row"><span>Số tài khoản</span><strong>@DemoBankInfo.AccountNumber</strong></div>
+                            <div class="bank-row"><span>Chủ tài khoản</span><strong>@DemoBankInfo.AccountName</strong></div>
+                            <div class="bank-row"><span>Nội dung</span><strong>Thanh toan don [Mã đơn]</strong></div>
+                            <p class="bank-hint">
+                                <i class="bi bi-info-circle"></i>
+                                Mã đơn hiện ở màn hình sau khi đặt. Đây là tài khoản giả lập của website học tập.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <button type="submit" class="btn-rz btn-buy btn-lg co-submit" id="checkoutSubmit">
+                    <span class="co-submit-text">Đặt hàng ngay</span>
+                </button>
+
+                <p class="co-policy">
+                    Bằng việc đặt hàng, bạn đồng ý với
+                    <a href="/chinh-sach-thanh-toan">chính sách thanh toán</a> và
+                    <a href="/chinh-sach-van-chuyen">chính sách vận chuyển</a> của cửa hàng.
+                </p>
+            </div>
+
+            @* ---------------- CỘT PHẢI: TÓM TẮT ĐƠN ---------------- *@
+            <aside class="co-summary-col">
+                <button class="co-sum-toggle d-lg-none" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#coSummary" aria-expanded="false" aria-controls="coSummary">
+                    <span><i class="bi bi-bag-fill"></i> Xem đơn hàng (@cart.Items.Count sản phẩm)</span>
+                    <strong>@cart.Subtotal.ToVnd() <i class="bi bi-chevron-down"></i></strong>
+                </button>
+
+                <div class="collapse co-sum-collapse" id="coSummary">
+                    <div class="cart-summary">
+                        <h2 class="sum-title">Đơn hàng của bạn</h2>
+
+                        <div class="co-items">
+                            @foreach (var item in cart.Items)
+                            {
+                                <div class="co-item">
+                                    <span class="co-item-thumb">
+                                        <img src="@item.ImageUrl" alt="@item.ProductName" loading="lazy" />
+                                        <span class="co-item-qty">@item.Quantity</span>
+                                    </span>
+                                    <span class="co-item-info">
+                                        <span class="co-item-name">@item.ProductName</span>
+                                        @if (!string.IsNullOrEmpty(item.VariantDescription))
+                                        {
+                                            <span class="co-item-variant">@item.VariantDescription</span>
+                                        }
+                                    </span>
+                                    <span class="co-item-total">@item.LineTotal.ToVnd()</span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="sum-row">
+                            <span>Tạm tính</span>
+                            <strong>@cart.Subtotal.ToVnd()</strong>
+                        </div>
+                        <div class="sum-row">
+                            <span>Phí vận chuyển</span>
+                            <span class="sum-note">Shop báo khi xác nhận</span>
+                        </div>
+
+                        <div class="sum-div"></div>
+
+                        <div class="sum-total">
+                            <span>Tổng cộng</span>
+                            <strong>@cart.Subtotal.ToVnd()</strong>
+                        </div>
+
+                        <p class="sum-assure">
+                            <i class="bi bi-shield-check"></i> Thu cũ đổi mới · Bảo hành dài hạn
+                        </p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script src="~/js/checkout.js" asp-append-version="true"></script>
+}

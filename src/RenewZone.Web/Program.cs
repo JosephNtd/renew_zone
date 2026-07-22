@@ -1,5 +1,6 @@
 using RenewZone.Infrastructure;
 using RenewZone.Infrastructure.Data.Seed;
+using RenewZone.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,10 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true; // giỏ hàng là chức năng thiết yếu
 });
+
+// Giỏ hàng đọc/ghi Session ngoài phạm vi controller (ViewComponent, service) ⇒ cần accessor
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICartService, CartService>();
 
 builder.Services.AddControllersWithViews();
 

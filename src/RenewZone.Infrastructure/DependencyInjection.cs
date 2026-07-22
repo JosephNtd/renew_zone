@@ -46,6 +46,7 @@ public static class DependencyInjection
         services.AddScoped<ISlugResolver, SlugResolver>();
         services.AddScoped<IContentQueryService, ContentQueryService>();
         services.AddScoped<ICatalogQueryService, CatalogQueryService>();
+        services.AddScoped<IOrderService, OrderService>();
 
         return services;
     }

@@ -91,7 +91,7 @@
 
                 <a class="cart-btn" href="/gio-hang" aria-label="Giỏ hàng">
                     <i class="bi bi-bag-fill"></i>
-                    <span class="badge-count">0</span>
+                    @await Component.InvokeAsync("CartBadge")
                     <span class="d-none d-md-inline">Giỏ hàng</span>
                 </a>
             </div>
@@ -313,9 +313,17 @@
 
     <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 
+    @* ============ MINI-CART (offcanvas, mở từ icon giỏ) ============ *@
+    @await Html.PartialAsync("_MiniCart")
+
+    @* Token cho các POST AJAX của cart.js (gửi qua header "RequestVerificationToken") *@
+    @Html.AntiForgeryToken()
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    @* Không dùng defer: cart.js phải định nghĩa RZ.addToCart TRƯỚC các script của section bên dưới *@
+    <script src="~/js/cart.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

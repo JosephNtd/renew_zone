@@ -1,0 +1,133 @@
+@model CartViewModel
+@{
+    var cart = Model.Cart;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
+}
+
+@await Html.PartialAsync("_Breadcrumb", new BreadcrumbViewModel { Items = new[] { new Crumb("Giỏ hàng") } })
+
+<div class="container cart-page">
+    <header class="cart-head">
+        <h1 class="cart-title">Giỏ hàng của bạn</h1>
+        <span class="cart-count" id="cartCountLabel">@cart.TotalQuantity sản phẩm</span>
+    </header>
+
+    @* ---------- GIỎ TRỐNG (JS bật lên khi xóa hết dòng cuối, không cần reload) ---------- *@
+    <div class="cart-empty" id="cartEmpty" hidden="@(!cart.IsEmpty)">
+        <img src="~/images/empty-cart.svg" alt="" width="180" height="180" />
+        <p class="cart-empty-msg">Không tồn tại sản phẩm nào trong giỏ hàng !</p>
+        <p class="cart-empty-sub">Hãy chọn cho mình một sản phẩm ưng ý nhé</p>
+        <div class="cart-empty-actions">
+            <a class="btn-rz btn-brand" href="/">Về trang chủ</a>
+            <a class="btn-rz btn-ghost" href="/san-pham">Xem sản phẩm</a>
+        </div>
+    </div>
+
+    @* ---------- GIỎ CÓ HÀNG ---------- *@
+    <div id="cartBody" hidden="@cart.IsEmpty">
+        <div class="cart-grid">
+            <div class="cart-lines" id="cartLines">
+                <div class="cart-lines-head">
+                    <span>Sản phẩm</span>
+                    <span>Đơn giá</span>
+                    <span>Số lượng</span>
+                    <span>Thành tiền</span>
+                    <span></span>
+                </div>
+
+                @foreach (var item in cart.Items)
+                {
+                    var atMin = item.Quantity <= 1;
+                    var atMax = item.Quantity >= Model.MaxQuantity;
+                    <article class="cart-line reveal" data-key="@item.Key">
+                        <a class="cart-thumb" href="/@item.Slug">
+                            <img src="@item.ImageUrl" alt="@item.ProductName" loading="lazy" />
+                        </a>
+
+                        <div class="cart-info">
+                            <a class="cart-name" href="/@item.Slug">@item.ProductName</a>
+                            @if (!string.IsNullOrEmpty(item.VariantDescription))
+                            {
+                                <div class="cart-variant">@item.VariantDescription</div>
+                            }
+                        </div>
+
+                        <div class="cart-unit" data-label="Đơn giá">@item.UnitPrice.ToVnd()</div>
+
+                        <div class="cart-qty">
+                            <div class="rz-stepper" data-key="@item.Key" data-max="@Model.MaxQuantity">
+                                <button type="button" class="step-btn js-step" data-step="-1"
+                                        aria-label="Giảm số lượng @item.ProductName"
+                                        disabled="@atMin">
+                                    <i class="bi bi-dash"></i>
+                                </button>
+                                <span class="step-val" aria-live="polite">@item.Quantity</span>
+                                <button type="button" class="step-btn js-step" data-step="1"
+                                        aria-label="Tăng số lượng @item.ProductName"
+                                        disabled="@atMax">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="cart-total js-line-total" data-label="Thành tiền">@item.LineTotal.ToVnd()</div>
+
+                        <button type="button" class="cart-del js-cart-remove" data-key="@item.Key"
+                                aria-label="Xóa @item.ProductName khỏi giỏ hàng">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </article>
+                }
+            </div>
+
+            <aside class="cart-summary-col">
+                <div class="cart-summary reveal">
+                    <h2 class="sum-title">Tóm tắt đơn hàng</h2>
+
+                    <div class="sum-row">
+                        <span>Tạm tính</span>
+                        <strong class="js-cart-subtotal">@cart.Subtotal.ToVnd()</strong>
+                    </div>
+                    <div class="sum-row">
+                        <span>Phí vận chuyển</span>
+                        <span class="sum-note">Shop báo khi xác nhận</span>
+                    </div>
+
+                    <div class="sum-div"></div>
+
+                    <div class="sum-total">
+                        <span>Tổng cộng</span>
+                        <strong class="js-cart-subtotal">@cart.Subtotal.ToVnd()</strong>
+                    </div>
+
+                    <a class="btn-rz btn-buy btn-lg sum-cta" href="/dat-hang">
+                        Tiến hành đặt hàng <i class="bi bi-arrow-right"></i>
+                    </a>
+
+                    <p class="sum-assure">
+                        <i class="bi bi-shield-check"></i> Thu cũ đổi mới · Bảo hành dài hạn
+                    </p>
+
+                    <div class="sum-pay">
+                        <span class="pay-chip"><i class="bi bi-cash-coin"></i> COD</span>
+                        <span class="pay-chip"><i class="bi bi-bank"></i> Chuyển khoản</span>
+                    </div>
+                </div>
+
+                <a class="cart-continue" href="/san-pham"><i class="bi bi-arrow-left"></i> Tiếp tục mua sắm</a>
+            </aside>
+        </div>
+
+        @* Thanh CTA dính đáy — chỉ mobile/tablet *@
+        <div class="cart-mobile-bar d-lg-none">
+            <div class="cmb-total">
+                <span>Tổng cộng</span>
+                <strong class="js-cart-subtotal">@cart.Subtotal.ToVnd()</strong>
+            </div>
+            <a class="btn-rz btn-buy" href="/dat-hang">Đặt hàng</a>
+        </div>
+    </div>
+</div>

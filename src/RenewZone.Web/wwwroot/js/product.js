@@ -1,6 +1,6 @@
 /* product.js — trang chi tiết sản phẩm: đổi ảnh gallery, chọn variant → tính lại giá,
-   chuyển tab nội dung, carousel sản phẩm liên quan.
-   Giỏ hàng thật làm ở Giai đoạn 4 — hiện nút "Thêm giỏ/Mua ngay" chỉ báo toast. */
+   chuyển tab nội dung, carousel sản phẩm liên quan, thêm giỏ / mua ngay.
+   Việc gọi API giỏ hàng nằm ở cart.js (RZ.addToCart) — nạp global trong _Layout. */
 (function () {
     "use strict";
 
@@ -50,16 +50,6 @@
     });
     recalcPrice();
 
-    /** Gom mô tả variant đang chọn, vd "Dung lượng: 256GB, Màu: Titan Đen". */
-    function selectedVariantText() {
-        var parts = [];
-        document.querySelectorAll(".pdp-optgroup").forEach(function (group) {
-            var active = group.querySelector(".pdp-opt.is-active");
-            if (active) parts.push(group.getAttribute("data-group") + ": " + active.getAttribute("data-value"));
-        });
-        return parts.join(", ");
-    }
-
     /* ---------- 3. Tabs nội dung ---------- */
     document.querySelectorAll(".pdp-tab").forEach(function (tab) {
         tab.addEventListener("click", function () {
@@ -85,13 +75,70 @@
         });
     }
 
-    /* ---------- 5. Thêm giỏ / Mua ngay (placeholder tới Giai đoạn 4) ---------- */
-    function pendingCart() {
-        var variant = selectedVariantText();
-        var msg = "Giỏ hàng đang được hoàn thiện" + (variant ? " (" + variant + ")" : "");
-        if (window.RZ && window.RZ.toast) window.RZ.toast(msg, "success");
+    /* ---------- 5. Stepper số lượng ---------- */
+    var qtyBox = document.getElementById("pdpQty");
+
+    function currentQty() {
+        if (!qtyBox) return 1;
+        var val = qtyBox.querySelector(".step-val");
+        return val ? parseInt(val.textContent, 10) || 1 : 1;
     }
-    document.querySelectorAll(".pdp-addcart, .pdp-buynow").forEach(function (btn) {
-        btn.addEventListener("click", pendingCart);
+
+    if (qtyBox) {
+        var maxQty = parseInt(qtyBox.getAttribute("data-max"), 10) || 10;
+        qtyBox.querySelectorAll(".js-pdp-step").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                var val = qtyBox.querySelector(".step-val");
+                var next = currentQty() + (parseInt(btn.getAttribute("data-step"), 10) || 0);
+                if (next < 1 || next > maxQty || !val) return;
+
+                val.textContent = next;
+                val.classList.remove("pop");
+                void val.offsetWidth; // restart animation
+                val.classList.add("pop");
+
+                qtyBox.querySelectorAll(".js-pdp-step").forEach(function (b) {
+                    var step = parseInt(b.getAttribute("data-step"), 10);
+                    b.disabled = step < 0 ? next <= 1 : next >= maxQty;
+                });
+            });
+        });
+    }
+
+    /* ---------- 6. Thêm giỏ / Mua ngay ---------- */
+    /** Id các OptionValue đang chọn — server dùng chính các id này để tính lại giá. */
+    function selectedOptionValueIds() {
+        var ids = [];
+        document.querySelectorAll(".pdp-optgroup").forEach(function (group) {
+            var active = group.querySelector(".pdp-opt.is-active[data-value-id]");
+            if (active) ids.push(parseInt(active.getAttribute("data-value-id"), 10));
+        });
+        return ids.filter(function (id) { return !isNaN(id); });
+    }
+
+    function addToCartFrom(btn) {
+        if (!window.RZ || !window.RZ.addToCart) return Promise.resolve(false);
+        return window.RZ.addToCart({
+            productId: parseInt(btn.getAttribute("data-product-id"), 10),
+            optionValueIds: selectedOptionValueIds(),
+            quantity: currentQty()
+        }, mainImg);
+    }
+
+    document.querySelectorAll(".pdp-addcart").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            btn.disabled = true;
+            addToCartFrom(btn).finally(function () { btn.disabled = false; });
+        });
+    });
+
+    document.querySelectorAll(".pdp-buynow").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            btn.disabled = true;
+            addToCartFrom(btn).then(function (ok) {
+                if (ok) window.location.href = "/gio-hang";
+                else btn.disabled = false;
+            });
+        });
     });
 })();

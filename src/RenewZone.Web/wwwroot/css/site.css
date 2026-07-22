@@ -876,7 +876,197 @@ img { max-width: 100%; }
 .carousel-nav:hover { background: var(--brand-500); color: #fff; border-color: var(--brand-500); }
 .carousel-nav.swiper-button-disabled { opacity: .3; pointer-events: none; }
 
-/* =========================== 15. RESPONSIVE =========================== */
+/* =========================== 15. GIỎ HÀNG — PHẦN GLOBAL (Giai đoạn 4) ===========================
+   Ở đây CHỈ những thứ xuất hiện trên MỌI trang (offcanvas mini-cart, toast thêm giỏ,
+   clone bay vào giỏ, stepper dùng chung). Style riêng trang giỏ/checkout nằm ở cart.css. */
+
+/* --- Stepper số lượng (dùng ở trang giỏ + PDP) --- */
+.rz-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  padding: 3px;
+}
+.rz-stepper .step-btn {
+  width: 30px; height: 30px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-700);
+  display: grid;
+  place-items: center;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.rz-stepper .step-btn:hover:not(:disabled) { background: var(--brand-50); color: var(--brand-600); }
+.rz-stepper .step-btn:active:not(:disabled) { transform: scale(.9); }
+.rz-stepper .step-btn:disabled { opacity: .35; cursor: not-allowed; }
+.rz-stepper .step-val {
+  min-width: 34px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--ink-900);
+}
+.rz-stepper .step-val.pop { animation: badge-pop var(--t-slow) var(--ease-spring); }
+
+/* --- Mini-cart offcanvas --- */
+.mini-cart { width: 380px; max-width: 100%; }
+.mini-cart-head {
+  border-bottom: 1px solid var(--line);
+  padding: 16px 18px;
+}
+.mini-cart-head .offcanvas-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mini-cart-head .bi-bag-fill { color: var(--brand-500); }
+.mini-cart-count { color: var(--ink-400); font-weight: 600; font-size: .95rem; }
+.mini-cart .offcanvas-body { padding: 0; overflow: hidden; }
+
+.mini-cart-inner { display: flex; flex-direction: column; height: 100%; }
+.mini-cart-list { flex: 1 1 auto; overflow-y: auto; padding: 8px 18px; }
+
+.mini-line {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.mini-line:last-child { border-bottom: 0; }
+.mini-thumb {
+  width: 56px; height: 56px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.mini-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.mini-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: .85rem;
+  color: var(--ink-900);
+  line-height: 1.35;
+}
+.mini-name:hover { color: var(--brand-600); }
+.mini-variant { font-size: .72rem; color: var(--ink-400); margin-top: 2px; }
+.mini-price { font-size: .8rem; color: var(--red-500); font-weight: 700; margin-top: 3px; }
+.mini-del {
+  width: 28px; height: 28px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-400);
+  display: grid;
+  place-items: center;
+  font-size: .8rem;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.mini-del:hover { background: #FDECEE; color: var(--red-500); }
+
+.mini-cart-foot {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--line);
+  padding: 16px 18px;
+  background: var(--paper);
+}
+.mini-sum {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+.mini-sum span { color: var(--ink-500); font-size: .9rem; }
+.mini-sum strong {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--red-500);
+}
+.mini-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mini-actions .btn-rz { width: 100%; padding: 0 12px; font-size: .85rem; }
+
+.mini-cart-empty {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-400);
+  padding: 32px 18px;
+}
+.mini-cart-empty .bi { font-size: 3rem; color: var(--brand-200); margin-bottom: 12px; }
+
+/* --- Toast "Đã thêm vào giỏ" (bản giàu, dùng chung #toastStack) --- */
+.rz-toast.toast-cart { display: flex; align-items: center; gap: 12px; }
+.toast-cart-thumb {
+  width: 40px; height: 40px;
+  flex: 0 0 40px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  object-fit: contain;
+}
+.toast-cart-body { min-width: 0; flex: 1 1 auto; }
+.toast-cart-title {
+  font-size: .82rem;
+  font-weight: 800;
+  color: var(--success);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.toast-cart-name {
+  font-size: .82rem;
+  color: var(--ink-700);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.toast-cart-link {
+  flex: 0 0 auto;
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--brand-600);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.toast-cart-link:hover { color: var(--brand-700); text-decoration: underline; }
+
+/* --- Clone ảnh bay vào giỏ (DESIGN 4.4) --- */
+.fly-clone {
+  position: fixed;
+  z-index: 3000;
+  pointer-events: none;
+  object-fit: contain;
+  border-radius: var(--r-sm);
+  will-change: transform, opacity;
+}
+
+/* =========================== 16. RESPONSIVE =========================== */
 @media (max-width: 991.98px) {
   :root { --header-h: 64px; --header-h-shrink: 58px; }
   .brand-word { font-size: 1.35rem; }
@@ -893,6 +1083,7 @@ img { max-width: 100%; }
   .cart-btn { padding: 9px 12px; }
   .toast-stack { left: 12px; right: 12px; }
   .rz-toast { min-width: 0; max-width: none; }
+  .mini-cart { width: 100%; }
 }
 
 /* Hover chỉ áp dụng cho thiết bị có chuột */

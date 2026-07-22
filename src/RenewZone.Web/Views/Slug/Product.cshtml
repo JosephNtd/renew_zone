@@ -99,6 +99,7 @@
                                     {
                                         <button type="button"
                                                 class="pdp-opt @(v == defaultVal ? "is-active" : "")"
+                                                data-value-id="@v.Id"
                                                 data-adjust="@v.PriceAdjustment.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                                                 data-value="@v.Value">
                                             @v.Value
@@ -113,6 +114,20 @@
                         }
                     </div>
                 }
+
+                <div class="pdp-qty">
+                    <span class="pdp-qty-label">Số lượng</span>
+                    <div class="rz-stepper" id="pdpQty" data-max="@CartService.MaxQuantityPerItem">
+                        <button type="button" class="step-btn js-pdp-step" data-step="-1"
+                                aria-label="Giảm số lượng" disabled>
+                            <i class="bi bi-dash"></i>
+                        </button>
+                        <span class="step-val" aria-live="polite">1</span>
+                        <button type="button" class="step-btn js-pdp-step" data-step="1" aria-label="Tăng số lượng">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                </div>
 
                 <div class="pdp-actions">
                     <button type="button" class="btn-rz btn-cart-outline btn-lg pdp-addcart"

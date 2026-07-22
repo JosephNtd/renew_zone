@@ -19,4 +19,11 @@ public interface ICatalogQueryService
 
     /// <summary>Tìm theo tên sản phẩm (không dấu ở giao diện chưa cần — DB collation đã bỏ dấu).</summary>
     Task<PagedResult<Domain.Entities.Product>> SearchAsync(string? keyword, int page, int pageSize);
+
+    /// <summary>
+    /// Nạp sản phẩm (kèm ảnh chính + toàn bộ option groups/values) để CartService tính lại
+    /// giá và mô tả biến thể Ở SERVER khi thêm giỏ — client chỉ gửi id, không gửi giá (Giai đoạn 4).
+    /// Trả null nếu sản phẩm không tồn tại hoặc đã ẩn.
+    /// </summary>
+    Task<Domain.Entities.Product?> GetProductForCartAsync(int productId);
 }

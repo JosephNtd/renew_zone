@@ -1,0 +1,69 @@
+@model OrderCompleteViewModel
+@inject RenewZone.Domain.Interfaces.ISiteContentService SiteContent
+@{
+    var settings = await SiteContent.GetSettingsAsync();
+    var hotline = settings.GetValueOrDefault(SettingKeys.Hotline) ?? "";
+    var hotlineTel = "tel:" + hotline.Replace(".", "").Replace(" ", "");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
+}
+
+<div class="container done-page">
+    <div class="done-card">
+        <svg class="done-check" viewBox="0 0 72 72" role="img" aria-label="Đặt hàng thành công">
+            <circle class="done-circle" cx="36" cy="36" r="32" />
+            <path class="done-tick" d="M22 37.5 L32 47 L50 27" />
+        </svg>
+
+        <h1 class="done-title">Đặt hàng thành công!</h1>
+        <p class="done-sub">Cảm ơn bạn đã tin tưởng RenewZone. Shop sẽ gọi xác nhận trong ít phút.</p>
+
+        <div class="done-code-box">
+            <span class="done-code-label">Mã đơn hàng</span>
+            <div class="done-code-row">
+                <span class="done-code" id="orderCode">@Model.Code</span>
+                <button type="button" class="done-copy" id="copyOrderCode" data-code="@Model.Code"
+                        aria-label="Sao chép mã đơn hàng">
+                    <i class="bi bi-clipboard"></i>
+                </button>
+            </div>
+        </div>
+
+        <dl class="done-info">
+            <div><dt>Người nhận</dt><dd>@Model.CustomerName</dd></div>
+            <div><dt>Số điện thoại</dt><dd>@Model.Phone</dd></div>
+            <div><dt>Thanh toán</dt><dd>@Model.PaymentMethodLabel</dd></div>
+            <div><dt>Tổng tiền</dt><dd class="done-total">@Model.TotalText</dd></div>
+        </dl>
+
+        @if (Model.PaymentMethod == RenewZone.Domain.Enums.PaymentMethod.BankTransfer)
+        {
+            <div class="done-bank">
+                <h2 class="done-bank-title"><i class="bi bi-bank"></i> Thông tin chuyển khoản</h2>
+                <div class="bank-row"><span>Ngân hàng</span><strong>@DemoBankInfo.BankName</strong></div>
+                <div class="bank-row"><span>Số tài khoản</span><strong>@DemoBankInfo.AccountNumber</strong></div>
+                <div class="bank-row"><span>Chủ tài khoản</span><strong>@DemoBankInfo.AccountName</strong></div>
+                <div class="bank-row"><span>Nội dung</span><strong>@DemoBankInfo.TransferNote(Model.Code)</strong></div>
+                <p class="bank-hint">
+                    <i class="bi bi-info-circle"></i>
+                    Tài khoản giả lập của website học tập — vui lòng KHÔNG chuyển tiền thật.
+                </p>
+            </div>
+        }
+
+        <div class="done-actions">
+            <a class="btn-rz btn-brand" href="/">Về trang chủ</a>
+            <a class="btn-rz btn-ghost" href="/san-pham">Tiếp tục mua sắm</a>
+        </div>
+
+        <p class="done-hotline">
+            Cần hỗ trợ? Gọi <a href="@hotlineTel">@hotline</a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/checkout.js" asp-append-version="true"></script>
+}

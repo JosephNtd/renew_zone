@@ -1,0 +1,48 @@
+@model Cart
+@* Nội dung offcanvas mini-cart. Tách riêng để cart.js nạp lại (GET /gio-hang/mini) mỗi khi giỏ đổi. *@
+<div class="mini-cart-inner" data-count="@Model.TotalQuantity">
+    @if (Model.IsEmpty)
+    {
+        <div class="mini-cart-empty">
+            <i class="bi bi-bag"></i>
+            <p class="mb-3">Giỏ hàng trống</p>
+            <a class="btn-rz btn-brand btn-sm" href="/san-pham">Xem sản phẩm</a>
+        </div>
+    }
+    else
+    {
+        <div class="mini-cart-list">
+            @foreach (var item in Model.Items)
+            {
+                <div class="mini-line" data-key="@item.Key">
+                    <a class="mini-thumb" href="/@item.Slug">
+                        <img src="@item.ImageUrl" alt="@item.ProductName" loading="lazy" />
+                    </a>
+                    <div class="mini-info">
+                        <a class="mini-name" href="/@item.Slug">@item.ProductName</a>
+                        @if (!string.IsNullOrEmpty(item.VariantDescription))
+                        {
+                            <div class="mini-variant">@item.VariantDescription</div>
+                        }
+                        <div class="mini-price">@item.Quantity × @item.UnitPrice.ToVnd()</div>
+                    </div>
+                    <button type="button" class="mini-del js-cart-remove" data-key="@item.Key"
+                            aria-label="Xóa @item.ProductName khỏi giỏ hàng">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            }
+        </div>
+
+        <div class="mini-cart-foot">
+            <div class="mini-sum">
+                <span>Tạm tính</span>
+                <strong class="js-cart-subtotal">@Model.Subtotal.ToVnd()</strong>
+            </div>
+            <div class="mini-actions">
+                <a class="btn-rz btn-ghost" href="/gio-hang">Xem giỏ hàng</a>
+                <a class="btn-rz btn-buy" href="/dat-hang">Thanh toán</a>
+            </div>
+        </div>
+    }
+</div>

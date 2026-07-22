@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180" role="img" aria-label="Giỏ hàng trống">
+  <defs>
+    <linearGradient id="bagFace" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FCE7F1"/>
+      <stop offset="1" stop-color="#F0AACB"/>
+    </linearGradient>
+    <linearGradient id="bagFold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#F8CFE2"/>
+      <stop offset="1" stop-color="#E183AF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- nền tròn nhạt -->
+  <circle cx="90" cy="92" r="66" fill="#FDF2F8"/>
+
+  <!-- quai túi -->
+  <path d="M68 62V50a22 22 0 0 1 44 0v12" fill="none" stroke="#E183AF" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- thân túi -->
+  <path d="M44 62h92l-8 74a10 10 0 0 1-10 9H62a10 10 0 0 1-10-9L44 62Z" fill="url(#bagFace)"/>
+  <!-- nếp gấp miệng túi -->
+  <path d="M44 62h92l-1.6 15H45.6L44 62Z" fill="url(#bagFold)"/>
+  <!-- viền -->
+  <path d="M44 62h92l-8 74a10 10 0 0 1-10 9H62a10 10 0 0 1-10-9L44 62Z" fill="none" stroke="#CE5F9A" stroke-width="4" stroke-linejoin="round"/>
+
+  <!-- mặt cười buồn nhẹ -->
+  <circle cx="76" cy="100" r="4" fill="#CE5F9A"/>
+  <circle cx="104" cy="100" r="4" fill="#CE5F9A"/>
+  <path d="M76 122a16 16 0 0 1 28 0" fill="none" stroke="#CE5F9A" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- lấp lánh -->
+  <path d="M148 46l3 8 8 3-8 3-3 8-3-8-8-3 8-3 3-8Z" fill="#F8CFE2"/>
+  <path d="M32 108l2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Z" fill="#F0AACB"/>
+</svg>

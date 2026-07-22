@@ -130,6 +130,14 @@ public class CatalogQueryService(AppDbContext db) : ICatalogQueryService
         return await PaginateAsync(query.OrderByDescending(p => p.Id), page, pageSize);
     }
 
+    public Task<Product?> GetProductForCartAsync(int productId) =>
+        db.Products.AsNoTracking()
+            .Include(p => p.Images.Where(i => i.IsMain))
+            .Include(p => p.OptionGroups.OrderBy(g => g.DisplayOrder))
+                .ThenInclude(g => g.Values.OrderBy(v => v.DisplayOrder))
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(p => p.Id == productId && p.IsActive);
+
     private static async Task<PagedResult<Product>> PaginateAsync(IQueryable<Product> ordered, int page, int pageSize)
     {
         if (page < 1) page = 1;

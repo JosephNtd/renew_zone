@@ -199,6 +199,15 @@ a.rz-pager-btn:hover { border-color: var(--brand-400); color: var(--brand-600); 
 .pdp-opt.is-active .pdp-opt-delta { color: var(--brand-600); }
 
 /* Nút hành động */
+/* Chọn số lượng trước khi thêm giỏ (Giai đoạn 4) — .rz-stepper dùng chung ở site.css */
+.pdp-qty { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.pdp-qty-label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: .9rem;
+  color: var(--ink-700);
+}
+
 .pdp-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
 .pdp-actions .btn-rz { flex: 1 1 160px; }
 .pdp-call { width: 100%; }

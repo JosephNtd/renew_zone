@@ -1,0 +1,17 @@
+@inject ICartService CartSvc
+@{
+    // Render sẵn nội dung ngay lần tải trang đầu; cart.js sẽ nạp lại mỗi lần mở offcanvas.
+    var miniCart = await CartSvc.GetCartAsync();
+}
+<div class="offcanvas offcanvas-end mini-cart" tabindex="-1" id="miniCart" aria-labelledby="miniCartLabel">
+    <div class="offcanvas-header mini-cart-head">
+        <h2 class="offcanvas-title" id="miniCartLabel">
+            <i class="bi bi-bag-fill"></i> Giỏ hàng
+            <span class="mini-cart-count">(@miniCart.TotalQuantity)</span>
+        </h2>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng giỏ hàng"></button>
+    </div>
+    <div class="offcanvas-body" id="miniCartBody">
+        @await Html.PartialAsync("_MiniCartBody", miniCart)
+    </div>
+</div>
