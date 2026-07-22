@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using RenewZone.Infrastructure;
 using RenewZone.Infrastructure.Data.Seed;
 using RenewZone.Web.Models.Options;
@@ -33,10 +34,21 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICartService, CartService>();
 
 // Cấu hình KỸ THUẬT (dung lượng/đuôi file cho phép) — thuộc appsettings.json, không vào DB
-builder.Services.Configure<ContactUploadOptions>(
-    builder.Configuration.GetSection(ContactUploadOptions.SectionName));
+builder.Services.Configure<UploadOptions>(
+    builder.Configuration.GetSection(UploadOptions.SectionName));
 
-builder.Services.AddControllersWithViews();
+// Nơi DUY NHẤT ghi file người dùng tải lên (form liên hệ + 4 chỗ upload của admin).
+// Ở tầng Web vì phụ thuộc IFormFile + IWebHostEnvironment, giống ICartService phụ thuộc Session.
+builder.Services.AddScoped<IMediaService, MediaService>();
+
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        // Enum đi/về dưới dạng TÊN ("Shipping") thay vì số thứ tự. Không có dòng này thì
+        // [FromBody] gặp {"status":"Shipping"} sẽ bind ra null và action ném NullReference —
+        // mặt khác số thứ tự trong JSON làm request/response gần như không đọc được khi debug.
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 var app = builder.Build();
 

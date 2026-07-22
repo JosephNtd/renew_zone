@@ -1,0 +1,33 @@
+@*
+    Modal xác nhận DÙNG CHUNG — mọi màn gọi qua RZAdmin.confirm({...}) hoặc gắn data-confirm
+    lên nút, không màn nào tự dựng modal riêng.
+    Bẫy focus + Esc + trả focus về nút vừa bấm được xử lý trong admin.js.
+*@
+<div class="adm-modal" id="admConfirmModal" role="dialog" aria-modal="true"
+     aria-labelledby="admConfirmTitle">
+    <div class="adm-modal-backdrop"></div>
+    <div class="adm-modal-box">
+        <div class="adm-modal-icon">
+            <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+        </div>
+
+        <h3 id="admConfirmTitle" data-role="title">Xác nhận</h3>
+        <p data-role="message"></p>
+
+        @* Chỉ hiện cho hành động KHÔNG hoàn tác được (xóa vĩnh viễn): bắt gõ đúng tên mới bật nút *@
+        <div data-role="type-wrap" hidden class="mb-3">
+            <label class="adm-label" for="admConfirmType">
+                Gõ chính xác <b data-role="type-hint"></b> để xác nhận
+            </label>
+            <input class="adm-input" id="admConfirmType" data-role="type-input" autocomplete="off" />
+        </div>
+
+        <div class="adm-modal-actions">
+            <button type="button" class="adm-btn adm-btn-ghost" data-role="cancel">Hủy</button>
+            <button type="button" class="adm-btn adm-btn-danger" data-role="ok">
+                <span class="adm-spinner"></span>
+                <span class="adm-btn-label">Xóa</span>
+            </button>
+        </div>
+    </div>
+</div>

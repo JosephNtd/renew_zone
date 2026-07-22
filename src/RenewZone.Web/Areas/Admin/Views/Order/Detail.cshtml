@@ -1,0 +1,256 @@
+@using RenewZone.Domain.Enums
+@model OrderDetail
+@{
+    ViewData["Title"] = "Đơn " + Model.Code;
+
+    var isCancelled = Model.Status == OrderStatus.Cancelled;
+    var currentIndex = Array.IndexOf(OrderStatusRules.Pipeline, Model.Status);
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Đơn hàng @Model.Code</h1>
+        <div class="adm-page-sub">
+            Đặt lúc @Model.CreatedAt.ToString("HH:mm 'ngày' dd/MM/yyyy")
+            @if (Model.UpdatedAt is not null)
+            {
+                <text>· cập nhật gần nhất @Model.UpdatedAt.Value.ToRelativeTime()</text>
+            }
+        </div>
+    </div>
+    <div class="adm-page-actions">
+        <a class="adm-btn adm-btn-ghost" asp-action="Index">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            <span class="adm-btn-label">Danh sách</span>
+        </a>
+        <button type="button" class="adm-btn adm-btn-ghost" onclick="window.print()">
+            <i class="bi bi-printer" aria-hidden="true"></i>
+            <span class="adm-btn-label">In đơn</span>
+        </button>
+    </div>
+</div>
+
+@* ===== Thanh timeline trạng thái ===== *@
+<div class="adm-card mb-3" id="statusCard">
+    @if (isCancelled)
+    {
+        <div class="adm-alert adm-alert-error mb-0">
+            <i class="bi bi-x-circle-fill" aria-hidden="true"></i>
+            <div>
+                <b>Đơn hàng đã hủy.</b>
+                Đơn đã hủy không chuyển sang trạng thái khác được nữa — đây là trạng thái kết thúc.
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="adm-timeline">
+            @for (var i = 0; i < OrderStatusRules.Pipeline.Length; i++)
+            {
+                var step = OrderStatusRules.Pipeline[i];
+                var state = i < currentIndex ? "is-done" : i == currentIndex ? "is-current" : "";
+
+                <div class="adm-timeline-step @state">
+                    <div class="adm-timeline-dot">
+                        @if (i < currentIndex)
+                        {
+                            <i class="bi bi-check-lg" aria-hidden="true"></i>
+                        }
+                        else
+                        {
+                            <i class="bi @step.ToIcon()" aria-hidden="true"></i>
+                        }
+                    </div>
+                    <div class="adm-timeline-label">@step.ToVietnamese()</div>
+                </div>
+            }
+        </div>
+    }
+
+    @* Chỉ hiện nút cho những bước chuyển HỢP LỆ — không bày ra nút vô nghĩa rồi báo lỗi khi bấm *@
+    @if (Model.AllowedNext.Count > 0)
+    {
+        <div class="d-flex gap-2 flex-wrap mt-3 pt-3 border-top" id="statusActions">
+            <span class="adm-small adm-muted align-self-center me-2">Chuyển trạng thái:</span>
+            @foreach (var next in Model.AllowedNext)
+            {
+                var danger = next == OrderStatus.Cancelled;
+                <button type="button"
+                        class="adm-btn adm-btn-sm @(danger ? "adm-btn-ghost text-danger" : "adm-btn-primary") js-change-status"
+                        data-status="@next">
+                    <i class="bi @next.ToIcon()" aria-hidden="true"></i>
+                    <span class="adm-btn-label">@next.ToVietnamese()</span>
+                </button>
+            }
+        </div>
+    }
+</div>
+
+<div class="row g-3">
+    @* ===== Cột trái: các dòng hàng ===== *@
+    <div class="col-12 col-lg-8">
+        <div class="adm-card">
+            <div class="adm-card-head">
+                <h2>Sản phẩm trong đơn</h2>
+                <span class="adm-small adm-muted ms-auto">@Model.Items.Count dòng hàng</span>
+            </div>
+
+            <div class="adm-table-wrap border-0">
+                <table class="adm-table">
+                    <caption class="visually-hidden">Danh sách sản phẩm trong đơn @Model.Code</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col" colspan="2">Sản phẩm</th>
+                            <th scope="col" class="adm-col-right">Đơn giá</th>
+                            <th scope="col" class="adm-col-right">SL</th>
+                            <th scope="col" class="adm-col-right">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td style="width: 60px;">
+                                    <img class="adm-thumb" src="@(item.ImageUrl ?? "/images/placeholder-product.svg")"
+                                         alt="" loading="lazy" />
+                                </td>
+                                <td>
+                                    @* Sản phẩm còn sống thì link sang web khách; đã xóa thì chỉ còn snapshot *@
+                                    @if (item.ProductSlug is not null)
+                                    {
+                                        <a href="/@item.ProductSlug" target="_blank" rel="noopener" class="fw-bold">
+                                            @item.ProductName
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="fw-bold">@item.ProductName</span>
+                                        <span class="adm-flag ms-1" title="Sản phẩm đã bị xóa khỏi danh mục — đơn vẫn giữ nguyên thông tin lúc đặt">
+                                            đã gỡ khỏi shop
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(item.VariantDescription))
+                                    {
+                                        <div class="adm-small adm-muted">@item.VariantDescription</div>
+                                    }
+                                </td>
+                                <td class="adm-col-right adm-num">@item.UnitPrice.ToVnd()</td>
+                                <td class="adm-col-right adm-num">@item.Quantity</td>
+                                <td class="adm-col-right adm-num fw-bold">@item.LineTotal.ToVnd()</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="adm-col-right fw-bold">Tổng cộng</td>
+                            <td class="adm-col-right adm-num fw-bold" style="font-size: 1.05rem; color: var(--red-500);">
+                                @Model.TotalAmount.ToVnd()
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* ===== Cột phải: thông tin khách + thanh toán ===== *@
+    <div class="col-12 col-lg-4">
+        <div class="adm-card mb-3">
+            <div class="adm-card-head"><h2>Thông tin khách hàng</h2></div>
+
+            <dl class="mb-0">
+                <dt class="adm-small adm-muted">Họ tên</dt>
+                <dd class="fw-bold">@Model.CustomerName</dd>
+
+                <dt class="adm-small adm-muted mt-2">Số điện thoại</dt>
+                <dd>
+                    <a class="adm-num" href="tel:@Model.Phone.Replace(".", "").Replace(" ", "")">
+                        <i class="bi bi-telephone" aria-hidden="true"></i> @Model.Phone
+                    </a>
+                </dd>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Email))
+                {
+                    <dt class="adm-small adm-muted mt-2">Email</dt>
+                    <dd>
+                        <a href="mailto:@Model.Email">
+                            <i class="bi bi-envelope" aria-hidden="true"></i> @Model.Email
+                        </a>
+                    </dd>
+                }
+
+                <dt class="adm-small adm-muted mt-2">Địa chỉ giao hàng</dt>
+                <dd>@Model.Address</dd>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Note))
+                {
+                    <dt class="adm-small adm-muted mt-2">Ghi chú của khách</dt>
+                    <dd class="fst-italic">“@Model.Note”</dd>
+                }
+            </dl>
+        </div>
+
+        <div class="adm-card">
+            <div class="adm-card-head"><h2>Thanh toán</h2></div>
+
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi @Model.PaymentMethod.ToIcon()" aria-hidden="true"></i>
+                <span>@Model.PaymentMethod.ToVietnamese()</span>
+            </div>
+
+            <div class="d-flex align-items-center">
+                <span class="adm-muted">Tổng tiền</span>
+                <span class="ms-auto adm-num fw-bold" style="font-size: 1.1rem;">@Model.TotalAmount.ToVnd()</span>
+            </div>
+
+            <div class="d-flex align-items-center mt-2 pt-2 border-top">
+                <span class="adm-muted">Trạng thái</span>
+                <span class="ms-auto adm-badge @Model.Status.ToBadgeClass()" id="statusBadge">
+                    @Model.Status.ToVietnamese()
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Đổi trạng thái từ trang chi tiết. Đổi xong reload để timeline + nút hành động
+        // dựng lại đúng theo trạng thái mới (rẻ hơn nhiều so với vẽ lại timeline bằng JS).
+        document.addEventListener("click", function (e) {
+            var btn = e.target.closest(".js-change-status");
+            if (!btn) return;
+
+            var status = btn.dataset.status;
+            var label = btn.querySelector(".adm-btn-label").textContent.trim();
+
+            var run = function () {
+                btn.classList.add("is-loading");
+                btn.disabled = true;
+
+                RZAdmin.post("/admin/don-hang/@Model.Id/trang-thai", { status: status })
+                    .then(function (res) {
+                        if (!res.ok) {
+                            btn.classList.remove("is-loading");
+                            btn.disabled = false;
+                            RZAdmin.toast(res.message || "Không đổi được trạng thái.", "error");
+                            return;
+                        }
+                        window.location.reload();
+                    });
+            };
+
+            // Hủy đơn là hành động nặng ⇒ hỏi lại; các bước tiến bình thường thì làm luôn
+            if (status === "Cancelled") {
+                RZAdmin.confirm({
+                    title: "Hủy đơn hàng?",
+                    message: "Đơn <b>@Model.Code</b> sẽ chuyển sang trạng thái “Đã hủy” và "
+                        + "không quay lại được nữa.",
+                    okText: "Hủy đơn"
+                }).then(function (ok) { if (ok) run(); });
+            } else {
+                run();
+            }
+        });
+    </script>
+}

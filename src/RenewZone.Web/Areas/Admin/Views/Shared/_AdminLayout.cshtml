@@ -1,3 +1,16 @@
+@using System.Text.Json
+@using RenewZone.Domain.Interfaces
+@inject IAdminBadgeService Badges
+@{
+    var counts = await Badges.GetCountsAsync();
+
+    // Toast sau PRG đi qua TempData dạng JSON (TempData chỉ nhận kiểu nguyên thủy)
+    AdminToast? toast = null;
+    if (TempData[AdminToast.TempDataKey] is string toastJson)
+    {
+        toast = JsonSerializer.Deserialize<AdminToast>(toastJson);
+    }
+}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -5,23 +18,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <title>@ViewData["Title"] - RenewZone Admin</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-</head>
-<body class="bg-light">
-    @* Layout tối giản cho Giai đoạn 0 — Giai đoạn 6 sẽ nâng cấp thành sidebar + topbar đầy đủ *@
-    <nav class="navbar navbar-expand navbar-dark bg-dark px-3">
-        <a class="navbar-brand" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">RenewZone Admin</a>
-        <div class="navbar-nav">
-            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index" target="_blank">Xem website</a>
-        </div>
-    </nav>
 
-    <main class="container-fluid py-4">
-        @RenderBody()
-    </main>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    @*
+        Thứ tự nạp CSS có Ý NGHĨA:
+        1. Bootstrap — chỉ dùng lưới + tiện ích + dropdown (dùng lại thư viện web khách đã có,
+           không dựng lưới riêng cho admin);
+        2. tokens.css — biến :root mà admin.css tham chiếu, PHẢI đứng trước admin.css;
+        3. admin.css — đặt cuối để đè được mặc định của Bootstrap.
+    *@
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="adm">
+    @* Token dùng cho MỌI request AJAX của admin (gửi qua header RequestVerificationToken) *@
+    @Html.AntiForgeryToken()
+
+    <div class="adm-shell" id="admShell">
+        <partial name="_AdminSidebar" model="counts" />
+        <div class="adm-sidebar-backdrop" id="admSidebarBackdrop"></div>
+
+        <div class="adm-main">
+            <partial name="_AdminTopbar" model="counts" />
+
+            <main class="adm-content">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    @* Kết quả AJAX phải "nói" được cho người dùng trình đọc màn hình (a11y mục 7) *@
+    <div id="admLive" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="adm-toast-stack" id="admToastStack"></div>
+
+    @if (toast is not null)
+    {
+        <span id="admPendingToast" hidden
+              data-type="@toast.Type" data-message="@toast.Message"></span>
+    }
+
+    <partial name="_ConfirmModal" />
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/admin.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

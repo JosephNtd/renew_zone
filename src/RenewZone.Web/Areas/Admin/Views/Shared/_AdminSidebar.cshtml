@@ -1,0 +1,100 @@
+@using RenewZone.Domain.Interfaces
+@model AdminBadgeCounts
+@{
+    // Mục đang mở xác định bằng controller đang chạy — gắn aria-current="page" cho a11y
+    var current = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+
+    string Active(params string[] controllers) =>
+        controllers.Contains(current, StringComparer.OrdinalIgnoreCase) ? "is-active" : "";
+
+    string? Current(params string[] controllers) =>
+        controllers.Contains(current, StringComparer.OrdinalIgnoreCase) ? "page" : null;
+}
+
+<nav class="adm-sidebar" aria-label="Điều hướng quản trị">
+    <a class="adm-brand" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+        <span class="adm-brand-mark">RZ</span>
+        <span class="adm-brand-text">
+            RenewZone
+            <small>Quản trị</small>
+        </span>
+    </a>
+
+    <div class="adm-nav">
+        <div class="adm-nav-group-label">Tổng quan</div>
+        <a class="adm-nav-item @Active("Dashboard")" aria-current="@Current("Dashboard")"
+           asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+            <i class="bi bi-speedometer2" aria-hidden="true"></i><span>Dashboard</span>
+        </a>
+
+        <div class="adm-nav-group-label">Bán hàng</div>
+        <a class="adm-nav-item @Active("Order")" aria-current="@Current("Order")"
+           asp-area="Admin" asp-controller="Order" asp-action="Index">
+            <i class="bi bi-receipt" aria-hidden="true"></i><span>Đơn hàng</span>
+            @if (Model.NewOrders > 0)
+            {
+                <span class="adm-nav-badge" title="@Model.NewOrders đơn mới chờ xác nhận">@Model.NewOrders</span>
+            }
+        </a>
+
+        <div class="adm-nav-group-label">Catalog</div>
+        <a class="adm-nav-item @Active("Category")" aria-current="@Current("Category")"
+           asp-area="Admin" asp-controller="Category" asp-action="Index">
+            <i class="bi bi-diagram-3" aria-hidden="true"></i><span>Danh mục</span>
+        </a>
+        <a class="adm-nav-item @Active("Product")" aria-current="@Current("Product")"
+           asp-area="Admin" asp-controller="Product" asp-action="Index">
+            <i class="bi bi-box-seam" aria-hidden="true"></i><span>Sản phẩm</span>
+        </a>
+
+        <div class="adm-nav-group-label">Nội dung</div>
+        <a class="adm-nav-item @Active("News")" aria-current="@Current("News")"
+           asp-area="Admin" asp-controller="News" asp-action="Index">
+            <i class="bi bi-newspaper" aria-hidden="true"></i><span>Bài viết</span>
+        </a>
+        <a class="adm-nav-item @Active("NewsCategory")" aria-current="@Current("NewsCategory")"
+           asp-area="Admin" asp-controller="NewsCategory" asp-action="Index">
+            <i class="bi bi-tags" aria-hidden="true"></i><span>Chuyên mục tin</span>
+        </a>
+        <a class="adm-nav-item @Active("Page")" aria-current="@Current("Page")"
+           asp-area="Admin" asp-controller="Page" asp-action="Index">
+            <i class="bi bi-file-earmark-text" aria-hidden="true"></i><span>Trang tĩnh</span>
+        </a>
+        <a class="adm-nav-item @Active("Banner")" aria-current="@Current("Banner")"
+           asp-area="Admin" asp-controller="Banner" asp-action="Index">
+            <i class="bi bi-image" aria-hidden="true"></i><span>Banner</span>
+        </a>
+        <a class="adm-nav-item @Active("Testimonial")" aria-current="@Current("Testimonial")"
+           asp-area="Admin" asp-controller="Testimonial" asp-action="Index">
+            <i class="bi bi-chat-quote" aria-hidden="true"></i><span>Đánh giá</span>
+        </a>
+
+        <div class="adm-nav-group-label">Giao diện</div>
+        <a class="adm-nav-item @Active("Menu")" aria-current="@Current("Menu")"
+           asp-area="Admin" asp-controller="Menu" asp-action="Index">
+            <i class="bi bi-list-nested" aria-hidden="true"></i><span>Menu</span>
+        </a>
+        <a class="adm-nav-item @Active("ContentBlock")" aria-current="@Current("ContentBlock")"
+           asp-area="Admin" asp-controller="ContentBlock" asp-action="Index">
+            <i class="bi bi-grid-1x2" aria-hidden="true"></i><span>Khối nội dung</span>
+        </a>
+
+        <div class="adm-nav-group-label">Hệ thống</div>
+        <a class="adm-nav-item @Active("Contact")" aria-current="@Current("Contact")"
+           asp-area="Admin" asp-controller="Contact" asp-action="Index">
+            <i class="bi bi-envelope" aria-hidden="true"></i><span>Hộp thư</span>
+            @if (Model.UnreadContacts > 0)
+            {
+                <span class="adm-nav-badge" title="@Model.UnreadContacts liên hệ chưa đọc">@Model.UnreadContacts</span>
+            }
+        </a>
+        <a class="adm-nav-item @Active("Setting")" aria-current="@Current("Setting")"
+           asp-area="Admin" asp-controller="Setting" asp-action="Index">
+            <i class="bi bi-gear" aria-hidden="true"></i><span>Cấu hình</span>
+        </a>
+        <a class="adm-nav-item @Active("Trash")" aria-current="@Current("Trash")"
+           asp-area="Admin" asp-controller="Trash" asp-action="Index">
+            <i class="bi bi-trash3" aria-hidden="true"></i><span>Thùng rác</span>
+        </a>
+    </div>
+</nav>

@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using RenewZone.Domain.Entities;
 using RenewZone.Domain.Interfaces;
 using RenewZone.Web.Helpers;
 using RenewZone.Web.Models.Options;
 using RenewZone.Web.Models.ViewModels;
+using RenewZone.Web.Services;
 
 namespace RenewZone.Web.Controllers;
 
@@ -22,21 +22,20 @@ public class ContactController : Controller
     private readonly IContactService _contact;
     private readonly IContentBlockService _blocks;
     private readonly ISiteContentService _siteContent;
-    private readonly IWebHostEnvironment _env;
-    private readonly ContactUploadOptions _upload;
+    private readonly IMediaService _media;
+    private readonly UploadProfileOptions _upload;
 
     public ContactController(
         IContactService contact,
         IContentBlockService blocks,
         ISiteContentService siteContent,
-        IWebHostEnvironment env,
-        IOptions<ContactUploadOptions> upload)
+        IMediaService media)
     {
         _contact = contact;
         _blocks = blocks;
         _siteContent = siteContent;
-        _env = env;
-        _upload = upload.Value;
+        _media = media;
+        _upload = media.GetOptions(UploadProfile.Contact);
     }
 
     [HttpGet("/lien-he")]
@@ -84,76 +83,26 @@ public class ContactController : Controller
     }
 
     /// <summary>
-    /// Lưu file đính kèm nếu hợp lệ. Sai định dạng/quá nặng ⇒ ghi lỗi vào ModelState và trả null
-    /// (không throw). Tên file LUÔN đổi thành GUID — không bao giờ dùng tên gốc của khách
-    /// (chống path traversal và ghi đè file người khác).
+    /// Lưu file đính kèm qua <see cref="IMediaService"/> (nơi duy nhất ghi file trong hệ thống —
+    /// đổi tên GUID, whitelist đuôi + ContentType, giới hạn dung lượng đều nằm trong đó).
+    /// Ở đây chỉ dịch kết quả sang ModelState để lỗi hiện đúng ô trên form.
     /// </summary>
     private async Task<string?> TryStoreAttachmentAsync(IFormFile? file)
     {
         if (file is null || file.Length == 0)
         {
+            return null; // không đính kèm là hợp lệ — đây là trường tùy chọn
+        }
+
+        var result = await _media.SaveAsync(file, UploadProfile.Contact);
+
+        if (!result.Ok)
+        {
+            ModelState.AddModelError("attachment", result.Error!);
             return null;
         }
 
-        if (file.Length > _upload.MaxFileSizeBytes)
-        {
-            ModelState.AddModelError("attachment", $"File đính kèm tối đa {_upload.MaxFileSizeMb}MB.");
-            return null;
-        }
-
-        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-        var allowed = _upload.EffectiveExtensions
-            .Select(e => e.ToLowerInvariant())
-            .ToHashSet(StringComparer.Ordinal);
-
-        if (!allowed.Contains(extension))
-        {
-            ModelState.AddModelError("attachment",
-                $"Chỉ nhận file {string.Join(", ", _upload.EffectiveExtensions)}.");
-            return null;
-        }
-
-        // Kiểm thêm ContentType: đuôi đúng nhưng khai báo kiểu lạ vẫn bị chặn
-        if (!IsAllowedContentType(file.ContentType, extension))
-        {
-            ModelState.AddModelError("attachment", "Định dạng file không hợp lệ.");
-            return null;
-        }
-
-        var monthFolder = DateTime.Now.ToString("yyyy-MM");
-        var relativeFolder = Path.Combine(_upload.FolderPath, monthFolder).Replace('\\', '/');
-        var absoluteFolder = Path.Combine(_env.WebRootPath, relativeFolder.Replace('/', Path.DirectorySeparatorChar));
-
-        Directory.CreateDirectory(absoluteFolder);
-
-        var storedName = Guid.NewGuid().ToString("N") + extension;
-        var absolutePath = Path.Combine(absoluteFolder, storedName);
-
-        await using (var stream = System.IO.File.Create(absolutePath))
-        {
-            await file.CopyToAsync(stream);
-        }
-
-        return "/" + relativeFolder + "/" + storedName;
-    }
-
-    private static bool IsAllowedContentType(string? contentType, string extension)
-    {
-        if (string.IsNullOrWhiteSpace(contentType))
-        {
-            return false;
-        }
-
-        contentType = contentType.ToLowerInvariant();
-
-        return extension switch
-        {
-            ".jpg" or ".jpeg" => contentType is "image/jpeg" or "image/jpg" or "image/pjpeg",
-            ".png" => contentType == "image/png",
-            ".webp" => contentType == "image/webp",
-            ".pdf" => contentType == "application/pdf",
-            _ => false
-        };
+        return result.RelativePath;
     }
 
     private async Task<ContactViewModel> BuildViewModelAsync(ContactInput input, bool justSent)
@@ -172,7 +121,7 @@ public class ContactController : Controller
             Channels = await _blocks.GetAsync(ContentBlockGroups.ContactChannels),
             JustSent = justSent,
             MaxFileSizeMb = _upload.MaxFileSizeMb,
-            AcceptAttribute = string.Join(",", _upload.EffectiveExtensions)
+            AcceptAttribute = _upload.AcceptAttribute
         };
     }
 }

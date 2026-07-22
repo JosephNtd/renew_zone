@@ -1,0 +1,59 @@
+@model AdminPagerModel
+@{
+    if (Model.TotalItems == 0)
+    {
+        return; // không có dữ liệu thì không render thanh phân trang trống
+    }
+}
+
+<nav class="adm-pager" aria-label="Phân trang">
+    <span>
+        Hiển thị <b class="adm-num">@Model.FirstItem–@Model.LastItem</b>
+        trên <b class="adm-num">@Model.TotalItems</b> mục
+    </span>
+
+    @if (Model.TotalPages > 1)
+    {
+        <ul class="adm-pager-list">
+            <li>
+                @if (Model.HasPrevious)
+                {
+                    <a href="@Model.UrlFor(Model.Page - 1)" aria-label="Trang trước">
+                        <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                    </a>
+                }
+                else
+                {
+                    <span class="is-disabled" aria-hidden="true"><i class="bi bi-chevron-left"></i></span>
+                }
+            </li>
+
+            @foreach (var p in Model.PageNumbers())
+            {
+                <li>
+                    @if (p == Model.Page)
+                    {
+                        <span class="is-current" aria-current="page">@p</span>
+                    }
+                    else
+                    {
+                        <a href="@Model.UrlFor(p)" aria-label="Trang @p">@p</a>
+                    }
+                </li>
+            }
+
+            <li>
+                @if (Model.HasNext)
+                {
+                    <a href="@Model.UrlFor(Model.Page + 1)" aria-label="Trang sau">
+                        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                    </a>
+                }
+                else
+                {
+                    <span class="is-disabled" aria-hidden="true"><i class="bi bi-chevron-right"></i></span>
+                }
+            </li>
+        </ul>
+    }
+</nav>

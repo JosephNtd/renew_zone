@@ -8,12 +8,18 @@ namespace RenewZone.Domain.Entities;
 /// ⚠️ Slug này KHÔNG nằm trong <c>ISlugResolver</c> (chỉ 4 bảng Category/Product/News/StaticPage) —
 /// lọc đi bằng querystring <c>?chuyen-muc=</c> nên không đụng namespace slug toàn cục.
 /// </summary>
-public class NewsCategory : BaseEntity
+public class NewsCategory : BaseEntity, ISoftDeletable
 {
     public string Name { get; set; } = null!;
     public string Slug { get; set; } = null!;
     public int DisplayOrder { get; set; }
     public bool IsActive { get; set; } = true;
+
+    /// <inheritdoc />
+    public bool IsDeleted { get; set; }
+
+    /// <inheritdoc />
+    public DateTime? DeletedAt { get; set; }
 
     public ICollection<NewsArticle> Articles { get; set; } = [];
 }

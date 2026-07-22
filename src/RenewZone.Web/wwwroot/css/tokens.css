@@ -1,0 +1,65 @@
+/* =====================================================================
+   RenewZone Clone — tokens.css
+   Design tokens DÙNG CHUNG cho cả web khách (site.css) và trang quản trị (admin.css).
+   Tách riêng ở Giai đoạn 6: admin KHÔNG nạp site.css (theme khác hẳn) nhưng vẫn phải
+   dùng chung một bảng màu/thang cỡ — sửa màu brand ở đây là đổi cả hai nơi.
+   ⚠️ File này PHẢI được nạp TRƯỚC site.css / admin.css trong mọi layout.
+   ===================================================================== */
+
+/* =========================== 1. TOKENS =========================== */
+:root {
+  /* Brand — hồng RenewZone tinh chỉnh từ #d78dba gốc */
+  --brand-50:  #FDF2F8;
+  --brand-100: #FCE7F1;
+  --brand-200: #F8CFE2;
+  --brand-300: #F0AACB;
+  --brand-400: #E183AF;
+  --brand-500: #CE5F9A;
+  --brand-600: #B54983;
+  --brand-700: #96386B;
+  --brand-800: #772D56;
+  --brand-900: #5C2343;
+
+  /* Accent đỏ — giữ token site gốc */
+  --red-500: #EC2D3F;
+  --red-600: #CC2C32;
+  --red-700: #C31829;
+
+  /* Neutrals */
+  --ink-900: #17141A;
+  --ink-700: #212529;
+  --ink-500: #6C757D;
+  --ink-400: #98A0A8;
+  --line:    #ECE7EC;
+  --paper:   #FFFFFF;
+  --page:    #FAF7FA;
+
+  --success: #28A745;
+  --warning: #F59E0B;
+  --info:    #0D6EFD;
+
+  --grad-cta:   linear-gradient(135deg, #EC2D3F 0%, #C2447E 100%);
+  --grad-brand: linear-gradient(135deg, #CE5F9A 0%, #96386B 100%);
+  --grad-hero:  linear-gradient(120deg, #1B1420 0%, #3A2033 55%, #96386B 130%);
+  --grad-shine: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.35) 50%, transparent 60%);
+
+  --font-display: "Be Vietnam Pro", system-ui, sans-serif;
+  --font-body:    "Nunito Sans", system-ui, sans-serif;
+  --font-accent:  "Pacifico", cursive;
+
+  --sh-sm:    0 1px 2px rgba(23,20,26,.06), 0 1px 6px rgba(23,20,26,.04);
+  --sh-md:    0 4px 12px rgba(23,20,26,.08), 0 2px 4px rgba(23,20,26,.05);
+  --sh-lg:    0 12px 32px rgba(23,20,26,.12), 0 4px 8px rgba(23,20,26,.06);
+  --sh-brand: 0 8px 24px rgba(206,95,154,.35);
+  --sh-red:   0 8px 24px rgba(236,45,63,.35);
+
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 24px; --r-pill: 999px;
+
+  --t-fast: 150ms; --t-base: 250ms; --t-slow: 420ms;
+  --ease-out:    cubic-bezier(.22,.61,.36,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
+
+  --container: 1280px;
+  --header-h: 76px;
+  --header-h-shrink: 60px;
+}

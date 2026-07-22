@@ -5,7 +5,7 @@ namespace RenewZone.Domain.Entities;
 /// <summary>
 /// Bài viết "Tin công nghệ". IsFeatured ⇒ nằm khối grid nổi bật đầu trang /tin-tuc.
 /// </summary>
-public class NewsArticle : AuditableEntity
+public class NewsArticle : AuditableEntity, ISoftDeletable
 {
     public string Title { get; set; } = null!;
     public string Slug { get; set; } = null!;
@@ -23,6 +23,12 @@ public class NewsArticle : AuditableEntity
     public bool IsActive { get; set; } = true;
     public DateTime PublishedAt { get; set; }
     public int ViewCount { get; set; }
+
+    /// <inheritdoc />
+    public bool IsDeleted { get; set; }
+
+    /// <inheritdoc />
+    public DateTime? DeletedAt { get; set; }
 
     public NewsCategory? Category { get; set; }
 }

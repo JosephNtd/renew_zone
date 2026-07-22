@@ -484,4 +484,5 @@ $RECYCLE.BIN/
 *.swp
 
 # File khách upload qua form liên hệ (Giai đoạn 5) — dữ liệu runtime, không commit
-src/RenewZone.Web/wwwroot/uploads/contact/
+# File người dùng tải lên (form liên hệ + ảnh sản phẩm/tin/banner/editor của admin) — không vào repo
+src/RenewZone.Web/wwwroot/uploads/

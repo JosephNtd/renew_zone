@@ -1,13 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
+using RenewZone.Domain.Interfaces;
 
 namespace RenewZone.Web.Areas.Admin.Controllers;
 
-// TODO (Giai đoạn 6): thêm [Authorize(Roles = AppRoles.Admin)] khi đã có trang đăng nhập + seed tài khoản
-[Area("Admin")]
-public class DashboardController : Controller
+/// <summary>
+/// Trang tổng quan. Quyền truy cập kế thừa từ <see cref="BaseAdminController"/>
+/// ([Authorize(Roles = Admin)] — trước Giai đoạn 6 controller này cố ý để mở vì chưa có trang đăng nhập).
+/// </summary>
+public class DashboardController(IDashboardService dashboard) : BaseAdminController
 {
-    public IActionResult Index()
+    [HttpGet("/admin")]
+    public async Task<IActionResult> Index()
     {
-        return View();
+        return View(await dashboard.GetSummaryAsync());
     }
 }

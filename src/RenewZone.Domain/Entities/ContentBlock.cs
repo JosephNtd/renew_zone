@@ -7,7 +7,7 @@ namespace RenewZone.Domain.Entities;
 /// sản phẩm, dòng trấn an ở giỏ/checkout, các kênh liên hệ nhanh...
 /// Group rỗng ⇒ view ẨN cả khối (không render khung trống) — xem CLAUDE.md mục 4.7.
 /// </summary>
-public class ContentBlock : BaseEntity
+public class ContentBlock : BaseEntity, ISoftDeletable
 {
     /// <summary>Khóa nhóm dạng "product.commitments", "cart.assurance", "contact.channels".</summary>
     public string GroupKey { get; set; } = null!;
@@ -22,6 +22,12 @@ public class ContentBlock : BaseEntity
 
     public int DisplayOrder { get; set; }
     public bool IsActive { get; set; } = true;
+
+    /// <inheritdoc />
+    public bool IsDeleted { get; set; }
+
+    /// <inheritdoc />
+    public DateTime? DeletedAt { get; set; }
 }
 
 /// <summary>Danh sách GroupKey chuẩn — dùng hằng để tránh gõ sai chuỗi ở view/seed.</summary>

@@ -1,0 +1,1206 @@
+/* =====================================================================
+   RenewZone Clone — admin.css
+   Design system TRANG QUẢN TRỊ. Nạp SAU tokens.css (dùng lại toàn bộ biến brand/shadow/easing),
+   KHÔNG nạp site.css — admin là công cụ làm việc, ngôn ngữ thị giác khác web bán hàng:
+   đặc dữ liệu hơn, ít trang trí hơn, phản hồi nhanh hơn.
+
+   ⚠️ CSS của partial trong Areas/Admin/Views/Shared PHẢI nằm ở file này (bài học Giai đoạn 4:
+   .rz-breadcrumb để nhầm trong product.css làm vỡ trang giỏ hàng).
+
+   MỤC LỤC
+    1. Tokens admin              9. Form
+    2. Base                     10. Toggle switch · Slug input
+    3. Khung layout             11. Uploader · Repeater
+    4. Sidebar                  12. Badge trạng thái
+    5. Topbar                   13. Modal
+    6. Page header              14. Toast
+    7. Stat card · Chart        15. Empty state · Skeleton
+    8. Bảng dữ liệu · Lọc       16. Login
+                                17. Responsive
+                                18. In ấn
+                                19. prefers-reduced-motion
+   ===================================================================== */
+
+/* ===================== 1. TOKENS ADMIN ===================== */
+:root {
+  --adm-sidebar-w:        260px;
+  --adm-sidebar-w-mini:   72px;
+  --adm-topbar-h:         64px;
+
+  --adm-bg:               #F4F2F5;
+  --adm-surface:          #FFFFFF;
+  --adm-surface-2:        #FAF9FB;
+  --adm-sidebar-bg:       #17141A;
+  --adm-sidebar-bg-2:     #221D28;
+  --adm-sidebar-text:     #B9B2C0;
+  --adm-sidebar-text-on:  #FFFFFF;
+
+  --adm-border:           #E6E1E8;
+  --adm-border-strong:    #D5CEDA;
+
+  /* Màu ngữ nghĩa trạng thái đơn — dùng nhất quán toàn admin */
+  --adm-new:      #0D6EFD;   --adm-new-bg:      #E7F0FF;
+  --adm-confirm:  #CE5F9A;   --adm-confirm-bg:  #FDF2F8;
+  --adm-shipping: #F59E0B;   --adm-shipping-bg: #FEF5E7;
+  --adm-done:     #28A745;   --adm-done-bg:     #E8F6EC;
+  --adm-cancel:   #EC2D3F;   --adm-cancel-bg:   #FDECEE;
+
+  /* Bo góc nhỏ hơn web khách (16px) — góc mềm gợi cảm giác tiêu dùng,
+     công cụ quản trị cần cảm giác chắc chắn, chính xác */
+  --adm-r:        10px;
+  --adm-r-sm:     6px;
+}
+
+/* ===================== 2. BASE ===================== */
+html { -webkit-text-size-adjust: 100%; }
+
+body.adm {
+  font-family: var(--font-body);
+  /* Nhỏ hơn web khách một nấc: bảng dữ liệu cần nhét nhiều cột */
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-700);
+  background: var(--adm-bg);
+  margin: 0;
+}
+
+body.adm h1, body.adm h2, body.adm h3,
+body.adm h4, body.adm h5, body.adm h6 {
+  font-family: var(--font-display);
+  color: var(--ink-900);
+  font-weight: 700;
+  margin: 0;
+}
+
+body.adm a { color: var(--brand-600); text-decoration: none; }
+body.adm a:hover { color: var(--brand-700); }
+
+body.adm img { max-width: 100%; }
+
+/* Focus ring thấy rõ trên MỌI thành phần tương tác (a11y mục 7) */
+body.adm :focus-visible {
+  outline: 2px solid var(--brand-400);
+  outline-offset: 2px;
+  border-radius: var(--adm-r-sm);
+}
+
+/* Số liệu (giá, số lượng, mã đơn) thẳng cột khi xếp chồng trong bảng */
+.adm-num { font-variant-numeric: tabular-nums; }
+
+.adm-muted { color: var(--ink-500); }
+.adm-small { font-size: .8rem; }
+.adm-mono  { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+/* ===================== 3. KHUNG LAYOUT ===================== */
+.adm-shell { min-height: 100vh; }
+
+.adm-main {
+  margin-left: var(--adm-sidebar-w);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left var(--t-base) var(--ease-out);
+}
+.adm-shell.is-mini .adm-main { margin-left: var(--adm-sidebar-w-mini); }
+
+.adm-content {
+  flex: 1;
+  padding: 22px 24px 40px;
+  max-width: 1600px;
+  width: 100%;
+}
+
+/* ===================== 4. SIDEBAR ===================== */
+.adm-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--adm-sidebar-w);
+  background: var(--adm-sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  z-index: 1040;
+  transition: width var(--t-base) var(--ease-out), transform var(--t-base) var(--ease-out);
+}
+.adm-shell.is-mini .adm-sidebar { width: var(--adm-sidebar-w-mini); }
+
+.adm-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--adm-topbar-h);
+  padding: 0 18px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  color: #fff;
+  overflow: hidden;
+}
+.adm-brand:hover { color: #fff; }
+.adm-brand-mark {
+  width: 32px; height: 32px; flex-shrink: 0;
+  border-radius: 9px;
+  background: var(--grad-brand);
+  display: grid; place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800; font-size: .95rem; color: #fff;
+}
+.adm-brand-text { font-family: var(--font-display); font-weight: 800; font-size: 1.02rem; line-height: 1.1; white-space: nowrap; }
+.adm-brand-text small { display: block; font-size: .62rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--brand-300); }
+
+.adm-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 0 24px;
+  scrollbar-width: thin;
+  scrollbar-color: #3A3342 transparent;
+}
+.adm-nav::-webkit-scrollbar { width: 6px; }
+.adm-nav::-webkit-scrollbar-thumb { background: #3A3342; border-radius: 3px; }
+
+.adm-nav-group-label {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #6E6678;
+  padding: 16px 18px 6px;
+  white-space: nowrap;
+}
+
+.adm-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  color: var(--adm-sidebar-text);
+  border-left: 3px solid transparent;
+  white-space: nowrap;
+  transition: background var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+}
+.adm-nav-item .bi {
+  font-size: 18px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  transition: transform var(--t-fast) var(--ease-out);
+}
+.adm-nav-item span { flex: 1; }
+
+@media (hover: hover) {
+  .adm-nav-item:hover { background: var(--adm-sidebar-bg-2); color: var(--adm-sidebar-text-on); }
+  .adm-nav-item:hover .bi { transform: translateX(2px); }
+}
+
+.adm-nav-item.is-active {
+  background: rgba(255,255,255,.06);
+  color: var(--adm-sidebar-text-on);
+  border-left-color: var(--brand-400);
+  font-weight: 600;
+}
+.adm-nav-item.is-active .bi { color: var(--brand-300); }
+
+.adm-nav-badge {
+  background: var(--red-500);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 700;
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: var(--r-pill);
+  text-align: center;
+  flex: 0 0 auto !important;
+}
+
+/* Chế độ thu gọn: chỉ còn icon, nhãn hiện bằng tooltip */
+.adm-shell.is-mini .adm-nav-item span,
+.adm-shell.is-mini .adm-nav-group-label,
+.adm-shell.is-mini .adm-brand-text { display: none; }
+.adm-shell.is-mini .adm-nav-item { justify-content: center; padding-inline: 0; gap: 0; }
+.adm-shell.is-mini .adm-nav-group-label { padding: 10px 0 0; }
+.adm-shell.is-mini .adm-nav-item .adm-nav-badge {
+  position: absolute; margin-left: 26px; margin-top: -14px;
+  font-size: .6rem; padding: 0 4px; min-width: 16px;
+}
+.adm-shell.is-mini .adm-nav-item { position: relative; }
+.adm-shell.is-mini .adm-brand { justify-content: center; padding: 0; }
+
+.adm-nav-tip {
+  position: fixed;
+  z-index: 1080;
+  background: var(--ink-900);
+  color: #fff;
+  font-size: .78rem;
+  padding: 5px 10px;
+  border-radius: var(--adm-r-sm);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity var(--t-fast), transform var(--t-fast);
+  white-space: nowrap;
+}
+.adm-nav-tip.is-on { opacity: 1; transform: translateX(0); }
+
+.adm-sidebar-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(23,20,26,.5);
+  z-index: 1035;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--t-base) var(--ease-out);
+}
+.adm-shell.is-open .adm-sidebar-backdrop { opacity: 1; pointer-events: auto; }
+
+/* ===================== 5. TOPBAR ===================== */
+.adm-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  height: var(--adm-topbar-h);
+  background: var(--adm-surface);
+  box-shadow: var(--sh-sm);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 20px;
+}
+
+.adm-icon-btn {
+  width: 38px; height: 38px;
+  display: grid; place-items: center;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: var(--adm-r-sm);
+  color: var(--ink-500);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+  position: relative;
+  flex-shrink: 0;
+}
+.adm-icon-btn:hover { background: var(--brand-50); color: var(--brand-600); }
+
+.adm-icon-btn .adm-dot {
+  position: absolute; top: 7px; right: 7px;
+  width: 8px; height: 8px;
+  background: var(--red-500);
+  border: 2px solid var(--adm-surface);
+  border-radius: 50%;
+}
+
+/* Breadcrumb topbar */
+.adm-crumbs { display: flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--ink-500); min-width: 0; }
+.adm-crumbs a { color: var(--ink-500); }
+.adm-crumbs a:hover { color: var(--brand-600); }
+.adm-crumbs .bi { font-size: .7rem; opacity: .5; }
+.adm-crumbs .is-current { color: var(--ink-900); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.adm-topbar-spacer { flex: 1; }
+
+.adm-topbar-search {
+  position: relative;
+  width: 260px;
+}
+.adm-topbar-search input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px 0 34px;
+  border: 1px solid var(--adm-border);
+  border-radius: var(--r-pill);
+  background: var(--adm-surface-2);
+  font-size: .85rem;
+  color: var(--ink-700);
+}
+.adm-topbar-search input:focus { background: #fff; border-color: var(--brand-300); outline: none; box-shadow: 0 0 0 3px var(--brand-100); }
+.adm-topbar-search .bi { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-400); font-size: .9rem; }
+
+.adm-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--grad-brand);
+  color: #fff;
+  display: grid; place-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .85rem;
+  flex-shrink: 0;
+}
+
+.adm-dropdown-menu {
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r);
+  box-shadow: var(--sh-lg);
+  padding: 6px;
+  font-size: .86rem;
+  min-width: 220px;
+}
+.adm-dropdown-menu .dropdown-item { border-radius: var(--adm-r-sm); padding: 8px 10px; }
+.adm-dropdown-menu .dropdown-item:hover { background: var(--brand-50); color: var(--brand-700); }
+.adm-dropdown-menu .dropdown-item.text-danger:hover { background: var(--adm-cancel-bg); color: var(--adm-cancel); }
+
+/* ===================== 6. PAGE HEADER ===================== */
+.adm-page-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.adm-page-head h1 { font-size: 1.4rem; font-weight: 800; }
+.adm-page-head .adm-page-sub { color: var(--ink-500); font-size: .86rem; margin-top: 3px; }
+.adm-page-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ----- Nút ----- */
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: var(--adm-r-sm);
+  border: 1px solid transparent;
+  font-family: var(--font-display);
+  font-size: .86rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.adm-btn:disabled { opacity: .6; cursor: not-allowed; }
+.adm-btn .bi { font-size: 1rem; }
+
+.adm-btn-primary { background: var(--grad-brand); color: #fff; box-shadow: 0 2px 8px rgba(206,95,154,.28); }
+.adm-btn-primary:hover { color: #fff; filter: brightness(1.05); }
+.adm-btn-primary:active { transform: translateY(1px); }
+
+.adm-btn-ghost { background: var(--adm-surface); border-color: var(--adm-border); color: var(--ink-700); }
+.adm-btn-ghost:hover { border-color: var(--brand-300); color: var(--brand-700); background: var(--brand-50); }
+
+.adm-btn-danger { background: var(--red-500); color: #fff; }
+.adm-btn-danger:hover { color: #fff; background: var(--red-600); }
+
+.adm-btn-sm { height: 32px; padding: 0 12px; font-size: .8rem; }
+
+/* Nút Lưu: spinner → dấu tick 600ms → về bình thường */
+.adm-btn.is-loading { pointer-events: none; }
+.adm-btn.is-loading .adm-btn-label { opacity: .6; }
+.adm-btn .adm-spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: adm-spin .7s linear infinite;
+  display: none;
+}
+.adm-btn.is-loading .adm-spinner { display: block; }
+.adm-btn.is-loading .bi { display: none; }
+@keyframes adm-spin { to { transform: rotate(360deg); } }
+
+/* ===================== 7. STAT CARD · CHART ===================== */
+.adm-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r);
+  padding: 20px;
+}
+.adm-card-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+}
+.adm-card-head h2 { font-size: 1rem; font-weight: 700; }
+.adm-card-head .adm-card-link { margin-left: auto; font-size: .82rem; font-weight: 600; }
+
+.adm-stat {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: transform var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out);
+}
+@media (hover: hover) {
+  .adm-stat:hover { transform: translateY(-2px); box-shadow: var(--sh-md); }
+}
+.adm-stat-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  display: grid; place-items: center;
+  font-size: 1.35rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+.adm-stat-icon.is-new      { background: linear-gradient(135deg, #4D96FF, #0D6EFD); }
+.adm-stat-icon.is-revenue  { background: var(--grad-brand); }
+.adm-stat-icon.is-product  { background: linear-gradient(135deg, #F0AACB, #B54983); }
+.adm-stat-icon.is-contact  { background: linear-gradient(135deg, #FBBF24, #D97706); }
+
+.adm-stat-value {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--ink-900);
+  font-variant-numeric: tabular-nums;
+}
+.adm-stat-label { font-size: .82rem; color: var(--ink-500); }
+.adm-stat-delta { font-size: .76rem; font-weight: 600; margin-top: 2px; display: flex; align-items: center; gap: 3px; }
+.adm-stat-delta.is-up   { color: var(--success); }
+.adm-stat-delta.is-down { color: var(--red-500); }
+.adm-stat-delta.is-flat { color: var(--ink-400); }
+
+/* Biểu đồ SVG tự vẽ — không thêm Chart.js cho đúng 1 biểu đồ */
+.adm-chart { width: 100%; height: 240px; display: block; overflow: visible; }
+.adm-chart .adm-bar { fill: url(#admBarGrad); transition: opacity var(--t-fast); }
+.adm-chart .adm-bar-hit { fill: transparent; cursor: pointer; }
+.adm-chart-grid { stroke: var(--adm-border); stroke-width: 1; }
+.adm-chart-label { font-size: 10px; fill: var(--ink-400); font-family: var(--font-body); }
+.adm-chart:hover .adm-bar { opacity: .45; }
+.adm-chart .adm-bar-group:hover .adm-bar { opacity: 1; }
+
+.adm-chart-tip {
+  position: absolute;
+  z-index: 20;
+  background: var(--ink-900);
+  color: #fff;
+  font-size: .76rem;
+  padding: 6px 10px;
+  border-radius: var(--adm-r-sm);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -100%);
+  transition: opacity var(--t-fast);
+  white-space: nowrap;
+}
+.adm-chart-tip.is-on { opacity: 1; }
+.adm-chart-tip b { font-variant-numeric: tabular-nums; }
+
+.adm-donut-legend { display: flex; flex-direction: column; gap: 8px; font-size: .84rem; }
+.adm-donut-legend li { display: flex; align-items: center; gap: 8px; }
+.adm-donut-legend .adm-dot-sm { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.adm-donut-legend .adm-legend-num { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Khối "Cần chú ý" */
+.adm-attention-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--adm-r-sm);
+  background: var(--adm-shipping-bg);
+  color: #8A5A08;
+  font-size: .85rem;
+}
+.adm-attention-item + .adm-attention-item { margin-top: 8px; }
+.adm-attention-item .bi { font-size: 1rem; flex-shrink: 0; }
+.adm-attention-item a { margin-left: auto; font-weight: 600; white-space: nowrap; }
+.adm-attention-ok {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 12px;
+  border-radius: var(--adm-r-sm);
+  background: var(--adm-done-bg);
+  color: #176B29;
+  font-size: .88rem;
+  font-weight: 600;
+}
+
+/* ===================== 8. BẢNG DỮ LIỆU · LỌC ===================== */
+.adm-table-wrap {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r);
+  /* BẮT BUỘC: nhiều cột không được đẩy vỡ layout trang */
+  overflow-x: auto;
+  position: relative;
+}
+
+.adm-table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+
+.adm-table thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--adm-surface-2);
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--ink-500);
+  text-align: left;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--adm-border);
+  white-space: nowrap;
+}
+.adm-table thead th a { color: inherit; display: inline-flex; align-items: center; gap: 4px; }
+.adm-table thead th a:hover { color: var(--brand-600); }
+.adm-table thead th .bi { font-size: .8rem; opacity: .5; }
+.adm-table thead th a.is-sorted .bi { opacity: 1; color: var(--brand-500); }
+
+.adm-table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--adm-border);
+  vertical-align: middle;
+}
+.adm-table tbody tr { transition: background var(--t-fast); }
+.adm-table tbody tr:last-child td { border-bottom: 0; }
+@media (hover: hover) {
+  .adm-table tbody tr:hover { background: var(--brand-50); }
+}
+
+/* Chế độ gọn — lưu trong localStorage */
+.adm-table.is-compact tbody td { padding: 7px 14px; }
+
+.adm-table .adm-col-right { text-align: right; }
+.adm-table .adm-col-actions { width: 1%; white-space: nowrap; text-align: right; }
+
+/* Nút thao tác mờ đi để giảm nhiễu, rõ khi hover hàng */
+.adm-row-actions { display: inline-flex; gap: 2px; opacity: .45; transition: opacity var(--t-fast); }
+.adm-table tbody tr:hover .adm-row-actions,
+.adm-row-actions:focus-within { opacity: 1; }
+@media (hover: none) { .adm-row-actions { opacity: 1; } }
+
+.adm-act {
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border: 0; background: transparent;
+  border-radius: var(--adm-r-sm);
+  color: var(--ink-500);
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.adm-act:hover { background: var(--brand-100); color: var(--brand-700); }
+.adm-act.is-danger:hover { background: var(--adm-cancel-bg); color: var(--adm-cancel); }
+
+.adm-thumb {
+  width: 44px; height: 44px;
+  border-radius: var(--adm-r-sm);
+  object-fit: cover;
+  background: var(--adm-surface-2);
+  border: 1px solid var(--adm-border);
+}
+
+/* ----- Thanh lọc ----- */
+.adm-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.adm-filters .adm-search { position: relative; flex: 1 1 240px; max-width: 340px; }
+.adm-filters .adm-search input { padding-left: 34px; }
+.adm-filters .adm-search .bi { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-400); }
+
+/* Chip lọc — admin KHÔNG nạp site.css nên .rz-chip không tồn tại ở đây, định nghĩa riêng */
+.adm-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.adm-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 30px; padding: 0 12px;
+  border-radius: var(--r-pill);
+  background: var(--brand-50);
+  border: 1px solid var(--brand-200);
+  color: var(--brand-700);
+  font-size: .8rem;
+  font-weight: 600;
+}
+.adm-chip a { color: inherit; opacity: .6; display: grid; place-items: center; }
+.adm-chip a:hover { opacity: 1; }
+
+/* Tab nhanh (trạng thái đơn, nhóm menu...) */
+.adm-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 16px; border-bottom: 1px solid var(--adm-border); }
+.adm-tab {
+  padding: 9px 14px;
+  font-size: .86rem;
+  font-weight: 600;
+  color: var(--ink-500);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+}
+.adm-tab:hover { color: var(--brand-600); }
+.adm-tab.is-active { color: var(--brand-600); border-bottom-color: var(--brand-500); }
+.adm-tab .adm-tab-count {
+  display: inline-block;
+  margin-left: 5px;
+  font-size: .74rem;
+  background: var(--adm-surface-2);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--r-pill);
+  padding: 0 6px;
+  font-variant-numeric: tabular-nums;
+}
+.adm-tab.is-active .adm-tab-count { background: var(--brand-100); border-color: var(--brand-200); color: var(--brand-700); }
+
+/* ----- Phân trang ----- */
+.adm-pager {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 16px;
+  font-size: .84rem;
+  color: var(--ink-500);
+}
+.adm-pager-list { display: flex; gap: 4px; margin-left: auto; list-style: none; padding: 0; margin-bottom: 0; }
+.adm-pager-list a, .adm-pager-list span {
+  min-width: 34px; height: 34px;
+  display: grid; place-items: center;
+  padding: 0 8px;
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-sm);
+  background: var(--adm-surface);
+  color: var(--ink-700);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.adm-pager-list a:hover { border-color: var(--brand-300); color: var(--brand-700); background: var(--brand-50); }
+.adm-pager-list .is-current { background: var(--grad-brand); border-color: transparent; color: #fff; }
+.adm-pager-list .is-disabled { opacity: .45; pointer-events: none; }
+
+/* ===================== 9. FORM ===================== */
+.adm-form-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r);
+  padding: 22px;
+}
+
+.adm-form-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px 18px; }
+.adm-field { grid-column: span var(--col-span, 12); min-width: 0; }
+
+.adm-label {
+  display: block;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--ink-700);
+  margin-bottom: 6px;
+}
+.adm-label .adm-req { color: var(--red-500); margin-left: 2px; }
+
+.adm-input, .adm-select, .adm-textarea {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-sm);
+  background: var(--adm-surface);
+  font-family: var(--font-body);
+  font-size: .88rem;
+  color: var(--ink-700);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.adm-input:focus, .adm-select:focus, .adm-textarea:focus {
+  outline: none;
+  border-color: var(--brand-400);
+  box-shadow: 0 0 0 3px var(--brand-100);
+}
+.adm-input:disabled, .adm-select:disabled, .adm-textarea:disabled {
+  background: var(--adm-surface-2);
+  color: var(--ink-400);
+  cursor: not-allowed;
+}
+.adm-textarea { min-height: 90px; resize: vertical; }
+.adm-select { appearance: none; padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236C757D'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center; background-size: 14px; }
+
+.adm-hint { font-size: .76rem; color: var(--ink-400); margin-top: 5px; }
+
+.adm-error { font-size: .78rem; color: var(--red-500); margin-top: 5px; display: block; }
+.adm-input.input-validation-error,
+.adm-select.input-validation-error,
+.adm-textarea.input-validation-error {
+  border-color: var(--red-500);
+  animation: adm-shake .3s var(--ease-out);
+}
+@keyframes adm-shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* Ô tiền: căn phải + hậu tố đ */
+.adm-money-wrap { position: relative; }
+.adm-money-wrap .adm-input { text-align: right; padding-right: 28px; font-variant-numeric: tabular-nums; }
+.adm-money-wrap::after {
+  content: "đ";
+  position: absolute; right: 11px; top: 50%; transform: translateY(-50%);
+  color: var(--ink-400); font-size: .85rem; pointer-events: none;
+}
+
+.adm-alert {
+  padding: 11px 14px;
+  border-radius: var(--adm-r-sm);
+  font-size: .85rem;
+  display: flex; align-items: flex-start; gap: 9px;
+  margin-bottom: 16px;
+}
+.adm-alert .bi { flex-shrink: 0; margin-top: 1px; }
+.adm-alert-error   { background: var(--adm-cancel-bg); color: #A31624; }
+.adm-alert-warning { background: var(--adm-shipping-bg); color: #8A5A08; }
+.adm-alert-info    { background: var(--adm-new-bg); color: #084298; }
+
+/* Thanh hành động dính đáy — form dài không phải cuộn xuống cuối mới lưu được */
+.adm-form-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 22px;
+  margin: 22px -22px -22px;
+  background: var(--adm-surface);
+  border-top: 1px solid var(--adm-border);
+  border-radius: 0 0 var(--adm-r) var(--adm-r);
+}
+.adm-form-bar .adm-form-bar-end { margin-left: auto; display: flex; gap: 10px; }
+
+/* Tab trong form (sản phẩm 5 tab) */
+.adm-form-tabs { display: flex; gap: 2px; flex-wrap: wrap; border-bottom: 1px solid var(--adm-border); margin-bottom: 20px; }
+.adm-form-tab {
+  position: relative;
+  padding: 10px 16px;
+  font-size: .87rem; font-weight: 600;
+  color: var(--ink-500);
+  background: transparent; border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+}
+.adm-form-tab:hover { color: var(--brand-600); }
+.adm-form-tab.is-active { color: var(--brand-600); border-bottom-color: var(--brand-500); }
+/* Chấm đỏ: lỗi validate nằm ở tab đang ẨN mà không báo thì người dùng bấm Lưu mãi không hiểu vì sao */
+.adm-form-tab.has-error::after {
+  content: ""; position: absolute; top: 7px; right: 7px;
+  width: 7px; height: 7px; border-radius: 50%; background: var(--red-500);
+}
+.adm-tab-panel { display: none; }
+.adm-tab-panel.is-active { display: block; animation: adm-fade .12s var(--ease-out); }
+@keyframes adm-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ===================== 10. TOGGLE SWITCH · SLUG INPUT ===================== */
+.adm-switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+.adm-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.adm-switch-track {
+  width: 44px; height: 24px;
+  border-radius: var(--r-pill);
+  background: var(--adm-border-strong);
+  position: relative;
+  flex-shrink: 0;
+  transition: background var(--t-base) var(--ease-out);
+}
+.adm-switch-track::after {
+  content: "";
+  position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+  transition: transform 200ms var(--ease-spring);
+}
+.adm-switch input:checked + .adm-switch-track { background: var(--grad-brand); }
+.adm-switch input:checked + .adm-switch-track::after { transform: translateX(20px); }
+.adm-switch input:focus-visible + .adm-switch-track { outline: 2px solid var(--brand-400); outline-offset: 2px; }
+.adm-switch input:disabled + .adm-switch-track { opacity: .5; cursor: not-allowed; }
+.adm-switch-label { font-size: .85rem; }
+
+.adm-slug-wrap { position: relative; }
+.adm-slug-wrap .adm-input { padding-right: 76px; font-family: ui-monospace, Consolas, monospace; font-size: .84rem; }
+.adm-slug-tools { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 4px; }
+.adm-slug-state { width: 20px; display: grid; place-items: center; font-size: .95rem; }
+.adm-slug-state.is-ok   { color: var(--success); }
+.adm-slug-state.is-bad  { color: var(--red-500); }
+.adm-slug-state.is-warn { color: var(--warning); }
+.adm-slug-state.is-busy { color: var(--ink-400); }
+.adm-slug-state .adm-spin-sm {
+  width: 13px; height: 13px;
+  border: 2px solid var(--adm-border-strong);
+  border-top-color: var(--brand-500);
+  border-radius: 50%;
+  animation: adm-spin .7s linear infinite;
+}
+.adm-slug-msg { font-size: .78rem; margin-top: 5px; }
+.adm-slug-msg.is-ok   { color: var(--success); }
+.adm-slug-msg.is-bad  { color: var(--red-500); }
+.adm-slug-msg.is-warn { color: #8A5A08; }
+
+/* ===================== 11. UPLOADER · REPEATER ===================== */
+.adm-dropzone {
+  border: 2px dashed var(--adm-border-strong);
+  border-radius: var(--adm-r);
+  padding: 26px 18px;
+  text-align: center;
+  color: var(--ink-500);
+  background: var(--adm-surface-2);
+  cursor: pointer;
+  transition: border-color var(--t-fast), background var(--t-fast);
+}
+.adm-dropzone:hover, .adm-dropzone.is-over { border-color: var(--brand-400); background: var(--brand-50); color: var(--brand-700); }
+.adm-dropzone .bi { font-size: 1.8rem; display: block; margin-bottom: 8px; opacity: .7; }
+
+.adm-media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-top: 14px; }
+.adm-media-item {
+  position: relative;
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r-sm);
+  overflow: hidden;
+  background: var(--adm-surface-2);
+  aspect-ratio: 1;
+}
+.adm-media-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.adm-media-item.is-main { border-color: var(--brand-500); box-shadow: 0 0 0 2px var(--brand-200); }
+.adm-media-badge {
+  position: absolute; left: 6px; bottom: 6px;
+  background: var(--grad-brand); color: #fff;
+  font-size: .66rem; font-weight: 700;
+  padding: 2px 7px; border-radius: var(--r-pill);
+}
+.adm-media-tools { position: absolute; top: 5px; right: 5px; display: flex; gap: 3px; }
+.adm-media-tools button {
+  width: 26px; height: 26px;
+  border: 0; border-radius: var(--adm-r-sm);
+  background: rgba(23,20,26,.62); color: #fff;
+  display: grid; place-items: center; cursor: pointer; font-size: .8rem;
+}
+.adm-media-tools button:hover { background: var(--red-500); }
+.adm-media-tools button.adm-media-star:hover { background: var(--brand-500); }
+.adm-media-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(0,0,0,.15); }
+.adm-media-progress i { display: block; height: 100%; background: var(--grad-brand); width: 0; transition: width .2s linear; }
+.adm-media-item.has-error { border-color: var(--red-500); }
+.adm-media-error { position: absolute; inset: 0; background: rgba(236,45,63,.9); color: #fff; font-size: .7rem; padding: 8px; display: grid; place-items: center; text-align: center; }
+
+.adm-repeater-group {
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-r);
+  padding: 14px;
+  background: var(--adm-surface-2);
+}
+.adm-repeater-group + .adm-repeater-group { margin-top: 12px; }
+.adm-repeater-row { display: flex; gap: 8px; align-items: center; }
+.adm-repeater-row + .adm-repeater-row { margin-top: 8px; }
+.adm-repeater-row.is-new { animation: adm-slide-in .2s var(--ease-out); }
+@keyframes adm-slide-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+.adm-drag-handle { cursor: grab; color: var(--ink-400); padding: 4px; flex-shrink: 0; }
+.adm-drag-handle:active { cursor: grabbing; }
+.adm-sortable-ghost { opacity: .35; }
+.adm-sortable-chosen { box-shadow: var(--sh-lg); transform: scale(1.02); }
+
+/* Nút ▲▼ — phương án bàn phím thay cho kéo-thả (a11y mục 7) */
+.adm-move-btns { display: inline-flex; flex-direction: column; gap: 1px; }
+.adm-move-btns button {
+  width: 22px; height: 15px;
+  border: 0; background: transparent;
+  color: var(--ink-400); cursor: pointer;
+  display: grid; place-items: center; font-size: .65rem; line-height: 1;
+}
+.adm-move-btns button:hover:not(:disabled) { color: var(--brand-600); }
+.adm-move-btns button:disabled { opacity: .3; cursor: default; }
+
+/* ===================== 12. BADGE TRẠNG THÁI ===================== */
+.adm-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  font-size: .72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+/* Nền NHẠT + chữ đậm cùng tông: badge nền đặc trong bảng nhiều hàng rất chói mắt */
+.adm-badge-new      { background: var(--adm-new-bg);      color: var(--adm-new); }
+.adm-badge-confirm  { background: var(--adm-confirm-bg);  color: var(--adm-confirm); }
+.adm-badge-shipping { background: var(--adm-shipping-bg); color: #A16207; }
+.adm-badge-done     { background: var(--adm-done-bg);     color: #176B29; }
+.adm-badge-cancel   { background: var(--adm-cancel-bg);   color: var(--adm-cancel); }
+.adm-badge-muted    { background: var(--adm-surface-2);   color: var(--ink-500); border: 1px solid var(--adm-border); }
+
+button.adm-badge { border: 0; cursor: pointer; }
+button.adm-badge:hover { filter: brightness(.96); }
+
+.adm-flag {
+  display: inline-block;
+  font-size: .68rem; font-weight: 700;
+  padding: 1px 7px;
+  border-radius: var(--r-pill);
+  background: var(--brand-50);
+  color: var(--brand-700);
+  border: 1px solid var(--brand-200);
+}
+
+/* Timeline trạng thái đơn (bản admin của _CheckoutSteps) */
+.adm-timeline { display: flex; align-items: flex-start; gap: 0; }
+.adm-timeline-step { flex: 1; text-align: center; position: relative; min-width: 0; }
+.adm-timeline-step::before {
+  content: ""; position: absolute; top: 15px; left: -50%; right: 50%;
+  height: 2px; background: var(--adm-border); z-index: 0;
+}
+.adm-timeline-step:first-child::before { display: none; }
+.adm-timeline-step.is-done::before, .adm-timeline-step.is-current::before { background: var(--brand-400); }
+.adm-timeline-dot {
+  position: relative; z-index: 1;
+  width: 32px; height: 32px; margin: 0 auto 7px;
+  border-radius: 50%;
+  background: var(--adm-surface);
+  border: 2px solid var(--adm-border);
+  display: grid; place-items: center;
+  color: var(--ink-400);
+  font-size: .85rem;
+}
+.adm-timeline-step.is-done .adm-timeline-dot { background: var(--brand-500); border-color: var(--brand-500); color: #fff; }
+.adm-timeline-step.is-current .adm-timeline-dot { border-color: var(--brand-500); color: var(--brand-600); box-shadow: 0 0 0 4px var(--brand-100); }
+.adm-timeline-step.is-cancel .adm-timeline-dot { background: var(--red-500); border-color: var(--red-500); color: #fff; }
+.adm-timeline-label { font-size: .78rem; color: var(--ink-500); }
+.adm-timeline-step.is-done .adm-timeline-label,
+.adm-timeline-step.is-current .adm-timeline-label { color: var(--ink-900); font-weight: 600; }
+
+/* ===================== 13. MODAL ===================== */
+.adm-modal {
+  position: fixed; inset: 0;
+  z-index: 1090;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.adm-modal.is-open { display: flex; }
+.adm-modal-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(23,20,26,.55);
+  animation: adm-fade .15s var(--ease-out);
+}
+.adm-modal-box {
+  position: relative;
+  width: 100%; max-width: 460px;
+  background: var(--adm-surface);
+  border-radius: var(--adm-r);
+  box-shadow: var(--sh-lg);
+  padding: 22px;
+  animation: adm-pop .2s var(--ease-spring);
+}
+@keyframes adm-pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+.adm-modal-box h3 { font-size: 1.05rem; margin-bottom: 8px; }
+.adm-modal-box p { font-size: .88rem; color: var(--ink-500); margin-bottom: 16px; }
+.adm-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.adm-modal-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--adm-cancel-bg); color: var(--adm-cancel);
+  font-size: 1.3rem; margin-bottom: 12px;
+}
+
+/* ===================== 14. TOAST ===================== */
+.adm-toast-stack {
+  position: fixed;
+  right: 20px; bottom: 20px;
+  z-index: 1100;
+  display: flex; flex-direction: column; gap: 10px;
+  max-width: min(370px, calc(100vw - 40px));
+}
+.adm-toast {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-left: 3px solid var(--ink-500);
+  border-radius: var(--adm-r-sm);
+  box-shadow: var(--sh-lg);
+  padding: 12px 14px;
+  font-size: .86rem;
+  animation: adm-toast-in .25s var(--ease-out);
+}
+@keyframes adm-toast-in { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+.adm-toast.is-out { animation: adm-toast-out .2s var(--ease-out) forwards; }
+@keyframes adm-toast-out { to { opacity: 0; transform: translateX(24px); } }
+.adm-toast .bi { font-size: 1.05rem; flex-shrink: 0; margin-top: 1px; }
+.adm-toast-msg { flex: 1; }
+.adm-toast-close { border: 0; background: transparent; color: var(--ink-400); cursor: pointer; padding: 0 2px; font-size: .95rem; }
+.adm-toast-close:hover { color: var(--ink-700); }
+.adm-toast.is-success { border-left-color: var(--success); }
+.adm-toast.is-success .bi { color: var(--success); }
+.adm-toast.is-error   { border-left-color: var(--red-500); }
+.adm-toast.is-error .bi { color: var(--red-500); }
+.adm-toast.is-warning { border-left-color: var(--warning); }
+.adm-toast.is-warning .bi { color: var(--warning); }
+.adm-toast.is-info    { border-left-color: var(--info); }
+.adm-toast.is-info .bi { color: var(--info); }
+
+/* ===================== 15. EMPTY STATE · SKELETON ===================== */
+.adm-empty { text-align: center; padding: 46px 20px; color: var(--ink-500); }
+.adm-empty .bi { font-size: 2.6rem; color: var(--adm-border-strong); display: block; margin-bottom: 12px; }
+.adm-empty h3 { font-size: 1rem; margin-bottom: 6px; }
+.adm-empty p { font-size: .86rem; margin-bottom: 16px; }
+
+.adm-skeleton {
+  background: var(--adm-surface-2);
+  background-image: var(--grad-shine);
+  background-size: 200% 100%;
+  border-radius: var(--adm-r-sm);
+  animation: adm-shimmer 1.2s linear infinite;
+  height: 14px;
+}
+@keyframes adm-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+.adm-table-wrap.is-loading::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,.6);
+  backdrop-filter: blur(1px);
+}
+
+/* ===================== 16. LOGIN ===================== */
+body.adm-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--grad-hero);
+  background-attachment: fixed;
+  font-family: var(--font-body);
+  color: var(--ink-700);
+  margin: 0;
+}
+body.adm-login::before {
+  content: "";
+  position: fixed; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,.13) 1px, transparent 1px);
+  background-size: 22px 22px;
+  pointer-events: none;
+}
+.adm-login-card {
+  position: relative;
+  width: 100%; max-width: 400px;
+  background: var(--adm-surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-lg);
+  padding: 34px 30px;
+}
+.adm-login-card.is-shake { animation: adm-shake .3s var(--ease-out); }
+.adm-login-head { text-align: center; margin-bottom: 24px; }
+.adm-login-head .adm-brand-mark { width: 46px; height: 46px; margin: 0 auto 12px; font-size: 1.2rem; border-radius: 13px; }
+.adm-login-head h1 { font-size: 1.22rem; }
+.adm-login-head p { font-size: .84rem; color: var(--ink-500); margin: 5px 0 0; }
+.adm-login-card .adm-field + .adm-field { margin-top: 14px; }
+.adm-login-card .adm-btn { width: 100%; height: 42px; margin-top: 20px; }
+.adm-login-foot { text-align: center; margin-top: 18px; font-size: .8rem; }
+
+.adm-pass-wrap { position: relative; }
+.adm-pass-wrap .adm-input { padding-right: 40px; }
+.adm-pass-toggle {
+  position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+  width: 32px; height: 32px;
+  border: 0; background: transparent;
+  color: var(--ink-400); cursor: pointer;
+  display: grid; place-items: center;
+  border-radius: var(--adm-r-sm);
+}
+.adm-pass-toggle:hover { color: var(--brand-600); }
+
+.adm-check { display: inline-flex; align-items: center; gap: 8px; font-size: .85rem; cursor: pointer; }
+.adm-check input { width: 16px; height: 16px; accent-color: var(--brand-500); cursor: pointer; }
+
+/* ===================== 17. RESPONSIVE ===================== */
+@media (max-width: 1199.98px) {
+  /* Tablet: nhường chỗ cho nội dung, sidebar về chế độ icon */
+  .adm-main { margin-left: var(--adm-sidebar-w-mini); }
+  .adm-sidebar { width: var(--adm-sidebar-w-mini); }
+  .adm-sidebar .adm-nav-item span,
+  .adm-sidebar .adm-nav-group-label,
+  .adm-sidebar .adm-brand-text { display: none; }
+  .adm-sidebar .adm-nav-item { justify-content: center; padding-inline: 0; gap: 0; position: relative; }
+  .adm-sidebar .adm-brand { justify-content: center; padding: 0; }
+  .adm-topbar-search { width: 190px; }
+}
+
+@media (max-width: 991.98px) {
+  /* Điện thoại/tablet dọc: sidebar thành offcanvas trượt từ trái */
+  .adm-main { margin-left: 0; }
+  .adm-sidebar {
+    width: var(--adm-sidebar-w);
+    transform: translateX(-100%);
+  }
+  .adm-sidebar .adm-nav-item span,
+  .adm-sidebar .adm-nav-group-label,
+  .adm-sidebar .adm-brand-text { display: revert; }
+  .adm-sidebar .adm-nav-item { justify-content: flex-start; padding-inline: 16px; gap: 12px; }
+  .adm-sidebar .adm-brand { justify-content: flex-start; padding: 0 18px; }
+  .adm-shell.is-open .adm-sidebar { transform: none; }
+  .adm-content { padding: 18px 16px 32px; }
+  .adm-topbar { padding: 0 14px; gap: 10px; }
+  .adm-topbar-search { display: none; }
+}
+
+@media (max-width: 767.98px) {
+  .adm-page-actions { margin-left: 0; width: 100%; }
+  .adm-page-actions .adm-btn { flex: 1; }
+  .adm-crumbs { display: none; }
+
+  /* Bảng → thẻ: cuộn ngang trên điện thoại dùng rất tệ.
+     Nhãn cột lấy từ data-label của <td> (xem partial _AdminTable). */
+  .adm-table.adm-table-cards thead { display: none; }
+  .adm-table.adm-table-cards tbody tr {
+    display: block;
+    border: 1px solid var(--adm-border);
+    border-radius: var(--adm-r-sm);
+    padding: 6px 12px;
+    margin-bottom: 10px;
+  }
+  .adm-table.adm-table-cards tbody td {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px dashed var(--adm-border);
+  }
+  .adm-table.adm-table-cards tbody td:last-child { border-bottom: 0; }
+  .adm-table.adm-table-cards tbody td::before {
+    content: attr(data-label);
+    flex: 0 0 40%;
+    font-size: .74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--ink-500);
+  }
+  .adm-table.adm-table-cards .adm-col-right,
+  .adm-table.adm-table-cards .adm-col-actions { text-align: left; }
+  .adm-table.adm-table-cards .adm-row-actions { opacity: 1; }
+
+  .adm-form-grid { grid-template-columns: 1fr; }
+  .adm-field { grid-column: span 1; }
+  .adm-form-card { padding: 16px; }
+  .adm-form-bar { margin: 18px -16px -16px; padding: 12px 16px; }
+  .adm-toast-stack { left: 14px; right: 14px; bottom: 14px; max-width: none; }
+}
+
+/* ===================== 18. IN ẤN =====================
+   Dùng cho nút "In đơn" ở màn chi tiết đơn hàng: bỏ hết phần điều hướng,
+   chỉ còn nội dung đơn trên giấy. */
+@media print {
+  .adm-sidebar, .adm-topbar, .adm-sidebar-backdrop,
+  .adm-page-actions, .adm-toast-stack, .adm-modal,
+  #statusActions, .adm-row-actions { display: none !important; }
+
+  .adm-main { margin-left: 0 !important; }
+  .adm-content { padding: 0 !important; max-width: none !important; }
+
+  body.adm { background: #fff; font-size: 12px; }
+
+  .adm-card, .adm-table-wrap {
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  .adm-badge { border: 1px solid #999; }
+
+  /* In URL của link ra sau chữ thì bản in đầy ký tự rác — bỏ gạch chân là đủ */
+  a { text-decoration: none !important; color: #000 !important; }
+}
+
+/* ===================== 19. prefers-reduced-motion ===================== */
+@media (prefers-reduced-motion: reduce) {
+  body.adm *,
+  body.adm-login * {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

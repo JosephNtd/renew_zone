@@ -8,7 +8,7 @@ namespace RenewZone.Domain.Entities;
 /// Thay toàn bộ link hardcode trong _Layout — admin sửa được không cần deploy (Giai đoạn 6).
 /// Menu 2 cấp qua <see cref="ParentId"/> self-reference (Restrict: còn con thì không xóa được cha).
 /// </summary>
-public class MenuItem : BaseEntity
+public class MenuItem : BaseEntity, ISoftDeletable
 {
     public MenuGroup Group { get; set; }
 
@@ -26,6 +26,12 @@ public class MenuItem : BaseEntity
     public int DisplayOrder { get; set; }
     public bool IsActive { get; set; } = true;
     public bool OpenInNewTab { get; set; }
+
+    /// <inheritdoc />
+    public bool IsDeleted { get; set; }
+
+    /// <inheritdoc />
+    public DateTime? DeletedAt { get; set; }
 
     public MenuItem? Parent { get; set; }
     public ICollection<MenuItem> Children { get; set; } = [];

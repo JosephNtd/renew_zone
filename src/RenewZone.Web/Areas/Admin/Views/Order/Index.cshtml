@@ -1,0 +1,262 @@
+@using RenewZone.Domain.Enums
+@model OrderListViewModel
+@{
+    ViewData["Title"] = "Đơn hàng";
+
+    var tabs = new (OrderStatus? Status, string Label)[]
+    {
+        (null, "Tất cả"),
+        (OrderStatus.New, "Mới"),
+        (OrderStatus.Confirmed, "Đã xác nhận"),
+        (OrderStatus.Shipping, "Đang giao"),
+        (OrderStatus.Completed, "Hoàn thành"),
+        (OrderStatus.Cancelled, "Đã hủy")
+    };
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Đơn hàng</h1>
+        <div class="adm-page-sub">
+            Theo dõi và xử lý đơn khách đặt trên website. Đơn hàng không xóa được —
+            muốn hủy thì chuyển sang trạng thái “Đã hủy”.
+        </div>
+    </div>
+    <div class="adm-page-actions">
+        <button type="button" class="adm-btn adm-btn-ghost" id="admCompactToggle"
+                aria-pressed="false" title="Bật/tắt chế độ bảng gọn">
+            <i class="bi bi-arrows-collapse" aria-hidden="true"></i>
+            <span class="adm-btn-label">Chế độ gọn</span>
+        </button>
+    </div>
+</div>
+
+@* ===== Tab nhanh theo trạng thái, kèm số đếm thật từ DB ===== *@
+<nav class="adm-tabs" aria-label="Lọc theo trạng thái">
+    @foreach (var tab in tabs)
+    {
+        var count = tab.Status is null
+            ? Model.TotalOrders
+            : Model.StatusCounts.GetValueOrDefault(tab.Status.Value);
+        var isActive = Model.Status == tab.Status;
+
+        <a class="adm-tab @(isActive ? "is-active" : "")"
+           href="@Model.BuildUrl(page: 1, status: tab.Status, clearStatus: tab.Status is null)"
+           aria-current="@(isActive ? "page" : null)">
+            @tab.Label<span class="adm-tab-count">@count</span>
+        </a>
+    }
+</nav>
+
+@* ===== Thanh lọc — mọi điều kiện nằm trên querystring ===== *@
+<form class="adm-filters" method="get" action="/admin/don-hang">
+    @if (Model.Status is not null)
+    {
+        <input type="hidden" name="trangThai" value="@Model.Status" />
+    }
+
+    <div class="adm-search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input class="adm-input" type="search" name="q" value="@Model.Search"
+               placeholder="Tìm mã đơn, tên khách, số điện thoại..." aria-label="Tìm đơn hàng" />
+    </div>
+
+    <select class="adm-select" name="thanhToan" style="width: auto;" aria-label="Phương thức thanh toán">
+        <option value="">Mọi hình thức thanh toán</option>
+        <option value="@PaymentMethod.Cod" selected="@(Model.PaymentMethod == PaymentMethod.Cod)">
+            COD
+        </option>
+        <option value="@PaymentMethod.BankTransfer" selected="@(Model.PaymentMethod == PaymentMethod.BankTransfer)">
+            Chuyển khoản
+        </option>
+    </select>
+
+    <input class="adm-input" type="date" name="tuNgay" style="width: auto;"
+           value="@Model.FromDate?.ToString("yyyy-MM-dd")" aria-label="Từ ngày" />
+    <input class="adm-input" type="date" name="denNgay" style="width: auto;"
+           value="@Model.ToDate?.ToString("yyyy-MM-dd")" aria-label="Đến ngày" />
+
+    <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">
+        <i class="bi bi-funnel" aria-hidden="true"></i>
+        <span class="adm-btn-label">Lọc</span>
+    </button>
+
+    @if (Model.HasAnyFilter)
+    {
+        <a class="adm-btn adm-btn-ghost adm-btn-sm" href="/admin/don-hang">Xóa lọc</a>
+    }
+</form>
+
+@if (Model.Result.TotalItems == 0)
+{
+    <div class="adm-card">
+        @if (Model.HasAnyFilter)
+        {
+            <partial name="_EmptyState" model='new EmptyStateModel {
+                Icon = "bi-search", Title = "Không có đơn hàng nào khớp bộ lọc",
+                Message = "Thử bỏ bớt điều kiện lọc hoặc mở rộng khoảng ngày.",
+                ActionText = null, ActionUrl = null }' />
+        }
+        else
+        {
+            <partial name="_EmptyState" model='new EmptyStateModel {
+                Icon = "bi-receipt", Title = "Chưa có đơn hàng nào",
+                Message = "Khi khách đặt hàng trên website, đơn sẽ xuất hiện ở đây." }' />
+        }
+    </div>
+}
+else
+{
+    <div class="adm-table-wrap">
+        <table class="adm-table adm-table-cards">
+            <caption class="visually-hidden">Danh sách đơn hàng</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Mã đơn</th>
+                    <th scope="col">
+                        <a href="@Model.SortUrl("khach")" class="@(Model.IsSortedBy("khach") ? "is-sorted" : "")">
+                            Khách hàng
+                            <i class="bi @(Model.IsSortedBy("khach") && Model.SortDesc ? "bi-sort-down" : "bi-sort-up")"
+                               aria-hidden="true"></i>
+                        </a>
+                    </th>
+                    <th scope="col" class="adm-col-right">Số món</th>
+                    <th scope="col" class="adm-col-right">
+                        <a href="@Model.SortUrl("tong")" class="@(Model.IsSortedBy("tong") ? "is-sorted" : "")">
+                            Tổng tiền
+                            <i class="bi @(Model.IsSortedBy("tong") && Model.SortDesc ? "bi-sort-down" : "bi-sort-up")"
+                               aria-hidden="true"></i>
+                        </a>
+                    </th>
+                    <th scope="col">Thanh toán</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col">
+                        <a href="@Model.SortUrl("ngay")" class="@(Model.IsSortedBy("ngay") ? "is-sorted" : "")">
+                            Ngày đặt
+                            <i class="bi @(Model.IsSortedBy("ngay") && Model.SortDesc ? "bi-sort-down" : "bi-sort-up")"
+                               aria-hidden="true"></i>
+                        </a>
+                    </th>
+                    <th scope="col" class="adm-col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model.Result.Items)
+                {
+                    var allowed = OrderStatusRules.AllowedNext(order.Status);
+
+                    <tr data-order-id="@order.Id">
+                        <td data-label="Mã đơn">
+                            <a class="fw-bold" asp-action="Detail" asp-route-id="@order.Id">@order.Code</a>
+                        </td>
+                        <td data-label="Khách hàng">
+                            <div>@order.CustomerName</div>
+                            <div class="adm-small adm-muted adm-num">@order.Phone</div>
+                        </td>
+                        <td data-label="Số món" class="adm-col-right adm-num">@order.ItemCount</td>
+                        <td data-label="Tổng tiền" class="adm-col-right adm-num fw-bold">
+                            @order.TotalAmount.ToVnd()
+                        </td>
+                        <td data-label="Thanh toán">
+                            <span class="adm-small">
+                                <i class="bi @order.PaymentMethod.ToIcon()" aria-hidden="true"></i>
+                                @order.PaymentMethod.ToShortLabel()
+                            </span>
+                        </td>
+                        <td data-label="Trạng thái">
+                            @* Còn bước chuyển hợp lệ ⇒ badge là nút mở dropdown đổi trạng thái tại chỗ.
+                               Trạng thái kết thúc (Hoàn thành/Đã hủy) ⇒ badge tĩnh, không có gì để chọn. *@
+                            @if (allowed.Count > 0)
+                            {
+                                <div class="dropdown">
+                                    <button type="button"
+                                            class="adm-badge @order.Status.ToBadgeClass() js-status-badge"
+                                            data-bs-toggle="dropdown" aria-expanded="false"
+                                            title="Đổi trạng thái đơn @order.Code">
+                                        @order.Status.ToVietnamese()
+                                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                                    </button>
+                                    <div class="dropdown-menu adm-dropdown-menu js-status-menu">
+                                        @foreach (var next in allowed)
+                                        {
+                                            <button type="button" class="dropdown-item js-status-item"
+                                                    data-status="@next">
+                                                <i class="bi @next.ToIcon() me-2" aria-hidden="true"></i>
+                                                Chuyển sang “@next.ToVietnamese()”
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="adm-badge @order.Status.ToBadgeClass() js-status-badge">
+                                    @order.Status.ToVietnamese()
+                                </span>
+                            }
+                        </td>
+                        <td data-label="Ngày đặt">
+                            <div class="adm-small">@order.CreatedAt.ToString("dd/MM/yyyy")</div>
+                            <div class="adm-small adm-muted">@order.CreatedAt.ToString("HH:mm")</div>
+                        </td>
+                        <td data-label="Thao tác" class="adm-col-actions">
+                            <span class="adm-row-actions">
+                                <a class="adm-act" asp-action="Detail" asp-route-id="@order.Id"
+                                   title="Xem chi tiết đơn @order.Code">
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
+                                    <span class="visually-hidden">Xem chi tiết</span>
+                                </a>
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <partial name="_AdminPager" model='new AdminPagerModel {
+        Page = Model.Result.Page, PageSize = Model.Result.PageSize,
+        TotalItems = Model.Result.TotalItems, UrlFor = p => Model.BuildUrl(page: p) }' />
+}
+
+@section Scripts {
+    <script>
+        // Đổi trạng thái ngay trên hàng: AJAX → badge đổi màu tại chỗ + toast, KHÔNG reload
+        document.addEventListener("click", function (e) {
+            var item = e.target.closest(".js-status-item");
+            if (!item) return;
+
+            var row = item.closest("tr");
+            var id = row.getAttribute("data-order-id");
+            var badge = row.querySelector(".js-status-badge");
+            var menu = row.querySelector(".js-status-menu");
+
+            RZAdmin.post("/admin/don-hang/" + id + "/trang-thai", { status: item.dataset.status })
+                .then(function (res) {
+                    if (!res.ok) {
+                        RZAdmin.toast(res.message || "Không đổi được trạng thái.", "error");
+                        return;
+                    }
+
+                    badge.className = "adm-badge " + res.statusClass + " js-status-badge";
+                    badge.innerHTML = res.statusText
+                        + (res.allowedNext.length ? ' <i class="bi bi-chevron-down" aria-hidden="true"></i>' : "");
+
+                    if (!res.allowedNext.length) {
+                        // Trạng thái kết thúc: gỡ dropdown đi cho khỏi mở ra một menu rỗng
+                        badge.removeAttribute("data-bs-toggle");
+                        if (menu) menu.remove();
+                    } else {
+                        menu.innerHTML = res.allowedNext.map(function (s) {
+                            return '<button type="button" class="dropdown-item js-status-item" data-status="'
+                                + s.value + '"><i class="bi ' + s.icon + ' me-2" aria-hidden="true"></i>'
+                                + 'Chuyển sang “' + s.text + '”</button>';
+                        }).join("");
+                    }
+
+                    RZAdmin.toast(res.message, "success");
+                    RZAdmin.announce(res.message);
+                });
+        });
+    </script>
+}

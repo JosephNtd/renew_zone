@@ -6,7 +6,7 @@ namespace RenewZone.Domain.Entities;
 /// Danh mục sản phẩm 2 cấp: cha (iPhone, MacBook...) → con là dòng/series (iPhone 16 Series...).
 /// Cấp con hiển thị thành tab lọc trên trang danh mục — đúng UI site gốc.
 /// </summary>
-public class Category : AuditableEntity
+public class Category : AuditableEntity, ISoftDeletable
 {
     public string Name { get; set; } = null!;
 
@@ -21,6 +21,12 @@ public class Category : AuditableEntity
 
     public int DisplayOrder { get; set; }
     public bool IsActive { get; set; } = true;
+
+    /// <inheritdoc />
+    public bool IsDeleted { get; set; }
+
+    /// <inheritdoc />
+    public DateTime? DeletedAt { get; set; }
 
     public Category? Parent { get; set; }
     public ICollection<Category> Children { get; set; } = [];

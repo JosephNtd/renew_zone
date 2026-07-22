@@ -1,10 +1,401 @@
+@using RenewZone.Domain.Enums
+@model DashboardSummary
 @{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "Tổng quan";
+
+    var revenueChange = Model.RevenueChangePercent;
+
+    // ----- Biểu đồ cột SVG tự vẽ (KHÔNG dùng Chart.js: thêm ~200KB + một phụ thuộc nữa
+    //       cho đúng một biểu đồ; ~60 dòng SVG kiểm soát thẩm mỹ tuyệt đối theo design system) -----
+    const int chartW = 720, chartH = 200, padLeft = 52, padBottom = 22, padTop = 8;
+    var plotW = chartW - padLeft;
+    var plotH = chartH - padBottom - padTop;
+
+    var maxRevenue = Model.MaxDailyRevenue;
+    // Không có doanh thu thì đặt trần = 1 để phép chia không vỡ (khối rỗng sẽ được render thay biểu đồ)
+    var ceiling = maxRevenue <= 0 ? 1m : maxRevenue;
+    var slotW = plotW / (double)Math.Max(Model.RevenueByDay.Count, 1);
+    var barW = Math.Max(4, slotW * 0.62);
+
+    var donutTotal = Model.TotalOrderCount;
 }
 
-<h1 class="h3 mb-3">Dashboard</h1>
-
-<div class="alert alert-info">
-    Khu vực quản trị đã hoạt động. Các thống kê (đơn hàng mới, sản phẩm, bài viết, liên hệ chưa đọc)
-    sẽ được bổ sung ở Giai đoạn 6.
+<div class="adm-page-head">
+    <div>
+        <h1>Tổng quan</h1>
+        <div class="adm-page-sub">Tình hình cửa hàng trong 30 ngày gần nhất</div>
+    </div>
+    <div class="adm-page-actions">
+        <a class="adm-btn adm-btn-ghost" asp-area="Admin" asp-controller="Order" asp-action="Index">
+            <i class="bi bi-receipt" aria-hidden="true"></i>
+            <span class="adm-btn-label">Quản lý đơn hàng</span>
+        </a>
+    </div>
 </div>
+
+@* ===================== 4 stat card ===================== *@
+<div class="row g-3 mb-3">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="adm-card adm-stat">
+            <div class="adm-stat-icon is-new"><i class="bi bi-bag-plus" aria-hidden="true"></i></div>
+            <div>
+                <div class="adm-stat-value" data-countup="@Model.NewOrderCount">0</div>
+                <div class="adm-stat-label">Đơn mới chờ xác nhận</div>
+            </div>
+            <a class="stretched-link" asp-area="Admin" asp-controller="Order" asp-action="Index"
+               asp-route-trangThai="@OrderStatus.New" aria-label="Xem đơn hàng mới"></a>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="adm-card adm-stat">
+            <div class="adm-stat-icon is-revenue"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i></div>
+            <div>
+                <div class="adm-stat-value adm-num">@Model.Revenue30Days.ToVnd()</div>
+                <div class="adm-stat-label">Doanh thu 30 ngày (đơn hoàn thành)</div>
+                @if (revenueChange is not null)
+                {
+                    var up = revenueChange >= 0;
+                    <div class="adm-stat-delta @(up ? "is-up" : "is-down")">
+                        <i class="bi @(up ? "bi-arrow-up-short" : "bi-arrow-down-short")" aria-hidden="true"></i>
+                        @Math.Abs(revenueChange.Value).ToString("0.#")% so với 30 ngày trước
+                    </div>
+                }
+                else
+                {
+                    <div class="adm-stat-delta is-flat">Chưa có dữ liệu kỳ trước để so sánh</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="adm-card adm-stat">
+            <div class="adm-stat-icon is-product"><i class="bi bi-box-seam" aria-hidden="true"></i></div>
+            <div>
+                <div class="adm-stat-value" data-countup="@Model.ActiveProductCount">0</div>
+                <div class="adm-stat-label">Sản phẩm đang bán</div>
+            </div>
+            <a class="stretched-link" asp-area="Admin" asp-controller="Product" asp-action="Index"
+               aria-label="Xem sản phẩm"></a>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="adm-card adm-stat">
+            <div class="adm-stat-icon is-contact"><i class="bi bi-envelope-paper" aria-hidden="true"></i></div>
+            <div>
+                <div class="adm-stat-value" data-countup="@Model.UnreadContactCount">0</div>
+                <div class="adm-stat-label">Liên hệ chưa đọc</div>
+            </div>
+            <a class="stretched-link" asp-area="Admin" asp-controller="Contact" asp-action="Index"
+               aria-label="Xem hộp thư"></a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    @* ===================== Biểu đồ doanh thu ===================== *@
+    <div class="col-12 col-xl-8">
+        <div class="adm-card h-100 position-relative">
+            <div class="adm-card-head">
+                <h2>Doanh thu 30 ngày</h2>
+                <span class="adm-small adm-muted ms-auto">Chỉ tính đơn đã hoàn thành</span>
+            </div>
+
+            @if (maxRevenue <= 0)
+            {
+                <div class="adm-empty">
+                    <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
+                    <h3>Chưa có doanh thu trong 30 ngày qua</h3>
+                    <p>Biểu đồ sẽ hiện khi có đơn hàng chuyển sang trạng thái “Hoàn thành”.</p>
+                </div>
+            }
+            else
+            {
+                <div class="adm-chart-tip" id="chartTip"></div>
+                <svg class="adm-chart" viewBox="0 0 @chartW @chartH"
+                     role="img" aria-label="Biểu đồ cột doanh thu theo ngày trong 30 ngày gần nhất">
+                    <defs>
+                        <linearGradient id="admBarGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#E183AF" />
+                            <stop offset="100%" stop-color="#CE5F9A" />
+                        </linearGradient>
+                    </defs>
+
+                    @* Lưới ngang + 5 mốc trục Y *@
+                    @for (var i = 0; i <= 4; i++)
+                    {
+                        var gridY = padTop + plotH - plotH * i / 4.0;
+                        var gridValue = ceiling * i / 4;
+                        @* Bọc <g>: Razor coi "<text>" đứng đầu khối code là thẻ điều khiển của nó
+                           (lỗi RZ1023), bọc thêm một lớp thì <text> trở lại là markup SVG bình thường *@
+                        <g>
+                            <line class="adm-chart-grid" x1="@padLeft" y1="@gridY.ToString("0.##")"
+                                  x2="@chartW" y2="@gridY.ToString("0.##")" />
+                            <text class="adm-chart-label" x="@(padLeft - 8)" y="@((gridY + 3).ToString("0.##"))"
+                                  text-anchor="end">@FormatShort(gridValue)</text>
+                        </g>
+                    }
+
+                    @for (var i = 0; i < Model.RevenueByDay.Count; i++)
+                    {
+                        var point = Model.RevenueByDay[i];
+                        var barH = (double)(point.Amount / ceiling) * plotH;
+                        var barX = padLeft + i * slotW + (slotW - barW) / 2;
+                        var barY = padTop + plotH - barH;
+
+                        <g class="adm-bar-group"
+                           data-date="@point.Date.ToString("dd/MM/yyyy")"
+                           data-amount="@point.Amount.ToVnd()"
+                           data-orders="@point.OrderCount">
+                            @if (barH > 0)
+                            {
+                                <rect class="adm-bar" x="@barX.ToString("0.##")" y="@barY.ToString("0.##")"
+                                      width="@barW.ToString("0.##")" height="@barH.ToString("0.##")" rx="2" />
+                            }
+                            @* Vùng bắt chuột phủ trọn ô: cột thấp (hoặc 0đ) vẫn hover xem được *@
+                            <rect class="adm-bar-hit" x="@((padLeft + i * slotW).ToString("0.##"))"
+                                  y="@padTop" width="@slotW.ToString("0.##")" height="@plotH" />
+                        </g>
+
+                        @* Nhãn ngày 5 ngày/mốc — dày hơn thì chữ chồng lên nhau *@
+                        if (i % 5 == 0)
+                        {
+                            <g>
+                                <text class="adm-chart-label"
+                                      x="@((padLeft + i * slotW + slotW / 2).ToString("0.##"))"
+                                      y="@(chartH - 6)" text-anchor="middle">@point.Date.ToString("dd/MM")</text>
+                            </g>
+                        }
+                    }
+                </svg>
+            }
+        </div>
+    </div>
+
+    @* ===================== Donut tỉ lệ trạng thái ===================== *@
+    <div class="col-12 col-xl-4">
+        <div class="adm-card h-100">
+            <div class="adm-card-head"><h2>Trạng thái đơn hàng</h2></div>
+
+            @if (donutTotal == 0)
+            {
+                <div class="adm-empty">
+                    <i class="bi bi-pie-chart" aria-hidden="true"></i>
+                    <h3>Chưa có đơn hàng nào</h3>
+                </div>
+            }
+            else
+            {
+                var statuses = new[]
+                {
+                    (Status: OrderStatus.New, Color: "#0D6EFD"),
+                    (Status: OrderStatus.Confirmed, Color: "#CE5F9A"),
+                    (Status: OrderStatus.Shipping, Color: "#F59E0B"),
+                    (Status: OrderStatus.Completed, Color: "#28A745"),
+                    (Status: OrderStatus.Cancelled, Color: "#EC2D3F")
+                };
+
+                // Donut vẽ bằng stroke-dasharray trên đường tròn r=60
+                const double radius = 60;
+                var circumference = 2 * Math.PI * radius;
+                double offset = 0;
+
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <svg width="150" height="150" viewBox="0 0 150 150" role="img"
+                         aria-label="Tỉ lệ đơn hàng theo trạng thái">
+                        <circle cx="75" cy="75" r="@radius" fill="none" stroke="#EFEAF0" stroke-width="18" />
+                        @foreach (var s in statuses)
+                        {
+                            var count = Model.OrderCountByStatus.GetValueOrDefault(s.Status);
+                            if (count == 0) { continue; }
+
+                            var portion = count / (double)donutTotal * circumference;
+                            <circle cx="75" cy="75" r="@radius" fill="none" stroke="@s.Color" stroke-width="18"
+                                    stroke-dasharray="@portion.ToString("0.##") @((circumference - portion).ToString("0.##"))"
+                                    stroke-dashoffset="@((-offset).ToString("0.##"))"
+                                    transform="rotate(-90 75 75)">
+                                <title>@s.Status.ToVietnamese(): @count đơn</title>
+                            </circle>
+                            offset += portion;
+                        }
+                        <text x="75" y="70" text-anchor="middle"
+                              style="font-size: 22px; font-weight: 800; fill: #17141A;">@donutTotal</text>
+                        <text x="75" y="88" text-anchor="middle"
+                              style="font-size: 10px; fill: #6C757D;">tổng đơn</text>
+                    </svg>
+
+                    <ul class="adm-donut-legend list-unstyled mb-0 flex-grow-1">
+                        @foreach (var s in statuses)
+                        {
+                            <li>
+                                <span class="adm-dot-sm" style="background: @s.Color"></span>
+                                <span>@s.Status.ToVietnamese()</span>
+                                <span class="adm-legend-num">@Model.OrderCountByStatus.GetValueOrDefault(s.Status)</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    @* ===================== 5 đơn mới nhất ===================== *@
+    <div class="col-12 col-xl-7">
+        <div class="adm-card h-100">
+            <div class="adm-card-head">
+                <h2>Đơn hàng mới nhất</h2>
+                <a class="adm-card-link" asp-area="Admin" asp-controller="Order" asp-action="Index">
+                    Xem tất cả <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                </a>
+            </div>
+
+            @if (Model.RecentOrders.Count == 0)
+            {
+                <partial name="_EmptyState" model='new EmptyStateModel {
+                    Icon = "bi-receipt", Title = "Chưa có đơn hàng nào",
+                    Message = "Đơn khách đặt trên website sẽ hiện ở đây." }' />
+            }
+            else
+            {
+                <div class="adm-table-wrap border-0">
+                    <table class="adm-table">
+                        <caption class="visually-hidden">5 đơn hàng mới nhất</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Mã đơn</th>
+                                <th scope="col">Khách hàng</th>
+                                <th scope="col" class="adm-col-right">Tổng tiền</th>
+                                <th scope="col">Trạng thái</th>
+                                <th scope="col">Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.RecentOrders)
+                            {
+                                <tr>
+                                    <td>
+                                        <a class="fw-bold" asp-area="Admin" asp-controller="Order"
+                                           asp-action="Detail" asp-route-id="@order.Id">@order.Code</a>
+                                    </td>
+                                    <td>
+                                        <div>@order.CustomerName</div>
+                                        <div class="adm-small adm-muted adm-num">@order.Phone</div>
+                                    </td>
+                                    <td class="adm-col-right adm-num fw-bold">@order.TotalAmount.ToVnd()</td>
+                                    <td>
+                                        <span class="adm-badge @order.Status.ToBadgeClass()">
+                                            @order.Status.ToVietnamese()
+                                        </span>
+                                    </td>
+                                    <td class="adm-small adm-muted">@order.CreatedAt.ToRelativeTime()</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-5">
+        @* ===================== Cần chú ý ===================== *@
+        <div class="adm-card mb-3">
+            <div class="adm-card-head"><h2>Cần chú ý</h2></div>
+
+            @if (Model.Warnings.Count == 0)
+            {
+                <div class="adm-attention-ok">
+                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                    Mọi thứ đều ổn — không có dữ liệu nào bị thiếu.
+                </div>
+            }
+            else
+            {
+                foreach (var warning in Model.Warnings)
+                {
+                    <div class="adm-attention-item">
+                        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                        <span>@warning.Message</span>
+                        <a href="@warning.ActionUrl">@warning.ActionText</a>
+                    </div>
+                }
+            }
+        </div>
+
+        @* ===================== Liên hệ chưa đọc ===================== *@
+        <div class="adm-card">
+            <div class="adm-card-head">
+                <h2>Liên hệ chưa đọc</h2>
+                <a class="adm-card-link" asp-area="Admin" asp-controller="Contact" asp-action="Index">
+                    Hộp thư <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                </a>
+            </div>
+
+            @if (Model.RecentContacts.Count == 0)
+            {
+                <div class="adm-attention-ok">
+                    <i class="bi bi-inbox-fill" aria-hidden="true"></i>
+                    Không có liên hệ nào chờ xử lý.
+                </div>
+            }
+            else
+            {
+                <ul class="list-unstyled mb-0">
+                    @foreach (var contact in Model.RecentContacts)
+                    {
+                        <li class="py-2 border-bottom">
+                            <a class="d-block" asp-area="Admin" asp-controller="Contact"
+                               asp-action="Index" asp-route-id="@contact.Id">
+                                <div class="d-flex align-items-center gap-2">
+                                    <b>@contact.FullName</b>
+                                    <span class="adm-small adm-muted ms-auto">@contact.CreatedAt.ToRelativeTime()</span>
+                                </div>
+                                <div class="adm-small adm-muted text-truncate">
+                                    @(string.IsNullOrWhiteSpace(contact.Subject) ? "" : contact.Subject + " — ")@contact.Content
+                                </div>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>
+
+@functions {
+    /// <summary>Rút gọn số tiền cho mốc trục Y: 12.500.000 → "12,5tr".</summary>
+    static string FormatShort(decimal value) => value switch
+    {
+        >= 1_000_000_000 => (value / 1_000_000_000).ToString("0.#") + "tỷ",
+        >= 1_000_000 => (value / 1_000_000).ToString("0.#") + "tr",
+        >= 1_000 => (value / 1_000).ToString("0.#") + "k",
+        _ => value.ToString("0")
+    };
+}
+
+@section Scripts {
+    <script>
+        // Tooltip biểu đồ: hover cột hiện ngày + số tiền + số đơn
+        (function () {
+            var tip = document.getElementById("chartTip");
+            if (!tip) return;
+            var card = tip.parentElement;
+
+            document.querySelectorAll(".adm-bar-group").forEach(function (g) {
+                g.addEventListener("mousemove", function (e) {
+                    var box = card.getBoundingClientRect();
+                    tip.innerHTML = g.dataset.date + "<br><b>" + g.dataset.amount + "</b> · "
+                        + g.dataset.orders + " đơn";
+                    tip.style.left = (e.clientX - box.left) + "px";
+                    tip.style.top = (e.clientY - box.top - 10) + "px";
+                    tip.classList.add("is-on");
+                });
+                g.addEventListener("mouseleave", function () { tip.classList.remove("is-on"); });
+            });
+        })();
+    </script>
+}

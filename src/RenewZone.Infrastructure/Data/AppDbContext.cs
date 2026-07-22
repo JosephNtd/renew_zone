@@ -1,7 +1,9 @@
+using System.Linq.Expressions;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using RenewZone.Domain.Common;
 using RenewZone.Domain.Entities;
+using RenewZone.Domain.Interfaces;
 using RenewZone.Infrastructure.Identity;
 
 namespace RenewZone.Infrastructure.Data;
@@ -9,11 +11,24 @@ namespace RenewZone.Infrastructure.Data;
 /// <summary>
 /// DbContext duy nhất của hệ thống: gộp Identity (quản trị) + các bảng nghiệp vụ.
 /// Cấu hình chi tiết từng entity đặt trong Data/Configurations (IEntityTypeConfiguration).
+/// <para>
+/// SaveChanges làm 3 việc tập trung để code nghiệp vụ không phải nhớ: gán audit,
+/// biến xóa cứng thành xóa mềm, và xóa cache web khách sau khi ghi thành công.
+/// </para>
 /// </summary>
 public class AppDbContext : IdentityDbContext<ApplicationUser>
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    private readonly ICacheInvalidator? _cacheInvalidator;
+
+    /// <summary>
+    /// <paramref name="cacheInvalidator"/> để nullable vì <c>dotnet ef</c> (migrations) dựng DbContext
+    /// qua constructor này mà không có DI container đầy đủ — thiếu nó thì chỉ mất phần xóa cache,
+    /// không ảnh hưởng schema.
+    /// </summary>
+    public AppDbContext(DbContextOptions<AppDbContext> options, ICacheInvalidator? cacheInvalidator = null)
+        : base(options)
     {
+        _cacheInvalidator = cacheInvalidator;
     }
 
     // ----- Catalog -----
@@ -48,18 +63,61 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         // Tự quét toàn bộ IEntityTypeConfiguration trong assembly này
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        ApplySoftDeleteQueryFilters(builder);
     }
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Gắn global query filter <c>e =&gt; !e.IsDeleted</c> cho MỌI entity cài
+    /// <see cref="ISoftDeletable"/> — dựng biểu thức bằng reflection thay vì gõ tay từng bảng,
+    /// nên thêm entity xóa mềm ở giai đoạn sau không cần sửa file này.
+    /// <para>
+    /// Hệ quả: web khách, danh sách admin và cả số đếm Dashboard đều tự động bỏ qua bản ghi
+    /// trong Thùng rác. Muốn nhìn thấy chúng (màn Thùng rác) phải gọi <c>IgnoreQueryFilters()</c>.
+    /// </para>
+    /// </summary>
+    private static void ApplySoftDeleteQueryFilters(ModelBuilder builder)
+    {
+        foreach (var entityType in builder.Model.GetEntityTypes()
+                     .Where(t => typeof(ISoftDeletable).IsAssignableFrom(t.ClrType)))
+        {
+            var parameter = Expression.Parameter(entityType.ClrType, "e");
+            var body = Expression.Not(
+                Expression.Property(parameter, nameof(ISoftDeletable.IsDeleted)));
+
+            builder.Entity(entityType.ClrType)
+                .HasQueryFilter(Expression.Lambda(body, parameter));
+        }
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         ApplyAuditInfo();
-        return base.SaveChangesAsync(cancellationToken);
+        ApplySoftDelete();
+
+        // Gom loại entity bị đụng TRƯỚC khi save — sau khi save ChangeTracker đã reset state
+        var touchedTypes = CollectTouchedEntityTypes();
+
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        // Chỉ xóa cache khi ghi THÀNH CÔNG: save lỗi thì dữ liệu không đổi, cache cũ vẫn đúng
+        _cacheInvalidator?.OnEntitiesChanged(touchedTypes);
+
+        return result;
     }
 
     public override int SaveChanges()
     {
         ApplyAuditInfo();
-        return base.SaveChanges();
+        ApplySoftDelete();
+
+        var touchedTypes = CollectTouchedEntityTypes();
+
+        var result = base.SaveChanges();
+
+        _cacheInvalidator?.OnEntitiesChanged(touchedTypes);
+
+        return result;
     }
 
     /// <summary>Gán CreatedAt/UpdatedAt tập trung cho mọi AuditableEntity.</summary>
@@ -79,4 +137,28 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             }
         }
     }
+
+    /// <summary>
+    /// Biến <c>Remove()</c> trên entity nội dung thành UPDATE cờ <c>IsDeleted</c>.
+    /// Đặt chốt chặn tại đây (chứ không trông chờ mỗi service tự nhớ) nên KHÔNG ai
+    /// xóa cứng nhầm được — muốn xóa thật phải cố ý dùng <c>ExecuteDeleteAsync()</c>.
+    /// </summary>
+    private void ApplySoftDelete()
+    {
+        var now = DateTime.Now;
+        foreach (var entry in ChangeTracker.Entries<ISoftDeletable>()
+                     .Where(e => e.State == EntityState.Deleted))
+        {
+            entry.State = EntityState.Modified;
+            entry.Entity.IsDeleted = true;
+            entry.Entity.DeletedAt = now;
+        }
+    }
+
+    private List<Type> CollectTouchedEntityTypes() =>
+        ChangeTracker.Entries()
+            .Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+            .Select(e => e.Entity.GetType())
+            .Distinct()
+            .ToList();
 }

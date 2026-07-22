@@ -6,7 +6,7 @@ namespace RenewZone.Domain.Entities;
 /// Sản phẩm. Gắn vào danh mục cấp CON (series) nếu có, không thì gắn danh mục cha.
 /// Giá cuối cùng khi mua = DisplayPrice + tổng PriceAdjustment của các option khách chọn.
 /// </summary>
-public class Product : AuditableEntity
+public class Product : AuditableEntity, ISoftDeletable
 {
     public int CategoryId { get; set; }
     public string Name { get; set; } = null!;
@@ -40,6 +40,12 @@ public class Product : AuditableEntity
 
     public bool IsActive { get; set; } = true;
     public int ViewCount { get; set; }
+
+    /// <inheritdoc />
+    public bool IsDeleted { get; set; }
+
+    /// <inheritdoc />
+    public DateTime? DeletedAt { get; set; }
 
     /// <summary>Giá đang bán thực tế (chưa cộng option) — dùng thống nhất mọi nơi hiển thị.</summary>
     public decimal DisplayPrice => SalePrice ?? OriginalPrice;

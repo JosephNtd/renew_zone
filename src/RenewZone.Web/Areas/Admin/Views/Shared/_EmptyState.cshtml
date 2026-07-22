@@ -1,0 +1,17 @@
+@model EmptyStateModel
+
+<div class="adm-empty">
+    <i class="bi @Model.Icon" aria-hidden="true"></i>
+    <h3>@Model.Title</h3>
+    @if (!string.IsNullOrWhiteSpace(Model.Message))
+    {
+        <p>@Model.Message</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.ActionText) && !string.IsNullOrWhiteSpace(Model.ActionUrl))
+    {
+        <a class="adm-btn adm-btn-primary" href="@Model.ActionUrl">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            <span class="adm-btn-label">@Model.ActionText</span>
+        </a>
+    }
+</div>

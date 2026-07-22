@@ -6,7 +6,7 @@ namespace RenewZone.Domain.Entities;
 /// <summary>
 /// Banner quảng cáo — Position quyết định chỗ render (slider đầu trang, khối giữa trang chủ...).
 /// </summary>
-public class Banner : BaseEntity
+public class Banner : BaseEntity, ISoftDeletable
 {
     public string? Title { get; set; }
     public string ImageUrl { get; set; } = null!;
@@ -17,4 +17,10 @@ public class Banner : BaseEntity
     public BannerPosition Position { get; set; }
     public int DisplayOrder { get; set; }
     public bool IsActive { get; set; } = true;
+
+    /// <inheritdoc />
+    public bool IsDeleted { get; set; }
+
+    /// <inheritdoc />
+    public DateTime? DeletedAt { get; set; }
 }

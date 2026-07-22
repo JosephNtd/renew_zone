@@ -1,0 +1,86 @@
+@using RenewZone.Domain.Interfaces
+@model AdminBadgeCounts
+@{
+    var userName = User.Identity?.Name ?? "Admin";
+    var initial = string.IsNullOrWhiteSpace(userName) ? "A" : userName[..1].ToUpperInvariant();
+
+    // Breadcrumb do từng view khai: ViewData["Crumb"] = tên mục cha, ["CrumbUrl"] = link của nó
+    var crumb = ViewData["Crumb"] as string;
+    var crumbUrl = ViewData["CrumbUrl"] as string;
+    var title = ViewData["Title"] as string;
+}
+
+<header class="adm-topbar">
+    <button type="button" class="adm-icon-btn" id="admSidebarToggle"
+            aria-label="Thu gọn/mở rộng menu">
+        <i class="bi bi-list" aria-hidden="true"></i>
+    </button>
+
+    <nav class="adm-crumbs" aria-label="Đường dẫn">
+        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Trang chủ</a>
+        @if (!string.IsNullOrWhiteSpace(crumb))
+        {
+            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+            @if (!string.IsNullOrWhiteSpace(crumbUrl))
+            {
+                <a href="@crumbUrl">@crumb</a>
+            }
+            else
+            {
+                <span>@crumb</span>
+            }
+        }
+        @if (!string.IsNullOrWhiteSpace(title))
+        {
+            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+            <span class="is-current">@title</span>
+        }
+    </nav>
+
+    <div class="adm-topbar-spacer"></div>
+
+    <form class="adm-topbar-search" method="get"
+          asp-area="Admin" asp-controller="Product" asp-action="Index" role="search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input type="search" name="q" placeholder="Tìm sản phẩm..." aria-label="Tìm sản phẩm" />
+    </form>
+
+    <a class="adm-icon-btn" asp-area="" asp-controller="Home" asp-action="Index"
+       target="_blank" rel="noopener" title="Xem website (mở tab mới)">
+        <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+        <span class="visually-hidden">Xem website</span>
+    </a>
+
+    <a class="adm-icon-btn" asp-area="Admin" asp-controller="Contact" asp-action="Index"
+       title="@(Model.UnreadContacts > 0 ? $"{Model.UnreadContacts} liên hệ chưa đọc" : "Hộp thư liên hệ")">
+        <i class="bi bi-bell" aria-hidden="true"></i>
+        @if (Model.UnreadContacts > 0)
+        {
+            <span class="adm-dot"></span>
+        }
+        <span class="visually-hidden">
+            @(Model.UnreadContacts > 0 ? $"{Model.UnreadContacts} liên hệ chưa đọc" : "Hộp thư liên hệ")
+        </span>
+    </a>
+
+    <div class="dropdown">
+        <button type="button" class="adm-avatar" data-bs-toggle="dropdown"
+                aria-expanded="false" aria-label="Tài khoản @userName">
+            @initial
+        </button>
+        <div class="dropdown-menu dropdown-menu-end adm-dropdown-menu">
+            <div class="px-2 py-2 border-bottom mb-1">
+                <div class="fw-bold">@userName</div>
+                <div class="adm-small adm-muted">Quản trị viên</div>
+            </div>
+            <a class="dropdown-item" asp-area="" asp-controller="Home" asp-action="Index" target="_blank" rel="noopener">
+                <i class="bi bi-globe2 me-2" aria-hidden="true"></i>Xem website
+            </a>
+            <form method="post" asp-area="Admin" asp-controller="Account" asp-action="Logout">
+                <button type="submit" class="dropdown-item text-danger">
+                    <i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Đăng xuất
+                </button>
+            </form>
+        </div>
+    </div>
+</header>
