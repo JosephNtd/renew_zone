@@ -25,4 +25,7 @@ public class Order : AuditableEntity
     public decimal TotalAmount { get; set; }
 
     public ICollection<OrderItem> Items { get; set; } = [];
+
+    /// <summary>Nhật ký các lần đổi trạng thái (append-only) — xem <see cref="OrderStatusHistory"/>.</summary>
+    public ICollection<OrderStatusHistory> StatusHistory { get; set; } = [];
 }

@@ -82,7 +82,10 @@ public class OrderController(IOrderAdminService orders) : BaseAdminController
             return BadRequest(new { ok = false, message = "Dữ liệu trạng thái không hợp lệ." });
         }
 
-        var result = await orders.ChangeStatusAsync(id, input.Status);
+        // Người đổi = admin đang đăng nhập. Snapshot tên vào sổ nhật ký (xem OrderStatusHistory).
+        var actor = User.Identity?.Name ?? "Admin";
+
+        var result = await orders.ChangeStatusAsync(id, input.Status, actor, input.Note);
 
         return Json(new
         {
@@ -100,5 +103,12 @@ public class OrderController(IOrderAdminService orders) : BaseAdminController
         });
     }
 
-    public record ChangeStatusInput(OrderStatus Status);
+    /// <summary>
+    /// <paramref name="Note"/> tùy chọn — admin nhập ghi chú khi đổi trạng thái (giới hạn 500 ký tự
+    /// khớp cột DB, cắt bớt để body rác không làm vỡ SaveChanges).
+    /// </summary>
+    public record ChangeStatusInput(OrderStatus Status, string? Note = null)
+    {
+        public string? Note { get; init; } = Note?.Length > 500 ? Note[..500] : Note;
+    }
 }

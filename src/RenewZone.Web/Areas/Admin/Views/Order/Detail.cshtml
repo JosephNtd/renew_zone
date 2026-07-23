@@ -213,6 +213,58 @@
     </div>
 </div>
 
+@* ===== Nhật ký xử lý đơn (timeline DỌC — đầy đủ mọi lần đổi, khác timeline ngang chỉ báo "đang ở đâu") ===== *@
+<div class="adm-card mt-3" id="historyCard">
+    <div class="adm-card-head">
+        <h2>Lịch sử xử lý</h2>
+        <span class="adm-small adm-muted ms-auto">@Model.History.Count mốc</span>
+    </div>
+
+    @if (Model.History.Count == 0)
+    {
+        @* Đơn tạo TRƯỚC Giai đoạn 7 chưa có sổ nhật ký — không được vỡ, chỉ thiếu timeline *@
+        <p class="adm-muted mb-0">
+            Đơn này được tạo trước khi hệ thống ghi nhật ký trạng thái, nên chưa có lịch sử xử lý.
+            Mọi thay đổi từ giờ sẽ được ghi lại đầy đủ tại đây.
+        </p>
+    }
+    else
+    {
+        <ol class="adm-vtl">
+            @foreach (var h in Model.History)
+            {
+                <li class="adm-vtl-item">
+                    <span class="adm-vtl-dot @h.ToStatus.ToTimelineDotClass()">
+                        <i class="bi @h.ToStatus.ToIcon()" aria-hidden="true"></i>
+                    </span>
+                    <div class="adm-vtl-body">
+                        <div class="adm-vtl-line">
+                            @if (h.FromStatus is null)
+                            {
+                                <b>@h.ChangedBy</b> <text>— đơn được tạo với trạng thái</text>
+                                <b>@h.ToStatus.ToVietnamese()</b>
+                            }
+                            else
+                            {
+                                <b>@h.ChangedBy</b> <text>chuyển từ</text>
+                                <i>@h.FromStatus.Value.ToVietnamese()</i> <text>sang</text>
+                                <b>@h.ToStatus.ToVietnamese()</b>
+                            }
+                        </div>
+                        <div class="adm-vtl-time adm-small adm-muted">
+                            @h.ChangedAt.ToString("HH:mm dd/MM/yyyy") · @h.ChangedAt.ToRelativeTime()
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(h.Note))
+                        {
+                            <div class="adm-vtl-note">“@h.Note”</div>
+                        }
+                    </div>
+                </li>
+            }
+        </ol>
+    }
+</div>
+
 @section Scripts {
     <script>
         // Đổi trạng thái từ trang chi tiết. Đổi xong reload để timeline + nút hành động
@@ -223,12 +275,13 @@
 
             var status = btn.dataset.status;
             var label = btn.querySelector(".adm-btn-label").textContent.trim();
+            var isCancel = status === "Cancelled";
 
-            var run = function () {
+            var run = function (note) {
                 btn.classList.add("is-loading");
                 btn.disabled = true;
 
-                RZAdmin.post("/admin/don-hang/@Model.Id/trang-thai", { status: status })
+                RZAdmin.post("/admin/don-hang/@Model.Id/trang-thai", { status: status, note: note || "" })
                     .then(function (res) {
                         if (!res.ok) {
                             btn.classList.remove("is-loading");
@@ -240,17 +293,19 @@
                     });
             };
 
-            // Hủy đơn là hành động nặng ⇒ hỏi lại; các bước tiến bình thường thì làm luôn
-            if (status === "Cancelled") {
-                RZAdmin.confirm({
-                    title: "Hủy đơn hàng?",
-                    message: "Đơn <b>@Model.Code</b> sẽ chuyển sang trạng thái “Đã hủy” và "
-                        + "không quay lại được nữa.",
-                    okText: "Hủy đơn"
-                }).then(function (ok) { if (ok) run(); });
-            } else {
-                run();
-            }
+            // Mọi lần đổi đều mở modal cho admin nhập ghi chú TÙY CHỌN trước khi xác nhận —
+            // ghi chú đi vào sổ nhật ký. Hủy đơn nhấn mạnh cảnh báo (không quay lại được).
+            RZAdmin.confirm({
+                title: isCancel ? "Hủy đơn hàng?" : "Chuyển sang “" + label + "”?",
+                message: isCancel
+                    ? "Đơn <b>@Model.Code</b> sẽ chuyển sang trạng thái “Đã hủy” và không quay lại được nữa."
+                    : "Đơn <b>@Model.Code</b> sẽ chuyển sang trạng thái “" + label + "”.",
+                okText: isCancel ? "Hủy đơn" : "Xác nhận",
+                okClass: isCancel ? "adm-btn-danger" : "adm-btn-primary",
+                note: { label: "Ghi chú (tùy chọn)", placeholder: "vd: khách hẹn giao chiều thứ 7" }
+            }).then(function (res) {
+                if (res.confirmed) run(res.note);
+            });
         });
     </script>
 }

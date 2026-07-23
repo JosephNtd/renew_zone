@@ -23,7 +23,7 @@ public record OrderListItem(
     OrderStatus Status,
     DateTime CreatedAt);
 
-/// <summary>Chi tiết đơn: thông tin khách + các dòng hàng (snapshot lúc đặt).</summary>
+/// <summary>Chi tiết đơn: thông tin khách + các dòng hàng (snapshot lúc đặt) + nhật ký trạng thái.</summary>
 public record OrderDetail(
     int Id,
     string Code,
@@ -37,11 +37,24 @@ public record OrderDetail(
     decimal TotalAmount,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
-    IReadOnlyList<OrderDetailItem> Items)
+    IReadOnlyList<OrderDetailItem> Items,
+    IReadOnlyList<OrderStatusHistoryEntry> History)
 {
     /// <summary>Các trạng thái được phép chuyển tiếp — view chỉ hiện đúng những lựa chọn này.</summary>
     public IReadOnlyList<OrderStatus> AllowedNext => OrderStatusRules.AllowedNext(Status);
 }
+
+/// <summary>
+/// Một mốc trong nhật ký xử lý đơn (đọc từ <c>OrderStatusHistory</c>). <paramref name="FromStatus"/>
+/// null ở mốc tạo đơn ("Khách đặt hàng"). Sắp theo <paramref name="ChangedAt"/> tăng dần để đọc
+/// như dòng thời gian tự nhiên.
+/// </summary>
+public record OrderStatusHistoryEntry(
+    OrderStatus? FromStatus,
+    OrderStatus ToStatus,
+    string ChangedBy,
+    string? Note,
+    DateTime ChangedAt);
 
 /// <param name="ProductId">
 /// Null khi sản phẩm đã bị xóa. Dòng hàng vẫn sống bằng snapshot tên/giá — đúng ý đồ

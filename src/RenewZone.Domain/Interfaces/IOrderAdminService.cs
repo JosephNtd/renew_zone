@@ -17,6 +17,12 @@ public interface IOrderAdminService
     /// <summary>
     /// Đổi trạng thái. BẮT BUỘC kiểm bảng chuyển hợp lệ (<see cref="OrderStatusRules"/>) —
     /// dropdown ở client chỉ để dễ dùng, không phải biện pháp bảo vệ.
+    /// Ghi một dòng <c>OrderStatusHistory</c> trong CÙNG <c>SaveChanges</c> với việc đổi trạng thái.
     /// </summary>
-    Task<ChangeStatusResult> ChangeStatusAsync(int id, OrderStatus newStatus);
+    /// <param name="actor">
+    /// Tên người thực hiện — controller truyền vào từ <c>User</c>. Infrastructure cố ý KHÔNG biết
+    /// gì về HttpContext (không inject IHttpContextAccessor xuống đây chỉ vì tiện).
+    /// </param>
+    /// <param name="note">Ghi chú tùy chọn của admin.</param>
+    Task<ChangeStatusResult> ChangeStatusAsync(int id, OrderStatus newStatus, string actor, string? note = null);
 }

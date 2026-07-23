@@ -39,6 +39,17 @@ public static class AdminDisplayExtensions
         _ => "bi-dash"
     };
 
+    /// <summary>Modifier tô ĐẶC chấm timeline dọc bằng token --adm-{status} (nhật ký xử lý đơn).</summary>
+    public static string ToTimelineDotClass(this OrderStatus status) => status switch
+    {
+        OrderStatus.New => "is-new",
+        OrderStatus.Confirmed => "is-confirm",
+        OrderStatus.Shipping => "is-shipping",
+        OrderStatus.Completed => "is-done",
+        OrderStatus.Cancelled => "is-cancel",
+        _ => "is-muted"
+    };
+
     public static string ToVietnamese(this PaymentMethod method) => method switch
     {
         PaymentMethod.Cod => "Thanh toán khi nhận hàng",

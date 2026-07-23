@@ -1093,6 +1093,49 @@ button.adm-badge:hover { filter: brightness(.96); }
 .adm-timeline-step.is-done .adm-timeline-label,
 .adm-timeline-step.is-current .adm-timeline-label { color: var(--ink-900); font-weight: 600; }
 
+/* --------- 12b. Timeline DỌC — nhật ký xử lý đơn (Giai đoạn 7) ---------
+   Khác timeline ngang ở trên: ngang cho biết đơn "đang ở đâu", dọc là SỔ NHẬT KÝ
+   đầy đủ mọi lần đổi (ai, lúc nào, từ đâu sang đâu, ghi chú). */
+.adm-vtl { list-style: none; margin: 4px 0 0; padding: 0; }
+.adm-vtl-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 12px;
+  padding-bottom: 18px;
+}
+/* Đường nối dọc chạy qua tâm chấm (30/2 = 15px), dừng ở mục cuối */
+.adm-vtl-item::before {
+  content: ""; position: absolute;
+  left: 14px; top: 26px; bottom: -4px;
+  width: 2px; background: var(--adm-border);
+}
+.adm-vtl-item:last-child { padding-bottom: 0; }
+.adm-vtl-item:last-child::before { display: none; }
+.adm-vtl-dot {
+  position: relative; z-index: 1;
+  width: 30px; height: 30px; border-radius: 50%;
+  display: grid; place-items: center;
+  color: #fff; font-size: .8rem;
+  background: var(--ink-400);
+  box-shadow: 0 0 0 3px var(--adm-surface); /* tách chấm khỏi đường nối */
+}
+.adm-vtl-dot.is-new      { background: var(--adm-new); }
+.adm-vtl-dot.is-confirm  { background: var(--adm-confirm); }
+.adm-vtl-dot.is-shipping { background: var(--adm-shipping); }
+.adm-vtl-dot.is-done     { background: var(--adm-done); }
+.adm-vtl-dot.is-cancel   { background: var(--adm-cancel); }
+.adm-vtl-body { min-width: 0; padding-top: 3px; }
+.adm-vtl-line { font-size: .9rem; color: var(--ink-700); line-height: 1.45; }
+.adm-vtl-line i { font-style: italic; }
+.adm-vtl-time { margin-top: 2px; }
+.adm-vtl-note {
+  margin-top: 6px; padding: 7px 10px;
+  background: var(--adm-surface-2); border-left: 3px solid var(--brand-300);
+  border-radius: 0 var(--adm-r-sm) var(--adm-r-sm) 0;
+  font-style: italic; font-size: .86rem; color: var(--ink-700);
+}
+
 /* ===================== 13. MODAL ===================== */
 .adm-modal {
   position: fixed; inset: 0;

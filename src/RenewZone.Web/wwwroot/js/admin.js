@@ -191,13 +191,20 @@
     }
 
     /* ============ 6. Modal xác nhận ============
-       Trả Promise: gọi RZAdmin.confirm({...}).then(ok => ...) */
+       Trả Promise. Mặc định resolve BOOLEAN: gọi RZAdmin.confirm({...}).then(ok => ...).
+       Nếu truyền options.note ({ label, placeholder }) thì modal hiện thêm ô ghi chú tùy chọn
+       và resolve OBJECT { confirmed: bool, note: string } — dùng khi đổi trạng thái đơn hàng. */
     RZAdmin.confirm = function (options) {
         options = options || {};
+        var wantNote = !!options.note;
 
         return new Promise(function (resolve) {
             var modal = document.getElementById("admConfirmModal");
-            if (!modal) { resolve(window.confirm(options.message || "Xác nhận?")); return; }
+            if (!modal) {
+                var fallback = window.confirm(options.message || "Xác nhận?");
+                resolve(wantNote ? { confirmed: fallback, note: "" } : fallback);
+                return;
+            }
 
             var titleEl = modal.querySelector("[data-role=title]");
             var msgEl = modal.querySelector("[data-role=message]");
@@ -206,6 +213,9 @@
             var typeWrap = modal.querySelector("[data-role=type-wrap]");
             var typeInput = modal.querySelector("[data-role=type-input]");
             var typeHint = modal.querySelector("[data-role=type-hint]");
+            var noteWrap = modal.querySelector("[data-role=note-wrap]");
+            var noteInput = modal.querySelector("[data-role=note-input]");
+            var noteLabel = modal.querySelector("[data-role=note-label]");
 
             titleEl.textContent = options.title || "Xác nhận";
             msgEl.innerHTML = options.message || "";
@@ -219,6 +229,13 @@
             typeInput.value = "";
             if (needType) typeHint.textContent = options.confirmText;
 
+            noteWrap.hidden = !wantNote;
+            noteInput.value = "";
+            if (wantNote) {
+                noteLabel.textContent = options.note.label || "Ghi chú (tùy chọn)";
+                noteInput.placeholder = options.note.placeholder || "";
+            }
+
             var lastFocused = document.activeElement;
             modal.classList.add("is-open");
             (needType ? typeInput : okBtn).focus();
@@ -227,14 +244,15 @@
                 okBtn.disabled = typeInput.value.trim() !== options.confirmText;
             }
 
-            function close(result) {
+            function close(confirmed) {
+                var note = noteInput.value.trim();
                 modal.classList.remove("is-open");
                 okBtn.removeEventListener("click", onOk);
                 cancelBtn.removeEventListener("click", onCancel);
                 typeInput.removeEventListener("input", onType);
                 document.removeEventListener("keydown", onKey);
                 if (lastFocused && lastFocused.focus) lastFocused.focus(); // trả focus về nút vừa bấm
-                resolve(result);
+                resolve(wantNote ? { confirmed: confirmed, note: note } : confirmed);
             }
 
             function onOk() { if (!okBtn.disabled) close(true); }
@@ -244,8 +262,8 @@
                 if (e.key === "Escape") { close(false); return; }
                 if (e.key !== "Tab") return;
 
-                // Bẫy focus trong modal
-                var items = modal.querySelectorAll("button:not([disabled]), input:not([hidden])");
+                // Bẫy focus trong modal (gồm cả ô ghi chú nếu đang hiện)
+                var items = modal.querySelectorAll("button:not([disabled]), input:not([hidden]), textarea:not([hidden])");
                 var visible = Array.prototype.filter.call(items, function (n) { return n.offsetParent !== null; });
                 if (!visible.length) return;
 

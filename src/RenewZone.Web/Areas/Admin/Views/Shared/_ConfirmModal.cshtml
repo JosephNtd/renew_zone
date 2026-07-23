@@ -22,6 +22,13 @@
             <input class="adm-input" id="admConfirmType" data-role="type-input" autocomplete="off" />
         </div>
 
+        @* Ô ghi chú tùy chọn — bật khi RZAdmin.confirm({ note: {...} }), vd khi đổi trạng thái đơn *@
+        <div data-role="note-wrap" hidden class="mb-3 text-start">
+            <label class="adm-label" for="admConfirmNote" data-role="note-label">Ghi chú (tùy chọn)</label>
+            <textarea class="adm-input" id="admConfirmNote" data-role="note-input"
+                      rows="2" maxlength="500" autocomplete="off"></textarea>
+        </div>
+
         <div class="adm-modal-actions">
             <button type="button" class="adm-btn adm-btn-ghost" data-role="cancel">Hủy</button>
             <button type="button" class="adm-btn adm-btn-danger" data-role="ok">

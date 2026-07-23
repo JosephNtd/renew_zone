@@ -52,6 +52,18 @@ public class OrderService(AppDbContext db) : IOrderService
             });
         }
 
+        // Mốc đầu của sổ nhật ký trạng thái: null → New, "Khách đặt hàng". Thêm vào navigation
+        // của order nên nằm CÙNG một SaveChanges với Order + OrderItems ⇒ đơn và sổ không bao giờ lệch.
+        // ChangedAt set tay vì OrderStatusHistory không phải AuditableEntity (không có hook audit).
+        order.StatusHistory.Add(new OrderStatusHistory
+        {
+            FromStatus = null,
+            ToStatus = OrderStatus.New,
+            ChangedBy = "Khách đặt hàng",
+            ChangedAt = DateTime.Now,
+            Note = null
+        });
+
         db.Orders.Add(order);
 
         // CreatedAt do AppDbContext.SaveChanges tự gán (AuditableEntity) — không set tay ở đây.

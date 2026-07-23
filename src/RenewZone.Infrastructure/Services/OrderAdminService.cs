@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using RenewZone.Domain.Entities;
 using RenewZone.Domain.Enums;
 using RenewZone.Domain.Interfaces;
 using RenewZone.Domain.Models;
@@ -95,7 +96,14 @@ public class OrderAdminService(AppDbContext db, ILogger<OrderAdminService> logge
                     i.VariantDescription,
                     i.UnitPrice,
                     i.Quantity
-                }).ToList()
+                }).ToList(),
+                // Nhật ký trạng thái, cũ → mới để view vẽ timeline theo dòng thời gian tự nhiên
+                History = o.StatusHistory
+                    .OrderBy(h => h.ChangedAt)
+                    .Select(h => new
+                    {
+                        h.FromStatus, h.ToStatus, h.ChangedBy, h.Note, h.ChangedAt
+                    }).ToList()
             })
             .FirstOrDefaultAsync();
 
@@ -110,7 +118,9 @@ public class OrderAdminService(AppDbContext db, ILogger<OrderAdminService> logge
             order.TotalAmount, order.CreatedAt, order.UpdatedAt,
             [.. order.Items.Select(i => new OrderDetailItem(
                 i.Id, i.ProductId, i.ProductName, i.ProductSlug, i.ImageUrl,
-                i.VariantDescription, i.UnitPrice, i.Quantity))]);
+                i.VariantDescription, i.UnitPrice, i.Quantity))],
+            [.. order.History.Select(h => new OrderStatusHistoryEntry(
+                h.FromStatus, h.ToStatus, h.ChangedBy, h.Note, h.ChangedAt))]);
     }
 
     public async Task<IReadOnlyDictionary<OrderStatus, int>> GetStatusCountsAsync() =>
@@ -119,7 +129,7 @@ public class OrderAdminService(AppDbContext db, ILogger<OrderAdminService> logge
             .Select(g => new { Status = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.Status, x => x.Count);
 
-    public async Task<ChangeStatusResult> ChangeStatusAsync(int id, OrderStatus newStatus)
+    public async Task<ChangeStatusResult> ChangeStatusAsync(int id, OrderStatus newStatus, string actor, string? note = null)
     {
         var order = await db.Orders.FirstOrDefaultAsync(o => o.Id == id);
 
@@ -148,11 +158,24 @@ public class OrderAdminService(AppDbContext db, ILogger<OrderAdminService> logge
         var previous = order.Status;
         order.Status = newStatus;
 
-        // UpdatedAt do AppDbContext tự gán. ⚠️ Nợ kỹ thuật đã biết: hệ thống thật cần bảng
-        // OrderStatusHistory (ai đổi, lúc nào, từ trạng thái nào) — xem CLAUDE.md mục 4.9.
+        // Ghi sổ nhật ký trong CÙNG SaveChanges với việc đổi Order.Status ⇒ nguyên tử: không thể
+        // có chuyện đổi trạng thái mà quên ghi sổ (nếu tách 2 lần save, lỗi giữa chừng sẽ lệch sổ).
+        // ChangedAt set tay vì OrderStatusHistory không phải AuditableEntity.
+        db.OrderStatusHistories.Add(new OrderStatusHistory
+        {
+            OrderId = order.Id,
+            FromStatus = previous,
+            ToStatus = newStatus,
+            ChangedBy = actor,
+            Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim(),
+            ChangedAt = DateTime.Now
+        });
+
+        // UpdatedAt do AppDbContext tự gán.
         await db.SaveChangesAsync();
 
-        logger.LogInformation("Đơn {Code} đổi trạng thái {From} → {To}", order.Code, previous, newStatus);
+        logger.LogInformation("Đơn {Code} đổi trạng thái {From} → {To} bởi {Actor}",
+            order.Code, previous, newStatus, actor);
 
         return new ChangeStatusResult(true,
             $"Đã chuyển đơn {order.Code} sang “{Label(newStatus)}”.",
