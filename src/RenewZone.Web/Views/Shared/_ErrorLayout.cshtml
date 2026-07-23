@@ -1,0 +1,104 @@
+@*
+    Layout TỐI GIẢN, TỰ CHỦ cho trang 500 (Giai đoạn 7).
+    Nguyên tắc sống còn: KHÔNG @@inject service nào chạm DB, KHÔNG nạp site.css/bootstrap —
+    500 có thể do chính DB/service đang chết, nếu trang lỗi lại gọi thứ đang chết thì nó tự ném
+    → vòng lặp / trang trắng. Mọi CSS tự chứa inline dưới đây; font dùng system fallback (không tải
+    Google Fonts để không phụ thuộc mạng ngoài). Đây là lý do CSS trang 500 KHÔNG để ở site.css.
+*@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>@(ViewData["Title"] ?? "Đã có lỗi xảy ra") - RenewZone</title>
+    <style>
+        :root {
+            --brand-500: #CE5F9A; --brand-600: #B54983; --brand-700: #96386B;
+            --ink-700: #212529; --ink-500: #6C757D; --line: #ECE7EC; --page: #FAF7FA;
+            --grad-brand: linear-gradient(135deg, #CE5F9A 0%, #96386B 100%);
+            --r-md: 12px; --r-lg: 16px; --r-pill: 999px;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            min-height: 100vh; display: flex; flex-direction: column;
+            font-family: "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;
+            color: var(--ink-700); background: var(--page);
+            -webkit-font-smoothing: antialiased;
+        }
+        .err-wrap {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            padding: 40px 20px;
+        }
+        .err-card {
+            width: 100%; max-width: 540px; text-align: center;
+            animation: err-in .5s ease both;
+        }
+        .err-brand {
+            font-weight: 800; font-size: 1.5rem; letter-spacing: -.02em;
+            background: var(--grad-brand); -webkit-background-clip: text;
+            background-clip: text; color: transparent; margin-bottom: 26px;
+            display: inline-block; text-decoration: none;
+        }
+        .err-ill { width: 210px; height: auto; margin: 0 auto 8px; display: block; }
+        .err-title {
+            font-size: 1.7rem; font-weight: 700; margin: 14px 0 10px; color: var(--ink-700);
+        }
+        .err-text { color: var(--ink-500); font-size: 1rem; line-height: 1.65; margin: 0 auto 26px; max-width: 420px; }
+        .err-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .err-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 12px 22px; border-radius: var(--r-pill); font-weight: 600;
+            font-size: .95rem; text-decoration: none; border: 1.5px solid transparent;
+            cursor: pointer; transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .err-btn:hover { transform: translateY(-2px); }
+        .err-btn-primary { background: var(--grad-brand); color: #fff; box-shadow: 0 8px 24px rgba(206,95,154,.35); }
+        .err-btn-ghost { background: #fff; color: var(--brand-700); border-color: var(--line); }
+        .err-code {
+            margin-top: 30px; font-size: .8rem; color: var(--ink-500);
+            display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;
+        }
+        .err-code code {
+            font-family: "Consolas", "SF Mono", ui-monospace, monospace;
+            background: #fff; border: 1px solid var(--line); border-radius: 6px;
+            padding: 3px 8px; color: var(--ink-700); font-size: .8rem;
+            max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .err-copy {
+            border: 1px solid var(--line); background: #fff; border-radius: 6px;
+            padding: 3px 9px; cursor: pointer; font-size: .78rem; color: var(--brand-700);
+        }
+        .err-copy:hover { background: var(--brand-500); color: #fff; border-color: var(--brand-500); }
+        .err-foot { text-align: center; padding: 18px; color: var(--ink-500); font-size: .8rem; }
+        @@keyframes err-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+        @@media (prefers-reduced-motion: reduce) {
+            .err-card { animation: none; }
+            .err-btn:hover { transform: none; }
+        }
+    </style>
+</head>
+<body>
+    <main class="err-wrap">
+        @RenderBody()
+    </main>
+    <footer class="err-foot">© @DateTime.Now.Year RenewZone</footer>
+    <script>
+        // Copy mã lỗi để khách đọc cho tổng đài. Thuần JS, không phụ thuộc gì.
+        document.addEventListener("click", function (e) {
+            var btn = e.target.closest("[data-copy]");
+            if (!btn) return;
+            var text = btn.getAttribute("data-copy");
+            var done = function () {
+                var old = btn.textContent;
+                btn.textContent = "Đã chép!";
+                setTimeout(function () { btn.textContent = old; }, 1500);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done, done);
+            } else { done(); }
+        });
+    </script>
+</body>
+</html>

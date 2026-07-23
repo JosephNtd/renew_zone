@@ -71,6 +71,7 @@ public static class DependencyInjection
         services.AddScoped<IContentBlockService, ContentBlockService>();
         services.AddScoped<INewsQueryService, NewsQueryService>();
         services.AddScoped<IContactService, ContactService>();
+        services.AddScoped<ISitemapService, SitemapService>();
 
         // ----- Services phục vụ Admin (Giai đoạn 6) -----
         services.AddScoped<ISlugService, SlugService>();

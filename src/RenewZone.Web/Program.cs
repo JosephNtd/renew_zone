@@ -62,11 +62,19 @@ using (var scope = app.Services.CreateScope())
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    // Exception CHƯA bắt ⇒ trang 500 tùy chỉnh. CHỈ gắn ở Production: Development giữ
+    // Developer Exception Page (chủ đích — hữu ích khi dev). Test trang 500 phải chạy
+    // ASPNETCORE_ENVIRONMENT=Production (xem docs/PHASE7_PROMPT.md mục 0.6).
+    app.UseExceptionHandler("/loi/500");
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+
+// 404/403... ⇒ re-execute sang ErrorController, GIỮ NGUYÊN status code + URL gốc (KHÔNG redirect —
+// redirect trả 302 làm Google tưởng trang tồn tại). Đặt NGOÀI if để test được ở cả Development.
+app.UseStatusCodePagesWithReExecute("/loi/{0}");
+
 app.UseRouting();
 
 app.UseAuthentication();

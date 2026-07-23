@@ -14,7 +14,32 @@
     {
         crumbs.Add(new Crumb(parent.Name));
     }
+
+    // ---- SEO (Giai đoạn 7) ----
+    var catName = data.ActiveSeries?.Name ?? parent.Name;
+    ViewData["Seo"] = new SeoData
+    {
+        Title = catName,
+        Description = $"Danh mục {catName}: {data.Products.TotalItems} sản phẩm chính hãng, giá tốt, trả góp 0%, bảo hành dài hạn.",
+        // Canonical = slug danh mục KHÔNG kèm ?series/?page (gộp tín hiệu, tránh trùng lặp nội dung)
+        CanonicalPath = $"/{parent.Slug}"
+    };
+
+    var origin = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var breadcrumbLd = new List<(string, string)> { ("Trang chủ", origin + "/"), ("Sản phẩm", origin + "/san-pham") };
+    if (data.ActiveSeries is not null)
+    {
+        breadcrumbLd.Add((parent.Name, $"{origin}/{parent.Slug}"));
+        breadcrumbLd.Add((data.ActiveSeries.Name, $"{origin}/{parent.Slug}?series={data.ActiveSeries.Slug}"));
+    }
+    else
+    {
+        breadcrumbLd.Add((parent.Name, $"{origin}/{parent.Slug}"));
+    }
+    var jsonBreadcrumb = StructuredData.Breadcrumb(breadcrumbLd);
 }
+
+@Html.JsonLd(jsonBreadcrumb)
 
 @section Styles {
     <link rel="stylesheet" href="~/css/product.css" asp-append-version="true" />

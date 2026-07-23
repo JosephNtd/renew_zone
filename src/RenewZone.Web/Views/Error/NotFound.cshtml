@@ -1,0 +1,67 @@
+@using RenewZone.Domain.Interfaces
+@using RenewZone.Web.Models
+@inject ISiteContentService SiteContent
+@model ErrorViewModel
+@{
+    ViewData["Title"] = "Không tìm thấy trang";
+    // Trang lỗi không nên vào index — status 404 đã đủ, thêm noindex cho chắc
+    ViewData["Seo"] = new SeoData { Title = "Không tìm thấy trang", NoIndex = true };
+
+    // Chip danh mục ĐỌC TỪ DB (cache) thay vì hardcode slug: admin đổi tên/slug danh mục thì link
+    // cứu vãn ở trang 404 vẫn đúng — trung thành triết lý "không hardcode" của dự án. 404 dùng full
+    // layout nên DB đang sống, an toàn.
+    var cats = (await SiteContent.GetMenuCategoriesAsync()).Take(5).ToList();
+}
+
+<div class="err404">
+    @* Minh họa "túi mua hàng lạc lối + kính lúp" — on-brand, không phải con số 404 khổng lồ *@
+    <svg class="err404-ill" viewBox="0 0 240 190" fill="none" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Hình minh họa không tìm thấy trang">
+        <defs>
+            <linearGradient id="g404" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#E183AF" />
+                <stop offset="1" stop-color="#96386B" />
+            </linearGradient>
+        </defs>
+        <ellipse cx="120" cy="170" rx="86" ry="12" fill="#CE5F9A" opacity="0.10" />
+        <!-- túi giấy mua hàng -->
+        <path d="M74 66 h72 l8 86 a8 8 0 0 1 -8 9 H74 a8 8 0 0 1 -8 -9 z" fill="#fff" stroke="#F0AACB" stroke-width="2.5" />
+        <path d="M92 66 v-8 a18 18 0 0 1 36 0 v8" stroke="url(#g404)" stroke-width="4" stroke-linecap="round" fill="none" />
+        <!-- chữ 404 tinh tế trên túi -->
+        <text x="110" y="120" text-anchor="middle" font-family="'Be Vietnam Pro',sans-serif" font-weight="800"
+              font-size="34" fill="url(#g404)" opacity="0.9">404</text>
+        <!-- kính lúp -->
+        <circle cx="164" cy="60" r="26" fill="#fff" stroke="url(#g404)" stroke-width="5" />
+        <circle cx="164" cy="60" r="26" fill="#CE5F9A" opacity="0.08" />
+        <line x1="184" y1="80" x2="204" y2="100" stroke="url(#g404)" stroke-width="7" stroke-linecap="round" />
+        <path d="M154 60 h20 M164 50 v20" stroke="#B54983" stroke-width="3" stroke-linecap="round" opacity="0.6" />
+    </svg>
+
+    <h1 class="err404-title reveal">Trang này đã đi lạc mất rồi</h1>
+    <p class="err404-text reveal">
+        Có thể đường dẫn đã thay đổi hoặc sản phẩm không còn nữa.
+        Thử tìm lại thứ bạn cần bên dưới nhé.
+    </p>
+
+    <form class="search-pill err404-search reveal" action="/tim-kiem" method="get" role="search">
+        <input type="search" name="q" placeholder="Tìm iPhone, MacBook, iPad..." aria-label="Tìm kiếm sản phẩm" />
+        <button class="search-btn" type="submit" aria-label="Tìm kiếm"><i class="bi bi-search"></i></button>
+    </form>
+
+    @if (cats.Count > 0)
+    {
+        <div class="err404-chips reveal">
+            <span class="err404-chips-label">Danh mục phổ biến:</span>
+            @foreach (var c in cats)
+            {
+                <a class="rz-chip" href="/@c.Slug">@c.Name</a>
+            }
+        </div>
+    }
+
+    <div class="err404-cta reveal">
+        <a href="/" class="btn-rz btn-brand btn-lg">
+            <i class="bi bi-house-door"></i> Về trang chủ
+        </a>
+    </div>
+</div>

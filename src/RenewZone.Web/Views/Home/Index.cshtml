@@ -1,7 +1,26 @@
 @model HomeIndexViewModel
+@inject RenewZone.Domain.Interfaces.ISiteContentService SiteContent
 @{
-    ViewData["Title"] = null;
+    ViewData["Title"] = null; // trang chủ: title = tên cửa hàng (mặc định của _SeoMeta)
+    ViewData["Seo"] = new SeoData { CanonicalPath = "/" };
+
+    // ---- Organization JSON-LD ----
+    var homeSettings = await SiteContent.GetSettingsAsync();
+    string HS(string key, string fallback = "")
+    {
+        var v = homeSettings.GetValueOrDefault(key);
+        return string.IsNullOrWhiteSpace(v) ? fallback : v;
+    }
+    var origin = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var jsonOrg = StructuredData.Organization(
+        name: HS(SettingKeys.StoreName, "RenewZone"),
+        url: origin + "/",
+        logo: origin + "/images/placeholder-product.svg",
+        phone: HS(SettingKeys.Hotline),
+        sameAs: new[] { HS(SettingKeys.FacebookUrl), HS(SettingKeys.MessengerUrl), HS(SettingKeys.ZaloUrl) });
 }
+
+@Html.JsonLd(jsonOrg)
 
 @section Styles {
     <link rel="stylesheet" href="~/lib/swiper/swiper-bundle.min.css" />

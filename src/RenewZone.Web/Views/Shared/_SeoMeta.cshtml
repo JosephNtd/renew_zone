@@ -1,0 +1,61 @@
+@using RenewZone.Domain.Entities
+@using RenewZone.Domain.Interfaces
+@using RenewZone.Web.Models
+@inject ISiteContentService SiteContent
+@model SeoData
+@*
+    Khối <head> SEO dùng chung: title, description, canonical, robots, Open Graph, Twitter card.
+    Fallback an toàn — trang không gán SeoData thì vẫn ra title = tên cửa hàng (không bao giờ rỗng).
+    URL canonical/og PHẢI absolute (scheme + host) — sai host là Google index nhầm.
+*@
+@{
+    var settings = await SiteContent.GetSettingsAsync();
+    string Setting(string key, string fallback = "")
+    {
+        var v = settings.GetValueOrDefault(key);
+        return string.IsNullOrWhiteSpace(v) ? fallback : v;
+    }
+
+    var storeName = Setting(SettingKeys.StoreName, "RenewZone");
+    var tagline = Setting(SettingKeys.Tagline, "Thu cũ đổi mới - Lên đời đơn giản");
+
+    var title = string.IsNullOrWhiteSpace(Model.Title) ? storeName : $"{Model.Title} - {storeName}";
+    var description = string.IsNullOrWhiteSpace(Model.Description)
+        ? $"{storeName} - {tagline}"
+        : Model.Description;
+
+    var req = Context.Request;
+    var origin = $"{req.Scheme}://{req.Host}";
+    string Absolute(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return "";
+        if (path.StartsWith("http://") || path.StartsWith("https://")) return path;
+        return origin + (path.StartsWith('/') ? path : "/" + path);
+    }
+
+    // Canonical mặc định = đường dẫn hiện tại KHÔNG kèm query (tránh Google coi ?series/?page là
+    // trang trùng lặp). Trang cần canonical riêng (đã set CanonicalPath) thì dùng cái đó.
+    var canonical = Absolute(Model.CanonicalPath ?? req.Path.ToString());
+    var ogImage = Absolute(string.IsNullOrWhiteSpace(Model.OgImage)
+        ? "/images/placeholder-product.svg"
+        : Model.OgImage);
+}
+<title>@title</title>
+<meta name="description" content="@description" />
+<link rel="canonical" href="@canonical" />
+<meta name="robots" content="@(Model.NoIndex ? "noindex, nofollow" : "index, follow")" />
+
+@* ---- Open Graph (Facebook / Zalo) ---- *@
+<meta property="og:site_name" content="@storeName" />
+<meta property="og:locale" content="vi_VN" />
+<meta property="og:type" content="@Model.OgType" />
+<meta property="og:title" content="@title" />
+<meta property="og:description" content="@description" />
+<meta property="og:url" content="@canonical" />
+<meta property="og:image" content="@ogImage" />
+
+@* ---- Twitter card ---- *@
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="@title" />
+<meta name="twitter:description" content="@description" />
+<meta name="twitter:image" content="@ogImage" />

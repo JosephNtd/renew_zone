@@ -3,6 +3,16 @@
     var a = Model.Article;
     ViewData["Title"] = a.Title;
     ViewData["MetaDescription"] = a.Excerpt;
+
+    // ---- SEO (Giai đoạn 7): bài viết = og:type "article", ảnh share = thumbnail ----
+    ViewData["Seo"] = new SeoData
+    {
+        Title = a.Title,
+        Description = a.Excerpt,
+        CanonicalPath = $"/{a.Slug}",
+        OgImage = a.ThumbnailUrl,
+        OgType = "article"
+    };
 }
 
 @section Styles {

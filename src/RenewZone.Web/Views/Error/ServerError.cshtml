@@ -1,0 +1,55 @@
+@model ErrorViewModel
+@{
+    Layout = "_ErrorLayout";
+    ViewData["Title"] = "Đã có lỗi xảy ra";
+    var hotlineTel = "tel:" + Model.Hotline.Replace(".", "").Replace(" ", "");
+}
+
+<div class="err-card">
+    <a href="/" class="err-brand">RenewZone</a>
+
+    @* Minh họa "phích cắm rớt / dây đứt" — báo hiệu đang khắc phục, tông trầm hơn 404 *@
+    <svg class="err-ill" viewBox="0 0 220 170" fill="none" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Hình minh họa hệ thống đang gặp trục trặc">
+        <defs>
+            <linearGradient id="eg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#CE5F9A" />
+                <stop offset="1" stop-color="#96386B" />
+            </linearGradient>
+        </defs>
+        <ellipse cx="110" cy="150" rx="78" ry="11" fill="#CE5F9A" opacity="0.10" />
+        <!-- ổ cắm trên tường -->
+        <rect x="24" y="52" width="52" height="66" rx="12" fill="#fff" stroke="#F0AACB" stroke-width="2.5" />
+        <circle cx="50" cy="80" r="4" fill="#B54983" />
+        <circle cx="50" cy="96" r="4" fill="#B54983" />
+        <!-- phích cắm đã rút ra -->
+        <rect x="132" y="54" width="52" height="62" rx="12" fill="url(#eg)" />
+        <rect x="120" y="70" width="14" height="7" rx="3" fill="#96386B" />
+        <rect x="120" y="92" width="14" height="7" rx="3" fill="#96386B" />
+        <!-- dây điện đứt (2 khúc) -->
+        <path d="M184 85 q22 4 26 22 q3 16 -12 24" stroke="url(#eg)" stroke-width="6" stroke-linecap="round" />
+        <path d="M76 92 q14 6 4 20" stroke="#F0AACB" stroke-width="6" stroke-linecap="round" />
+        <!-- tia lỗi -->
+        <path d="M104 40 l7 -16 M118 44 l14 -10 M96 46 l-13 -9" stroke="#EC2D3F" stroke-width="3" stroke-linecap="round" opacity="0.75" />
+    </svg>
+
+    <h1 class="err-title">Hệ thống đang gặp trục trặc</h1>
+    <p class="err-text">
+        Chúng tôi đã ghi nhận sự cố và đang khắc phục. Bạn vui lòng thử lại sau ít phút,
+        hoặc gọi hotline nếu cần hỗ trợ gấp.
+    </p>
+
+    <div class="err-actions">
+        <a href="/" class="err-btn err-btn-primary">Về trang chủ</a>
+        <a href="@hotlineTel" class="err-btn err-btn-ghost">Gọi @Model.Hotline</a>
+    </div>
+
+    @if (Model.ShowRequestId)
+    {
+        <div class="err-code">
+            <span>Mã sự cố:</span>
+            <code title="@Model.RequestId">@Model.RequestId</code>
+            <button type="button" class="err-copy" data-copy="@Model.RequestId">Chép</button>
+        </div>
+    }
+</div>

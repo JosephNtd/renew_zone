@@ -1,6 +1,7 @@
 @model StaticPage
 @{
     ViewData["Title"] = Model.Title;
+    ViewData["Seo"] = new SeoData { Title = Model.Title, CanonicalPath = $"/{Model.Slug}" };
 }
 
 @section Styles {

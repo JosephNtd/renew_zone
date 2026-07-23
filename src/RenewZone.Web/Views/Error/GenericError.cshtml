@@ -1,0 +1,39 @@
+@using RenewZone.Web.Models
+@model ErrorViewModel
+@{
+    ViewData["Title"] = "Đã có lỗi xảy ra";
+    ViewData["Seo"] = new SeoData { Title = "Đã có lỗi xảy ra", NoIndex = true };
+}
+
+<div class="err404">
+    <svg class="err404-ill" viewBox="0 0 240 190" fill="none" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Hình minh họa có lỗi xảy ra">
+        <defs>
+            <linearGradient id="gGen" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#E183AF" />
+                <stop offset="1" stop-color="#96386B" />
+            </linearGradient>
+        </defs>
+        <ellipse cx="120" cy="170" rx="86" ry="12" fill="#CE5F9A" opacity="0.10" />
+        <circle cx="120" cy="92" r="52" fill="#fff" stroke="#F0AACB" stroke-width="2.5" />
+        <text x="120" y="108" text-anchor="middle" font-family="'Be Vietnam Pro',sans-serif" font-weight="800"
+              font-size="46" fill="url(#gGen)">!</text>
+    </svg>
+
+    <h1 class="err404-title reveal">Có gì đó không ổn</h1>
+    <p class="err404-text reveal">
+        Yêu cầu của bạn không thực hiện được (mã @Model.StatusCode).
+        Bạn thử quay lại trang chủ hoặc tìm lại thứ mình cần nhé.
+    </p>
+
+    <form class="search-pill err404-search reveal" action="/tim-kiem" method="get" role="search">
+        <input type="search" name="q" placeholder="Tìm iPhone, MacBook, iPad..." aria-label="Tìm kiếm sản phẩm" />
+        <button class="search-btn" type="submit" aria-label="Tìm kiếm"><i class="bi bi-search"></i></button>
+    </form>
+
+    <div class="err404-cta reveal">
+        <a href="/" class="btn-rz btn-brand btn-lg">
+            <i class="bi bi-house-door"></i> Về trang chủ
+        </a>
+    </div>
+</div>

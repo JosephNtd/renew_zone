@@ -2,6 +2,8 @@
 @{
     var hasKeyword = !string.IsNullOrWhiteSpace(Model.Keyword);
     ViewData["Title"] = hasKeyword ? $"Tìm kiếm: {Model.Keyword}" : "Tìm kiếm";
+    // Trang kết quả tìm kiếm không nên vào index của Google
+    ViewData["Seo"] = new SeoData { Title = ViewData["Title"] as string, NoIndex = true };
 }
 
 @section Styles {

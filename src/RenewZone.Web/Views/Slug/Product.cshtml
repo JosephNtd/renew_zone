@@ -24,7 +24,35 @@
         crumbs.Add(new Crumb(Model.ParentCategory.Name, $"/{Model.ParentCategory.Slug}"));
     }
     crumbs.Add(new Crumb(p.Name));
+
+    // ---- SEO (Giai đoạn 7) ----
+    ViewData["Seo"] = new SeoData
+    {
+        Title = p.Name,
+        Description = p.ShortDescription,
+        CanonicalPath = $"/{p.Slug}",
+        OgImage = mainImg.Url,
+        OgType = "product"
+    };
+
+    var origin = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var productUrl = $"{origin}/{p.Slug}";
+    var jsonProduct = StructuredData.Product(
+        p.Name, p.ShortDescription, images.Select(i => origin + i.Url),
+        p.SalePrice ?? p.OriginalPrice, p.IsContactPrice, productUrl);
+
+    var breadcrumbLd = new List<(string, string)> { ("Trang chủ", origin + "/"), ("Sản phẩm", origin + "/san-pham") };
+    if (Model.ParentCategory is not null)
+    {
+        breadcrumbLd.Add((Model.ParentCategory.Name, $"{origin}/{Model.ParentCategory.Slug}"));
+    }
+    breadcrumbLd.Add((p.Name, productUrl));
+    var jsonBreadcrumb = StructuredData.Breadcrumb(breadcrumbLd);
 }
+
+@* JSON-LD structured data — rich result (giá + ảnh trong kết quả Google) *@
+@Html.JsonLd(jsonProduct)
+@Html.JsonLd(jsonBreadcrumb)
 
 @section Styles {
     <link rel="stylesheet" href="~/lib/swiper/swiper-bundle.min.css" />

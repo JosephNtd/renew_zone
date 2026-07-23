@@ -4,6 +4,7 @@
     var settings = await SiteContent.GetSettingsAsync();
     var hotline = settings.GetValueOrDefault(SettingKeys.Hotline) ?? "";
     var hotlineTel = "tel:" + hotline.Replace(".", "").Replace(" ", "");
+    ViewData["Seo"] = new SeoData { Title = "Đặt hàng thành công", NoIndex = true };
 }
 
 @section Styles {

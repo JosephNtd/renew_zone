@@ -1,6 +1,7 @@
 @using RenewZone.Domain.Entities
 @using RenewZone.Domain.Enums
 @using RenewZone.Domain.Interfaces
+@using RenewZone.Web.Models
 @inject ISiteContentService SiteContent
 @inject INavigationService Nav
 @*
@@ -50,8 +51,14 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@(ViewData["Title"] is null ? storeName : $"{ViewData["Title"]} - {storeName}")</title>
-    <meta name="description" content="@(ViewData["MetaDescription"] ?? $"{storeName} - {S(SettingKeys.Tagline)}")" />
+    @{
+        // SeoData của trang (nếu có) hợp nhất với ViewData["Title"]/["MetaDescription"] cũ ⇒
+        // các trang chưa nâng lên SeoData vẫn giữ nguyên title/description như trước.
+        var seo = ViewData["Seo"] as SeoData ?? new SeoData();
+        seo.Title ??= ViewData["Title"] as string;
+        seo.Description ??= ViewData["MetaDescription"] as string;
+    }
+    @await Html.PartialAsync("_SeoMeta", seo)
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

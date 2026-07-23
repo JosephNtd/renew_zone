@@ -4,6 +4,7 @@
 @{
     var cart = Model.Cart;
     var settings = await SiteContent.GetSettingsAsync();
+    ViewData["Seo"] = new SeoData { Title = "Đặt hàng", NoIndex = true };
 }
 
 @section Styles {
