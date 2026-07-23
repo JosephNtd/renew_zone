@@ -1,5 +1,11 @@
 using Microsoft.Extensions.Options;
 using RenewZone.Web.Models.Options;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Processing;
 
 namespace RenewZone.Web.Services;
 
@@ -70,19 +76,31 @@ public class MediaService(IWebHostEnvironment env, IOptions<UploadOptions> optio
         var storedName = Guid.NewGuid().ToString("N") + extension;
         var absolutePath = Path.Combine(absoluteFolder, storedName);
 
-        try
+        if (IsResizableImage(extension))
         {
-            await using var stream = File.Create(absolutePath);
-            await file.CopyToAsync(stream);
+            // ẢNH: nạp qua ImageSharp → strip metadata → resize (chỉ khi rộng hơn mức) → nén lại.
+            // Tối ưu ở NGUỒN (một lần lúc upload) thay vì mỗi request. Lớp này còn là chốt bảo mật
+            // BONUS: file giả đuôi ảnh không decode được sẽ bị chặn tại đây, kể cả khi lọt whitelist.
+            var processed = await SaveProcessedImageAsync(file, absolutePath, extension, config.MaxWidth);
+            if (!processed)
+            {
+                return new MediaResult(false, null, "File ảnh không hợp lệ hoặc bị hỏng.", originalName);
+            }
         }
-        catch (IOException ex)
+        else
         {
-            logger.LogError(ex, "Không ghi được file upload vào {Path}", absolutePath);
-            return new MediaResult(false, null, "Không lưu được file, vui lòng thử lại.", originalName);
+            // KHÔNG phải ảnh (vd PDF form liên hệ) — ghi thẳng, không đụng resize
+            try
+            {
+                await using var stream = File.Create(absolutePath);
+                await file.CopyToAsync(stream);
+            }
+            catch (IOException ex)
+            {
+                logger.LogError(ex, "Không ghi được file upload vào {Path}", absolutePath);
+                return new MediaResult(false, null, "Không lưu được file, vui lòng thử lại.", originalName);
+            }
         }
-
-        // TODO (Giai đoạn 7): resize/nén ảnh tại đây (ImageSharp). Mọi chỗ gọi đều đi qua hàm này
-        // nên thêm resize sau này KHÔNG phải sửa controller nào.
 
         return new MediaResult(true, "/" + relativeFolder + "/" + storedName, null, originalName);
     }
@@ -131,6 +149,58 @@ public class MediaService(IWebHostEnvironment env, IOptions<UploadOptions> optio
             logger.LogWarning(ex, "Không xóa được file {Path}", target);
         }
     }
+
+    /// <summary>Đuôi ảnh raster mà ImageSharp resize/nén được. GIF để riêng (ảnh động — resize phức tạp).</summary>
+    private static bool IsResizableImage(string extension) =>
+        extension is ".jpg" or ".jpeg" or ".png" or ".webp";
+
+    /// <summary>
+    /// Nạp ảnh bằng ImageSharp, xóa metadata (EXIF/ICC/XMP — bỏ GPS/thiết bị của khách + giảm dung
+    /// lượng), thu nhỏ về <paramref name="maxWidth"/> nếu rộng hơn (giữ tỉ lệ, KHÔNG phóng to ảnh nhỏ),
+    /// rồi lưu bằng encoder theo đuôi. Trả false (KHÔNG ném) khi file không decode được — bọc cả hàm
+    /// trong try/catch để file "đuôi .jpg nhưng nội dung hỏng" không làm văng 500.
+    /// </summary>
+    private async Task<bool> SaveProcessedImageAsync(IFormFile file, string absolutePath, string extension, int maxWidth)
+    {
+        try
+        {
+            await using var input = file.OpenReadStream();
+            using var image = await Image.LoadAsync(input);
+
+            // Strip metadata: bảo vệ quyền riêng tư khách (GPS) + nhẹ file
+            image.Metadata.ExifProfile = null;
+            image.Metadata.IptcProfile = null;
+            image.Metadata.XmpProfile = null;
+
+            // Chỉ resize khi ảnh RỘNG HƠN mức max — ResizeMode.Max giữ tỉ lệ, không phóng to
+            if (maxWidth > 0 && image.Width > maxWidth)
+            {
+                image.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Mode = ResizeMode.Max,
+                    Size = new Size(maxWidth, 0)
+                }));
+            }
+
+            await using var output = File.Create(absolutePath);
+            await image.SaveAsync(output, EncoderFor(extension));
+            return true;
+        }
+        catch (Exception ex) // UnknownImageFormatException / InvalidImageContentException cho file hỏng
+        {
+            logger.LogWarning(ex, "File ảnh không decode được, từ chối lưu.");
+            // Dọn file rỗng/dở nếu đã tạo (LoadAsync ném trước File.Create thì không có gì để dọn)
+            try { if (File.Exists(absolutePath)) File.Delete(absolutePath); } catch { /* bỏ qua */ }
+            return false;
+        }
+    }
+
+    private static IImageEncoder EncoderFor(string extension) => extension switch
+    {
+        ".png" => new PngEncoder(),
+        ".webp" => new WebpEncoder { Quality = 82 },
+        _ => new JpegEncoder { Quality = 82 } // .jpg / .jpeg
+    };
 
     private static bool IsAllowedContentType(string? contentType, string extension)
     {

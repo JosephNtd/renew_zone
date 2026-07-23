@@ -23,6 +23,12 @@
 @Html.JsonLd(jsonOrg)
 
 @section Styles {
+    @* Preload ảnh hero đầu tiên (LCP) — tải sớm để cải thiện Largest Contentful Paint *@
+    @{ var firstHero = Model.HeroBanners.FirstOrDefault(); }
+    @if (firstHero is not null)
+    {
+        <link rel="preload" as="image" href="@firstHero.ImageUrl" fetchpriority="high" />
+    }
     <link rel="stylesheet" href="~/lib/swiper/swiper-bundle.min.css" />
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
 }
@@ -34,11 +40,15 @@
             <div class="hero-main">
                 <div class="swiper hero-swiper">
                     <div class="swiper-wrapper">
+                        @{ var heroIdx = 0; }
                         @foreach (var b in Model.HeroBanners)
                         {
+                            var isFirstHero = heroIdx++ == 0;
                             <div class="swiper-slide">
                                 <a class="hero-slide" href="@(b.LinkUrl ?? "#")" aria-label="@b.Title">
-                                    <img src="@b.ImageUrl" alt="@b.Title" />
+                                    @* Slide đầu là LCP: eager + fetchpriority cao (KHÔNG lazy). Các slide sau lazy. *@
+                                    <img src="@b.ImageUrl" alt="@b.Title" width="1400" height="450" decoding="async"
+                                         loading="@(isFirstHero ? "eager" : "lazy")" fetchpriority="@(isFirstHero ? "high" : "low")" />
                                 </a>
                             </div>
                         }
@@ -52,7 +62,7 @@
                 @foreach (var s in Model.SideBanners)
                 {
                     <a class="hero-side-card" href="@(s.LinkUrl ?? "#")" aria-label="@s.Title">
-                        <img src="@s.ImageUrl" alt="@s.Title" />
+                        <img src="@s.ImageUrl" alt="@s.Title" width="460" height="220" decoding="async" />
                     </a>
                 }
             </div>
@@ -68,7 +78,7 @@
             {
                 <a class="cat-tile reveal" href="/@c.Slug">
                     <span class="cat-tile-img">
-                        <img src="@(c.ImageUrl ?? "/images/placeholder-product.svg")" alt="@c.Name" loading="lazy" />
+                        <img src="@(c.ImageUrl ?? "/images/placeholder-product.svg")" alt="@c.Name" width="64" height="64" loading="lazy" decoding="async" />
                     </span>
                     <span class="cat-tile-name">@c.Name</span>
                 </a>
@@ -154,7 +164,7 @@
                                 <i class="bi bi-quote tm-quote" aria-hidden="true"></i>
                                 <blockquote class="tm-content">@t.Content</blockquote>
                                 <figcaption class="tm-foot">
-                                    <img class="tm-avatar" src="@(t.AvatarUrl ?? "/images/placeholder-avatar.svg")" alt="@t.CustomerName" loading="lazy" />
+                                    <img class="tm-avatar" src="@(t.AvatarUrl ?? "/images/placeholder-avatar.svg")" alt="@t.CustomerName" width="48" height="48" loading="lazy" decoding="async" />
                                     <span class="tm-meta">
                                         <span class="tm-name">@t.CustomerName</span>
                                         <span class="tm-stars" aria-label="Đánh giá 5 sao">

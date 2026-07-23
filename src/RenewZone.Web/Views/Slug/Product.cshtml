@@ -66,7 +66,9 @@
         @* ---------- GALLERY ---------- *@
         <div class="pdp-gallery reveal">
             <div class="pdp-stage">
-                <img id="pdpMainImg" src="@mainImg.Url" alt="@p.Name" />
+                @* Ảnh chính PDP là LCP: eager + fetchpriority cao, KHÔNG lazy *@
+                <img id="pdpMainImg" src="@mainImg.Url" alt="@p.Name" width="800" height="800"
+                     loading="eager" fetchpriority="high" decoding="async" />
             </div>
             @if (images.Count > 1)
             {
@@ -74,7 +76,7 @@
                     @foreach (var img in images)
                     {
                         <button type="button" class="pdp-thumb @(img == mainImg ? "is-active" : "")" data-src="@img.Url" aria-label="Ảnh @p.Name">
-                            <img src="@img.Url" alt="@p.Name" loading="lazy" />
+                            <img src="@img.Url" alt="@p.Name" width="72" height="72" loading="lazy" decoding="async" />
                         </button>
                     }
                 </div>

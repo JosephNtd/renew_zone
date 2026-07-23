@@ -25,6 +25,14 @@ public class UploadProfileOptions
     public int MaxFileSizeMb { get; set; } = 4;
 
     /// <summary>
+    /// Chiều rộng tối đa (px) khi resize ảnh lúc upload (Giai đoạn 7). Ảnh RỘNG HƠN mức này bị
+    /// thu về đúng mức (giữ tỉ lệ); ảnh nhỏ hơn KHÔNG bị phóng to. Mặc định 1600 (số hợp lý —
+    /// scalar nên binder THAY THẾ chứ không nối, khác mảng ở AllowedExtensions). Chỉ áp cho ảnh;
+    /// PDF bỏ qua.
+    /// </summary>
+    public int MaxWidth { get; set; } = 1600;
+
+    /// <summary>
     /// ⚠️ Mặc định RỖNG là có chủ đích: binder của IConfiguration **nối thêm** vào collection
     /// sẵn có chứ không thay thế, nên gán sẵn giá trị ở đây sẽ làm danh sách bị lặp đôi khi
     /// appsettings.json cũng khai báo (đã dính một lần ở Giai đoạn 5 — CLAUDE.md Lưu ý 6.14).

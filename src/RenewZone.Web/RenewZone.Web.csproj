@@ -6,6 +6,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Resize/nén ảnh khi upload (MediaService, Giai đoạn 7). Pin 3.1.x tương thích net9.0.
+         ⚠️ v3+ dùng Six Labors Split License: MIỄN PHÍ cho nguồn mở/cá nhân/doanh thu nhỏ; nếu
+         THƯƠNG MẠI HÓA thật phải rà lại license hoặc đổi sang Magick.NET/SkiaSharp (Lưu ý 6.22). -->
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.13">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

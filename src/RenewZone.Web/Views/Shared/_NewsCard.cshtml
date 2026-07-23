@@ -5,7 +5,7 @@
 *@
 <a class="news-card" href="/@Model.Slug">
     <span class="news-thumb">
-        <img src="@(Model.ThumbnailUrl ?? "/images/placeholder-news.svg")" alt="@Model.Title" loading="lazy" />
+        <img src="@(Model.ThumbnailUrl ?? "/images/placeholder-news.svg")" alt="@Model.Title" width="480" height="240" loading="lazy" decoding="async" />
         @if (Model.Category is not null)
         {
             <span class="news-tag">@Model.Category.Name</span>
