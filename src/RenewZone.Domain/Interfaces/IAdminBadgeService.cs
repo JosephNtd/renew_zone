@@ -13,4 +13,5 @@ public interface IAdminBadgeService
 
 /// <param name="NewOrders">Đơn ở trạng thái New chờ xác nhận.</param>
 /// <param name="UnreadContacts">Tin nhắn liên hệ chưa đọc.</param>
-public record AdminBadgeCounts(int NewOrders, int UnreadContacts);
+/// <param name="PendingReviews">Đánh giá sản phẩm đang chờ duyệt.</param>
+public record AdminBadgeCounts(int NewOrders, int UnreadContacts, int PendingReviews);

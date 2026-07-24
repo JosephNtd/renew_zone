@@ -51,6 +51,42 @@
         <span class="visually-hidden">Xem website</span>
     </a>
 
+    @* Nút bật/tắt tiếng "ting" khi có đơn mới. Trạng thái do admin-realtime.js quản (localStorage);
+       icon mặc định ở đây khớp giá trị mặc định BẬT, JS đồng bộ lại lúc tải nếu admin từng tắt. *@
+    <button type="button" class="adm-icon-btn" id="admSoundToggle"
+            aria-pressed="true" title="Tắt tiếng thông báo">
+        <i class="bi bi-volume-up" aria-hidden="true"></i>
+        <span class="visually-hidden">Bật/tắt tiếng thông báo đơn mới</span>
+    </button>
+
+    @* Chuông ĐƠN MỚI (tách khỏi chuông liên hệ bên phải). Badge số nhảy realtime qua SignalR. *@
+    <a class="adm-icon-btn" id="admOrderBell"
+       asp-area="Admin" asp-controller="Order" asp-action="Index"
+       data-count="@Model.NewOrders"
+       title="@(Model.NewOrders > 0 ? $"{Model.NewOrders} đơn mới chờ xử lý" : "Đơn hàng")">
+        <i class="bi bi-bag-check" aria-hidden="true"></i>
+        <span class="adm-badge-count" data-role="count" hidden="@(Model.NewOrders == 0 ? "hidden" : null)">
+            @(Model.NewOrders > 99 ? "99+" : Model.NewOrders.ToString())
+        </span>
+        <span class="visually-hidden">
+            @(Model.NewOrders > 0 ? $"{Model.NewOrders} đơn mới chờ xử lý" : "Đơn hàng")
+        </span>
+    </a>
+
+    @* Chuông ĐÁNH GIÁ MỚI (tách khỏi chuông đơn + liên hệ). Badge nhảy realtime qua SignalR. *@
+    <a class="adm-icon-btn" id="admReviewBell"
+       asp-area="Admin" asp-controller="Review" asp-action="Index"
+       data-count="@Model.PendingReviews"
+       title="@(Model.PendingReviews > 0 ? $"{Model.PendingReviews} đánh giá chờ duyệt" : "Đánh giá sản phẩm")">
+        <i class="bi bi-star" aria-hidden="true"></i>
+        <span class="adm-badge-count" data-role="count" hidden="@(Model.PendingReviews == 0 ? "hidden" : null)">
+            @(Model.PendingReviews > 99 ? "99+" : Model.PendingReviews.ToString())
+        </span>
+        <span class="visually-hidden">
+            @(Model.PendingReviews > 0 ? $"{Model.PendingReviews} đánh giá chờ duyệt" : "Đánh giá sản phẩm")
+        </span>
+    </a>
+
     <a class="adm-icon-btn" asp-area="Admin" asp-controller="Contact" asp-action="Index"
        title="@(Model.UnreadContacts > 0 ? $"{Model.UnreadContacts} liên hệ chưa đọc" : "Hộp thư liên hệ")">
         <i class="bi bi-bell" aria-hidden="true"></i>

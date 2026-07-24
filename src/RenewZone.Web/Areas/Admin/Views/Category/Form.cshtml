@@ -104,8 +104,26 @@
 
             <div class="adm-field" style="--col-span: 6;">
                 <label class="adm-label" asp-for="ImageUrl">Ảnh danh mục</label>
-                <input class="adm-input" asp-for="ImageUrl" placeholder="/images/placeholder-product.svg" />
-                <div class="adm-hint">Dùng cho khối 6 ô danh mục ở trang chủ. Để trống sẽ dùng ảnh mặc định.</div>
+                <div class="d-flex gap-2 align-items-start">
+                    <input class="adm-input" asp-for="ImageUrl" id="ImageUrl"
+                           placeholder="/images/placeholder-product.svg" />
+                    <button type="button" class="adm-btn adm-btn-ghost" id="pickImage">
+                        <i class="bi bi-upload" aria-hidden="true"></i>
+                        <span class="adm-btn-label">Tải ảnh lên</span>
+                    </button>
+                    <input type="file" id="imageFile" accept=".jpg,.jpeg,.png,.webp" hidden />
+                </div>
+                <div class="adm-hint">
+                    Dùng cho khối 6 ô danh mục ở trang chủ. Để trống sẽ dùng ảnh mặc định.
+                    Khuyến nghị ảnh vuông ~600×600px (không bắt buộc đúng kích thước).
+                </div>
+
+                <div class="adm-img-preview mt-2" id="preview">
+                    @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+                    {
+                        <img src="@Model.ImageUrl" alt="Xem trước ảnh danh mục" />
+                    }
+                </div>
             </div>
 
             <div class="adm-field" style="--col-span: 12;">
@@ -168,6 +186,54 @@
             select.addEventListener("change", function () {
                 preview.querySelector("i").className = "bi " + (select.value || "bi-folder");
             });
+        })();
+
+        // Upload ảnh danh mục dùng chung endpoint editor của IMediaService
+        (function () {
+            var pick = document.getElementById("pickImage");
+            var file = document.getElementById("imageFile");
+            var url = document.getElementById("ImageUrl");
+            var preview = document.getElementById("preview");
+
+            url.addEventListener("input", render);
+            pick.addEventListener("click", function () { file.click(); });
+
+            file.addEventListener("change", function () {
+                if (!file.files.length) return;
+
+                var form = new FormData();
+                form.append("file", file.files[0]);
+
+                pick.classList.add("is-loading");
+
+                fetch("/admin/media/upload-editor", {
+                    method: "POST",
+                    headers: { "RequestVerificationToken": RZAdmin.token() },
+                    body: form
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        pick.classList.remove("is-loading");
+                        if (!data.location) {
+                            RZAdmin.toast(data.message || "Tải ảnh thất bại.", "error");
+                            return;
+                        }
+                        url.value = data.location;
+                        render();
+                        RZAdmin.toast("Đã tải ảnh lên.", "success");
+                    })
+                    .catch(function () {
+                        pick.classList.remove("is-loading");
+                        RZAdmin.toast("Không kết nối được máy chủ.", "error");
+                    });
+
+                file.value = "";
+            });
+
+            function render() {
+                preview.innerHTML = url.value
+                    ? '<img src="' + url.value + '" alt="Xem trước ảnh danh mục" />' : "";
+            }
         })();
     </script>
 }

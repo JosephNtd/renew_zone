@@ -15,7 +15,7 @@ public interface INewsAdminService
     Task<AdminResult> DeleteAsync(int id);
     Task<AdminResult> ToggleActiveAsync(int id);
 
-    // ----- Chuyên mục -----
+    // Chuyên mục
     Task<IReadOnlyList<NewsCategoryItem>> GetCategoriesAsync();
     Task<NewsCategory?> GetCategoryAsync(int id);
     Task<AdminResult> SaveCategoryAsync(NewsCategoryInput input);
@@ -29,13 +29,13 @@ public interface INewsAdminService
 /// <summary>Trang tĩnh · Banner · Đánh giá — 3 aggregate nhỏ, gom vào một service cho gọn.</summary>
 public interface IPageAdminService
 {
-    // ----- Trang tĩnh -----
+    // Trang tĩnh
     Task<IReadOnlyList<StaticPageItem>> GetPagesAsync();
     Task<StaticPage?> GetPageAsync(int id);
     Task<AdminResult> SavePageAsync(StaticPageInput input);
     Task<AdminResult> DeletePageAsync(int id);
 
-    // ----- Banner -----
+    // Banner
     Task<IReadOnlyList<BannerItem>> GetBannersAsync();
     Task<Banner?> GetBannerAsync(int id);
     Task<AdminResult> SaveBannerAsync(BannerInput input);
@@ -43,7 +43,7 @@ public interface IPageAdminService
     Task<AdminResult> ToggleBannerAsync(int id);
     Task<AdminResult> ReorderBannersAsync(int[] orderedIds);
 
-    // ----- Đánh giá -----
+    // Đánh giá
     Task<IReadOnlyList<TestimonialItem>> GetTestimonialsAsync();
     Task<Testimonial?> GetTestimonialAsync(int id);
     Task<AdminResult> SaveTestimonialAsync(TestimonialInput input);

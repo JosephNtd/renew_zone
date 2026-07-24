@@ -6,8 +6,7 @@ using RenewZone.Domain.Models.Admin;
 
 namespace RenewZone.Web.Areas.Admin.Models;
 
-// ===================== Bài viết =====================
-
+// Bài viết
 public class NewsListViewModel
 {
     public required PagedResult<NewsListItem> Result { get; init; }
@@ -106,8 +105,7 @@ public class NewsFormViewModel
     };
 }
 
-// ===================== Chuyên mục tin =====================
-
+// Chuyên mục tin
 public class NewsCategoryFormViewModel
 {
     public int? Id { get; set; }
@@ -136,8 +134,7 @@ public class NewsCategoryFormViewModel
     };
 }
 
-// ===================== Trang tĩnh =====================
-
+// Trang tĩnh
 public class StaticPageFormViewModel
 {
     public int? Id { get; set; }
@@ -180,8 +177,7 @@ public class StaticPageFormViewModel
     };
 }
 
-// ===================== Banner =====================
-
+// Banner
 public class BannerFormViewModel
 {
     public int? Id { get; set; }
@@ -229,8 +225,7 @@ public class BannerFormViewModel
     };
 }
 
-// ===================== Đánh giá =====================
-
+// Đánh giá
 public class TestimonialFormViewModel
 {
     public int? Id { get; set; }
@@ -275,8 +270,7 @@ public class TestimonialFormViewModel
     };
 }
 
-// ===================== Menu =====================
-
+// Menu
 public class MenuIndexViewModel
 {
     public required MenuGroup Group { get; init; }
@@ -350,8 +344,7 @@ public class MenuFormViewModel
     };
 }
 
-// ===================== Khối nội dung =====================
-
+// Khối nội dung
 public class ContentBlockIndexViewModel
 {
     public required string GroupKey { get; init; }
@@ -432,8 +425,7 @@ public class ContentBlockFormViewModel
     };
 }
 
-// ===================== Hộp thư =====================
-
+// Hộp thư
 public class ContactListViewModel
 {
     public required PagedResult<ContactListItem> Result { get; init; }
@@ -463,8 +455,7 @@ public class ContactListViewModel
     }
 }
 
-// ===================== Cấu hình =====================
-
+// Cấu hình
 /// <param name="Multiline">true ⇒ render textarea thay vì input.</param>
 /// <param name="Placeholder">
 /// CHÍNH LÀ giá trị fallback trong code — admin nhìn placeholder là biết ngay
@@ -536,8 +527,7 @@ public class SettingViewModel
     ];
 }
 
-// ===================== Thùng rác =====================
-
+// Thùng rác
 public class TrashViewModel
 {
     public required TrashType Type { get; init; }

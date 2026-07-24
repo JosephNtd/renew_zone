@@ -20,8 +20,7 @@ public interface IProductAdminService
 
     Task<AdminResult> ToggleActiveAsync(int id);
 
-    // ----- Ảnh (thao tác AJAX riêng, không đi qua form chính) -----
-
+    // Ảnh (thao tác AJAX riêng, không đi qua form chính)
     Task<IReadOnlyList<ProductImageItem>> GetImagesAsync(int productId);
 
     /// <summary>Thêm ảnh đã upload. Sản phẩm chưa có ảnh nào ⇒ ảnh đầu tiên tự thành ảnh chính.</summary>

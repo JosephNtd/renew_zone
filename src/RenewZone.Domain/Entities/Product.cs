@@ -41,6 +41,15 @@ public class Product : AuditableEntity, ISoftDeletable
     public bool IsActive { get; set; } = true;
     public int ViewCount { get; set; }
 
+    /// <summary>
+    /// Điểm trung bình các đánh giá ĐÃ DUYỆT (phi chuẩn hóa để card đọc thẳng, không JOIN/N+1).
+    /// 0 khi chưa có đánh giá nào. Admin duyệt/từ chối/xóa review ⇒ service tính lại cột này.
+    /// </summary>
+    public decimal AvgRating { get; set; }
+
+    /// <summary>Số đánh giá ĐÃ DUYỆT — card chỉ hiện phần sao khi giá trị này &gt; 0.</summary>
+    public int ReviewCount { get; set; }
+
     /// <inheritdoc />
     public bool IsDeleted { get; set; }
 
@@ -55,4 +64,5 @@ public class Product : AuditableEntity, ISoftDeletable
     public Category Category { get; set; } = null!;
     public ICollection<ProductImage> Images { get; set; } = [];
     public ICollection<ProductOptionGroup> OptionGroups { get; set; } = [];
+    public ICollection<ProductReview> Reviews { get; set; } = [];
 }

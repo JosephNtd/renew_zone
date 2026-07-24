@@ -157,7 +157,7 @@ public class NewsAdminService(AppDbContext db, ISlugService slugs) : INewsAdminS
             : $"Đã ẩn bài “{article.Title}”.");
     }
 
-    // ===================== Chuyên mục tin =====================
+    // Chuyên mục tin
 
     public async Task<IReadOnlyList<NewsCategoryItem>> GetCategoriesAsync() =>
         await db.NewsCategories.AsNoTracking()

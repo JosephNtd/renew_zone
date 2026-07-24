@@ -1,0 +1,142 @@
+@using RenewZone.Domain.Enums
+@using RenewZone.Web.Helpers
+@model ReviewListViewModel
+@{
+    ViewData["Title"] = "Đánh giá sản phẩm";
+
+    var tabs = new (ReviewStatus? Status, string Label, int Count)[]
+    {
+        (null, "Tất cả", Model.Counts.Total),
+        (ReviewStatus.Pending, "Chờ duyệt", Model.Counts.Pending),
+        (ReviewStatus.Approved, "Đã duyệt", Model.Counts.Approved),
+        (ReviewStatus.Rejected, "Đã từ chối", Model.Counts.Rejected)
+    };
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Đánh giá sản phẩm</h1>
+        <div class="adm-page-sub">Đánh giá khách gửi từ trang sản phẩm. Duyệt thì mới hiển thị ra web khách và được tính vào điểm sao.</div>
+    </div>
+</div>
+
+@* Tab lọc theo trạng thái, số đếm thật từ DB *@
+<nav class="adm-tabs" aria-label="Lọc theo trạng thái">
+    @foreach (var tab in tabs)
+    {
+        var isActive = Model.Status == tab.Status;
+        <a class="adm-tab @(isActive ? "is-active" : "")"
+           href="@Model.BuildUrl(status: tab.Status, page: 1, keepStatus: false)"
+           aria-current="@(isActive ? "page" : null)">
+            @tab.Label<span class="adm-tab-count">@tab.Count</span>
+        </a>
+    }
+</nav>
+
+<form class="adm-filters" method="get" action="/admin/danh-gia">
+    @if (Model.Status is not null)
+    {
+        <input type="hidden" name="trangThai" value="@Model.Status" />
+    }
+    <div class="adm-search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input class="adm-input" type="search" name="q" value="@Model.Search"
+               placeholder="Tìm theo tên khách, nội dung, tên sản phẩm..." aria-label="Tìm đánh giá" />
+    </div>
+    <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">
+        <i class="bi bi-funnel" aria-hidden="true"></i>
+        <span class="adm-btn-label">Lọc</span>
+    </button>
+    @if (Model.HasAnyFilter)
+    {
+        <a class="adm-btn adm-btn-ghost adm-btn-sm" href="/admin/danh-gia">Xóa lọc</a>
+    }
+</form>
+
+@if (Model.Result.TotalItems == 0)
+{
+    <div class="adm-card">
+        <partial name="_EmptyState" model='new EmptyStateModel {
+            Icon = "bi-star",
+            Title = Model.HasAnyFilter ? "Không có đánh giá nào khớp bộ lọc" : "Chưa có đánh giá nào",
+            Message = Model.HasAnyFilter ? "Thử bỏ bớt điều kiện lọc." : "Đánh giá khách gửi từ trang sản phẩm sẽ xuất hiện ở đây." }' />
+    </div>
+}
+else
+{
+    <div class="adm-review-list" id="reviewList">
+        @foreach (var rv in Model.Result.Items)
+        {
+            <article class="adm-review @(rv.Status == ReviewStatus.Pending ? "is-pending" : "")" data-id="@rv.Id">
+                <div class="adm-review-top">
+                    <div class="adm-review-who">
+                        <b>@rv.AuthorName</b>
+                        <span class="rz-stars adm-review-stars">
+                            @for (var i = 0; i < rv.Rating; i++) { <i class="bi bi-star-fill" aria-hidden="true"></i> }
+                            @for (var i = rv.Rating; i < 5; i++) { <i class="bi bi-star" aria-hidden="true"></i> }
+                        </span>
+                        <span class="adm-small adm-muted">@rv.CreatedAt.ToRelativeTime()</span>
+                    </div>
+                    <span class="adm-badge @rv.Status.ToBadgeClass()" data-role="status-badge">@rv.Status.ToVietnamese()</span>
+                </div>
+
+                <a class="adm-review-product" href="/@rv.ProductSlug" target="_blank" rel="noopener">
+                    <i class="bi bi-box-seam" aria-hidden="true"></i> @rv.ProductName
+                </a>
+
+                <p class="adm-review-content">@rv.Content</p>
+
+                @if (!string.IsNullOrWhiteSpace(rv.AdminReply))
+                {
+                    <div class="adm-review-reply" data-role="reply-view">
+                        <div class="adm-review-reply-head"><i class="bi bi-shop" aria-hidden="true"></i> Phản hồi từ shop</div>
+                        <p>@rv.AdminReply</p>
+                    </div>
+                }
+
+                <div class="adm-review-actions">
+                    @if (rv.Status != ReviewStatus.Approved)
+                    {
+                        <button type="button" class="adm-btn adm-btn-sm adm-btn-primary js-review-status" data-status="Approved">
+                            <i class="bi bi-check-lg" aria-hidden="true"></i><span class="adm-btn-label">Duyệt</span>
+                        </button>
+                    }
+                    @if (rv.Status != ReviewStatus.Rejected)
+                    {
+                        <button type="button" class="adm-btn adm-btn-sm adm-btn-ghost js-review-status" data-status="Rejected">
+                            <i class="bi bi-slash-circle" aria-hidden="true"></i><span class="adm-btn-label">Từ chối</span>
+                        </button>
+                    }
+                    <button type="button" class="adm-btn adm-btn-sm adm-btn-ghost js-review-reply-toggle">
+                        <i class="bi bi-reply" aria-hidden="true"></i>
+                        <span class="adm-btn-label">@(string.IsNullOrWhiteSpace(rv.AdminReply) ? "Trả lời" : "Sửa phản hồi")</span>
+                    </button>
+                    <form method="post" asp-action="Delete" asp-route-id="@rv.Id" class="d-inline ms-auto">
+                        <button type="button" class="adm-btn adm-btn-sm adm-btn-danger"
+                                data-confirm="Đánh giá của <b>@rv.AuthorName</b> sẽ bị xóa (vào Thùng rác)."
+                                data-confirm-title="Xóa đánh giá?">
+                            <i class="bi bi-trash" aria-hidden="true"></i><span class="adm-btn-label">Xóa</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="adm-review-replybox" data-role="reply-box" hidden>
+                    <textarea class="adm-textarea" data-role="reply-input" rows="2" maxlength="2000"
+                              placeholder="Nhập phản hồi công khai của shop...">@rv.AdminReply</textarea>
+                    <div class="adm-review-replybox-actions">
+                        <button type="button" class="adm-btn adm-btn-sm adm-btn-primary js-review-reply-save">Lưu phản hồi</button>
+                        <button type="button" class="adm-btn adm-btn-sm adm-btn-ghost js-review-reply-cancel">Hủy</button>
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+
+    <partial name="_AdminPager" model='new AdminPagerModel {
+        Page = Model.Result.Page, PageSize = Model.Result.PageSize,
+        TotalItems = Model.Result.TotalItems, UrlFor = p => Model.BuildUrl(page: p) }' />
+}
+
+@section Scripts {
+    <script src="~/js/admin-review.js" asp-append-version="true"></script>
+}

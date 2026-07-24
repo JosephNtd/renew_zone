@@ -146,7 +146,7 @@ public class ProductController(
         return Json(new { ok = result.Ok, message = result.Message });
     }
 
-    // ===================== Ảnh =====================
+    // Ảnh
 
     [HttpPost("/admin/san-pham/{id:int}/anh")]
     public async Task<IActionResult> UploadImages(int id, List<IFormFile> files)
@@ -223,8 +223,6 @@ public class ProductController(
             images = await products.GetImagesAsync(id)
         });
     }
-
-    // ===================== Helper =====================
 
     /// <summary>Danh sách chọn danh mục 2 cấp (cha rồi tới các dòng con, thụt lề theo Depth).</summary>
     private async Task<IReadOnlyList<CategoryOption>> BuildCategoryOptionsAsync()

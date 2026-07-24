@@ -16,6 +16,9 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(x => x.OriginalPrice).HasPrecision(18, 0);
         builder.Property(x => x.SalePrice).HasPrecision(18, 0);
 
+        // Điểm trung bình đánh giá: 1 chữ số thập phân là đủ (vd 4.8)
+        builder.Property(x => x.AvgRating).HasPrecision(3, 2);
+
         builder.HasIndex(x => x.Slug).IsUnique();
         // Trang danh mục luôn lọc theo CategoryId + IsActive
         builder.HasIndex(x => new { x.CategoryId, x.IsActive });

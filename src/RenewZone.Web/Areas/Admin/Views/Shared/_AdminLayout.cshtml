@@ -71,6 +71,11 @@
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/admin.js" asp-append-version="true"></script>
+
+    @* Realtime báo đơn hàng mới (Giai đoạn 8): SignalR client + module dùng lại RZAdmin.toast.
+       Nạp sau admin.js để RZAdmin đã sẵn sàng. *@
+    <script src="~/lib/signalr/signalr.min.js"></script>
+    <script src="~/js/admin-realtime.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

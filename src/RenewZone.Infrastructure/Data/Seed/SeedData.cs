@@ -9,7 +9,7 @@ namespace RenewZone.Infrastructure.Data.Seed;
 /// ảnh placeholder, thông tin cửa hàng GIẢ LẬP (xem CLAUDE.md Lưu ý 6.2).
 /// Mỗi hàm seed tự kiểm tra bảng trống trước khi chèn → idempotent.
 /// </summary>
-public static class SeedData
+public static partial class SeedData
 {
     private const string ProductImg = "/images/placeholder-product.svg";
     private const string BannerImg = "/images/placeholder-banner.svg";
@@ -28,13 +28,12 @@ public static class SeedData
         await SeedMenuAsync(db);
         await SeedContentBlocksAsync(db);
         await BackfillPhase5Async(db);
+        await BackfillDetailedContentAsync(db);
     }
 
-    // =============================================================
-    // Cấu hình site (thông tin GIẢ LẬP cho demo)
+    // Cấu hình site (thông tin GIẢ LẬP cho demo).
     // Idempotent ở mức TỪNG KEY: DB đã có settings cũ vẫn nhận được key mới của giai đoạn sau
     // (nếu check "bảng trống" thì thêm key mới sẽ không bao giờ được seed vào DB đang chạy).
-    // =============================================================
     private static async Task SeedSiteSettingsAsync(AppDbContext db)
     {
         var existingKeys = await db.SiteSettings.Select(s => s.Key).ToListAsync();
@@ -60,13 +59,12 @@ public static class SeedData
                 Value = "https://www.google.com/maps?q=Ho+Chi+Minh+City&output=embed"
             },
 
-            // ----- Chuyển khoản GIẢ LẬP (Lưu ý 6.2 — tuyệt đối không dùng tài khoản thật) -----
+            // Chuyển khoản GIẢ LẬP (Lưu ý 6.2 — tuyệt đối không dùng tài khoản thật)
             new SiteSetting { Key = SettingKeys.BankName, Value = "Demo Bank (ngân hàng giả lập)" },
             new SiteSetting { Key = SettingKeys.BankAccountNumber, Value = "0000 0000 0000" },
             new SiteSetting { Key = SettingKeys.BankAccountName, Value = "CTY RENEWZONE DEMO" },
             new SiteSetting { Key = SettingKeys.BankTransferNoteTemplate, Value = "Thanh toan don {0}" },
 
-            // ----- Nội dung rời rạc từng trang -----
             new SiteSetting { Key = SettingKeys.ShippingNote, Value = "Shop báo khi xác nhận" },
             new SiteSetting
             {
@@ -103,14 +101,12 @@ public static class SeedData
         await db.SaveChangesAsync();
     }
 
-    // =============================================================
     // Danh mục 2 cấp + 22 sản phẩm (kèm variants cho sản phẩm chủ lực)
-    // =============================================================
     private static async Task SeedCatalogAsync(AppDbContext db)
     {
         if (await db.Categories.AnyAsync()) return;
 
-        // ----- Danh mục cha -----
+        // Danh mục cha
         var iphone = Cat("iPhone", "iphone", 1, icon: "bi-phone");
         var macbook = Cat("MacBook", "macbook", 2, icon: "bi-laptop");
         var ipad = Cat("iPad", "ipad", 3, icon: "bi-tablet");
@@ -118,7 +114,7 @@ public static class SeedData
         var airpods = Cat("AirPods", "airpods", 5, icon: "bi-earbuds");
         var thanhLy = Cat("Hàng thanh lý", "hang-thanh-ly", 6, icon: "bi-box-seam");
 
-        // ----- Series con (hiển thị thành tab lọc trên trang danh mục) -----
+        // Series con (hiển thị thành tab lọc trên trang danh mục)
         var ipSeries = new Dictionary<int, Category>();
         for (var v = 11; v <= 17; v++)
         {
@@ -134,7 +130,7 @@ public static class SeedData
             mbAir, mbPro, ipadPro, ipadAir, ipadMini);
         db.Categories.AddRange(ipSeries.Values);
 
-        // ----- Sản phẩm ----- (giá VND; sale = null ⇒ bán đúng giá niêm yết)
+        // Sản phẩm (giá VND; sale = null ⇒ bán đúng giá niêm yết)
         var p16pm = P(ipSeries[16], "iPhone 16 Pro Max 256GB", "iphone-16-pro-max-256gb", 34_990_000, 30_490_000, featured: true, bestSeller: true);
         AddOptions(p16pm, "Dung lượng", 1, ("256GB", 0, true), ("512GB", 3_500_000, false), ("1TB", 7_000_000, false));
         AddOptions(p16pm, "Màu sắc", 2, ("Titan Đen", 0, true), ("Titan Trắng", 0, false), ("Titan Tự Nhiên", 0, false), ("Titan Sa Mạc", 0, false));
@@ -239,9 +235,7 @@ public static class SeedData
         p.OptionGroups.Add(group);
     }
 
-    // =============================================================
     // Chuyên mục tin tức (slug dùng ở /tin-tuc?chuyen-muc=)
-    // =============================================================
     private static async Task SeedNewsCategoriesAsync(AppDbContext db)
     {
         if (await db.NewsCategories.AnyAsync()) return;
@@ -263,9 +257,7 @@ public static class SeedData
         await db.SaveChangesAsync();
     }
 
-    // =============================================================
     // Tin công nghệ (nội dung mẫu TỰ VIẾT)
-    // =============================================================
     private static async Task SeedNewsAsync(AppDbContext db)
     {
         if (await db.NewsArticles.AnyAsync()) return;
@@ -309,9 +301,7 @@ public static class SeedData
         await db.SaveChangesAsync();
     }
 
-    // =============================================================
     // Trang tĩnh: giới thiệu + chính sách (nội dung mẫu TỰ VIẾT)
-    // =============================================================
     private static async Task SeedStaticPagesAsync(AppDbContext db)
     {
         if (await db.StaticPages.AnyAsync()) return;
@@ -459,9 +449,7 @@ public static class SeedData
         <p><em>Toàn bộ nội dung trang này là dữ liệu mẫu của dự án học tập, không phải cam kết dịch vụ thật.</em></p>
         """;
 
-    // =============================================================
     // Banner trang chủ
-    // =============================================================
     private static async Task SeedBannersAsync(AppDbContext db)
     {
         if (await db.Banners.AnyAsync()) return;
@@ -476,9 +464,7 @@ public static class SeedData
         await db.SaveChangesAsync();
     }
 
-    // =============================================================
     // Đánh giá khách hàng (tên giả lập)
-    // =============================================================
     private static async Task SeedTestimonialsAsync(AppDbContext db)
     {
         if (await db.Testimonials.AnyAsync()) return;
@@ -507,14 +493,12 @@ public static class SeedData
         await db.SaveChangesAsync();
     }
 
-    // =============================================================
     // Điều hướng: menu chính + 2 cột link ở footer (thay hardcode trong _Layout)
-    // =============================================================
     private static async Task SeedMenuAsync(AppDbContext db)
     {
         if (await db.MenuItems.AnyAsync()) return;
 
-        // ----- Menu chính -----
+        // Menu chính.
         // Mục "Sản phẩm" là ProductMega: dropdown sinh động từ cây Category nên không khai báo link con.
         db.MenuItems.AddRange(
             Menu(MenuGroup.MainMenu, "Trang chủ", "/", 1, icon: "bi-house-door"),
@@ -545,7 +529,7 @@ public static class SeedData
             Menu(MenuGroup.MainMenu, "Tin công nghệ", "/tin-tuc", 6, icon: "bi-newspaper"),
             Menu(MenuGroup.MainMenu, "Liên hệ", "/lien-he", 7, icon: "bi-envelope"));
 
-        // ----- Footer: cột Chính sách -----
+        // Footer: cột Chính sách
         db.MenuItems.AddRange(
             Menu(MenuGroup.FooterPolicy, "Chính sách bảo hành", "/chinh-sach-bao-hanh", 1),
             Menu(MenuGroup.FooterPolicy, "Chính sách thanh toán", "/chinh-sach-thanh-toan", 2),
@@ -554,7 +538,7 @@ public static class SeedData
             Menu(MenuGroup.FooterPolicy, "Chính sách trả góp", "/chinh-sach-tra-gop", 5),
             Menu(MenuGroup.FooterPolicy, "Chính sách bảo mật", "/chinh-sach-bao-mat", 6));
 
-        // ----- Footer: cột Hỗ trợ -----
+        // Footer: cột Hỗ trợ
         db.MenuItems.AddRange(
             Menu(MenuGroup.FooterSupport, "Giới thiệu", "/gioi-thieu", 1),
             Menu(MenuGroup.FooterSupport, "Tin công nghệ", "/tin-tuc", 2),
@@ -575,9 +559,7 @@ public static class SeedData
         DisplayOrder = order
     };
 
-    // =============================================================
     // Khối nội dung dùng lại: cam kết PDP, trấn an giỏ/checkout, kênh liên hệ
-    // =============================================================
     private static async Task SeedContentBlocksAsync(AppDbContext db)
     {
         if (await db.ContentBlocks.AnyAsync()) return;
@@ -593,16 +575,16 @@ public static class SeedData
             .FirstOrDefaultAsync() ?? "https://maps.google.com/";
 
         db.ContentBlocks.AddRange(
-            // --- Cam kết ở trang chi tiết sản phẩm ---
+            // Cam kết ở trang chi tiết sản phẩm
             Block(ContentBlockGroups.ProductCommitments, "bi-patch-check-fill", "Hàng chính hãng, nguyên seal / đúng mô tả", 1),
             Block(ContentBlockGroups.ProductCommitments, "bi-arrow-repeat", "Thu cũ đổi mới, thu giá cao", 2),
             Block(ContentBlockGroups.ProductCommitments, "bi-shield-check", "Bảo hành dài hạn, 1 đổi 1", 3),
             Block(ContentBlockGroups.ProductCommitments, "bi-truck", "Giao nhanh nội thành, kiểm tra khi nhận", 4),
 
-            // --- Dòng trấn an ở giỏ hàng + checkout ---
+            // Dòng trấn an ở giỏ hàng + checkout
             Block(ContentBlockGroups.CartAssurance, "bi-shield-check", "Thu cũ đổi mới · Bảo hành dài hạn", 1),
 
-            // --- Kênh liên hệ nhanh ở /lien-he ---
+            // Kênh liên hệ nhanh ở /lien-he
             Block(ContentBlockGroups.ContactChannels, "bi-telephone-fill", "Hotline", 1,
                 subtitle: hotline, linkUrl: "tel:" + hotline.Replace(".", "").Replace(" ", "")),
             Block(ContentBlockGroups.ContactChannels, "bi-chat-dots-fill", "Zalo", 2,
@@ -626,17 +608,15 @@ public static class SeedData
         DisplayOrder = order
     };
 
-    // =============================================================
     // Bù dữ liệu cho các CỘT/BẢNG mới của Giai đoạn 5 trên DB đã seed từ trước.
     // Các hàm seed ở trên đều "bảng trống mới chạy" nên DB cũ sẽ không nhận được
     // Category.IconClass hay NewsArticle.CategoryId — bù riêng ở đây, vẫn idempotent
     // (chỉ chạm dòng đang thiếu, giữ nguyên đơn hàng test đã có).
-    // =============================================================
     private static async Task BackfillPhase5Async(AppDbContext db)
     {
         var changed = false;
 
-        // ----- Icon danh mục cha -----
+        // Icon danh mục cha
         var icons = new Dictionary<string, string>
         {
             ["iphone"] = "bi-phone",
@@ -660,7 +640,7 @@ public static class SeedData
             }
         }
 
-        // ----- Chuyên mục cho bài viết đã seed trước khi có bảng NewsCategories -----
+        // Chuyên mục cho bài viết đã seed trước khi có bảng NewsCategories
         var articlesWithoutCategory = await db.NewsArticles.Where(a => a.CategoryId == null).ToListAsync();
         if (articlesWithoutCategory.Count > 0)
         {
@@ -689,7 +669,7 @@ public static class SeedData
             }
         }
 
-        // ----- 2 trang sửa chữa (DB cũ đã có StaticPages nên hàm seed trang tĩnh không chạy) -----
+        // 2 trang sửa chữa (DB cũ đã có StaticPages nên hàm seed trang tĩnh không chạy)
         var repairPages = new (string Slug, string Title, string Html)[]
         {
             ("sua-chua", "Dịch vụ sửa chữa", RepairServiceHtml),

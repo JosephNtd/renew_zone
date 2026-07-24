@@ -27,11 +27,11 @@ public class ProductFormViewModel
     [Display(Name = "Danh mục")]
     public int CategoryId { get; set; }
 
-    [Range(0, 999_999_999, ErrorMessage = "Giá gốc không hợp lệ.")]
+    [Range(typeof(decimal), "0", "999999999", ErrorMessage = "Giá gốc không hợp lệ.")]
     [Display(Name = "Giá gốc")]
     public decimal OriginalPrice { get; set; }
 
-    [Range(0, 999_999_999, ErrorMessage = "Giá khuyến mãi không hợp lệ.")]
+    [Range(typeof(decimal), "0", "999999999", ErrorMessage = "Giá khuyến mãi không hợp lệ.")]
     [Display(Name = "Giá khuyến mãi")]
     public decimal? SalePrice { get; set; }
 
@@ -66,7 +66,7 @@ public class ProductFormViewModel
     /// </summary>
     public List<OptionGroupViewModel> OptionGroups { get; set; } = [];
 
-    // ----- Dữ liệu phụ trợ do controller đổ vào (không phải input của người dùng) -----
+    // Dữ liệu phụ trợ do controller đổ vào (không phải input của người dùng)
     public IReadOnlyList<CategoryOption> CategoryOptions { get; set; } = [];
     public IReadOnlyList<ProductImageItem> Images { get; set; } = [];
 
@@ -161,7 +161,7 @@ public class OptionValueViewModel
     public string Value { get; set; } = string.Empty;
 
     /// <summary>Cho phép SỐ ÂM: bản 98% thường rẻ hơn giá gốc.</summary>
-    [Range(-999_999_999, 999_999_999, ErrorMessage = "Chênh lệch giá không hợp lệ.")]
+    [Range(typeof(decimal), "-999999999", "999999999", ErrorMessage = "Chênh lệch giá không hợp lệ.")]
     public decimal PriceAdjustment { get; set; }
 
     public bool IsDefault { get; set; }

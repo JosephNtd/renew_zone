@@ -31,7 +31,7 @@
     </div>
 </div>
 
-@* ===== Tab nhanh theo trạng thái, kèm số đếm thật từ DB ===== *@
+@* Tab nhanh theo trạng thái, kèm số đếm thật từ DB *@
 <nav class="adm-tabs" aria-label="Lọc theo trạng thái">
     @foreach (var tab in tabs)
     {
@@ -48,7 +48,7 @@
     }
 </nav>
 
-@* ===== Thanh lọc — mọi điều kiện nằm trên querystring ===== *@
+@* Thanh lọc — mọi điều kiện nằm trên querystring *@
 <form class="adm-filters" method="get" action="/admin/don-hang">
     @if (Model.Status is not null)
     {

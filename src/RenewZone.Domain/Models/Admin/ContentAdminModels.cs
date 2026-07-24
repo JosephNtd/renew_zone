@@ -2,8 +2,7 @@ using RenewZone.Domain.Enums;
 
 namespace RenewZone.Domain.Models.Admin;
 
-// ===================== Bài viết =====================
-
+// Bài viết
 public class NewsListRequest : AdminListRequest
 {
     public int? CategoryId { get; init; }
@@ -29,8 +28,7 @@ public class NewsInput
     public DateTime PublishedAt { get; init; }
 }
 
-// ===================== Chuyên mục tin =====================
-
+// Chuyên mục tin
 public record NewsCategoryItem(int Id, string Name, string Slug, int DisplayOrder, bool IsActive, int ArticleCount);
 
 public class NewsCategoryInput
@@ -42,8 +40,7 @@ public class NewsCategoryInput
     public bool IsActive { get; init; }
 }
 
-// ===================== Trang tĩnh =====================
-
+// Trang tĩnh
 public record StaticPageItem(int Id, string Title, string Slug, bool IsActive, DateTime? UpdatedAt);
 
 public class StaticPageInput
@@ -55,8 +52,7 @@ public class StaticPageInput
     public bool IsActive { get; init; }
 }
 
-// ===================== Banner =====================
-
+// Banner
 public record BannerItem(int Id, string? Title, string ImageUrl, string? LinkUrl,
     BannerPosition Position, int DisplayOrder, bool IsActive);
 
@@ -71,8 +67,7 @@ public class BannerInput
     public bool IsActive { get; init; }
 }
 
-// ===================== Đánh giá khách hàng =====================
-
+// Đánh giá khách hàng
 public record TestimonialItem(int Id, string CustomerName, string? AvatarUrl, string Content,
     int DisplayOrder, bool IsActive);
 
@@ -86,8 +81,7 @@ public class TestimonialInput
     public bool IsActive { get; init; }
 }
 
-// ===================== Menu =====================
-
+// Menu
 public record MenuTreeNode(
     int Id, MenuGroup Group, MenuItemType Type, string Text, string? Url, string? Icon,
     int DisplayOrder, bool IsActive, bool OpenInNewTab,
@@ -115,8 +109,7 @@ public class MenuItemInput
     public bool OpenInNewTab { get; init; }
 }
 
-// ===================== Khối nội dung =====================
-
+// Khối nội dung
 public class ContentBlockInput
 {
     public int? Id { get; init; }
@@ -130,8 +123,7 @@ public class ContentBlockInput
     public bool IsActive { get; init; }
 }
 
-// ===================== Hộp thư =====================
-
+// Hộp thư
 public class ContactListRequest : AdminListRequest
 {
     public bool? IsRead { get; init; }
@@ -142,8 +134,7 @@ public record ContactListItem(
     int Id, string FullName, string Phone, string? Email, string? Address,
     string? Subject, string Content, string? AttachmentPath, bool IsRead, DateTime CreatedAt);
 
-// ===================== Thùng rác =====================
-
+// Thùng rác
 /// <summary>Các loại nội dung có thể nằm trong Thùng rác — dùng làm tab và tham số route.</summary>
 public enum TrashType
 {

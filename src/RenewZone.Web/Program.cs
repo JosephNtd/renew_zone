@@ -1,12 +1,12 @@
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.FileProviders;
 using RenewZone.Infrastructure;
 using RenewZone.Infrastructure.Data.Seed;
+using RenewZone.Web.Hubs;
 using RenewZone.Web.Models.Options;
 using RenewZone.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// ===================== Services =====================
 
 // DbContext + Identity + services nghiệp vụ (xem RenewZone.Infrastructure/DependencyInjection.cs)
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -50,6 +50,10 @@ builder.Services.AddControllersWithViews()
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
+// Realtime báo đơn hàng mới cho trang admin (Giai đoạn 8). Server đẩy sự kiện qua IHubContext
+// khi khách đặt đơn ⇒ admin không phải F5. Hub được bảo vệ [Authorize(Roles = Admin)].
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 // Áp migrations + seed dữ liệu mẫu khi khởi động (idempotent — đủ dùng cho môi trường học tập)
@@ -57,8 +61,6 @@ using (var scope = app.Services.CreateScope())
 {
     await DbInitializer.InitializeAsync(scope.ServiceProvider);
 }
-
-// ===================== Pipeline =====================
 
 if (!app.Environment.IsDevelopment())
 {
@@ -70,6 +72,18 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// File người dùng/admin tải lên (MediaService ghi vào wwwroot/uploads/...) KHÔNG tồn tại lúc
+// build/publish nên không nằm trong manifest của MapStaticAssets() bên dưới — bản publish thật
+// sẽ 404 nếu thiếu dòng này (Development có fallback quét đĩa nên trước đây không lộ ra).
+// Scope riêng /uploads để không chồng lấn với MapStaticAssets (css/js/lib vẫn hưởng nén+fingerprint).
+var uploadsRoot = Path.Combine(app.Environment.WebRootPath, "uploads");
+Directory.CreateDirectory(uploadsRoot); // wwwroot/uploads bị .gitignore — clone mới chưa có thư mục này
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsRoot),
+    RequestPath = "/uploads"
+});
 
 // 404/403... ⇒ re-execute sang ErrorController, GIỮ NGUYÊN status code + URL gốc (KHÔNG redirect —
 // redirect trả 302 làm Google tưởng trang tồn tại). Đặt NGOÀI if để test được ở cả Development.
@@ -83,7 +97,10 @@ app.UseSession();
 
 app.MapStaticAssets();
 
-// ===================== Routes =====================
+// Hub realtime của admin. Đặt SAU UseAuthentication/UseAuthorization để [Authorize] trên hub
+// có hiệu lực; là endpoint riêng nên không lọt fallback route "{slug}" bên dưới.
+app.MapHub<AdminNotifyHub>("/admin/hub/thong-bao");
+
 // Thứ tự QUAN TRỌNG: route tĩnh đăng ký trước, fallback slug (Giai đoạn 3) đăng ký CUỐI CÙNG.
 
 // Khu vực quản trị: /admin/...

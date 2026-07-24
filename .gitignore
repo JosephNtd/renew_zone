@@ -3,6 +3,8 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+CLAUDE.md
+
 # dotenv files
 .env
 
@@ -486,3 +488,4 @@ $RECYCLE.BIN/
 # File khách upload qua form liên hệ (Giai đoạn 5) — dữ liệu runtime, không commit
 # File người dùng tải lên (form liên hệ + ảnh sản phẩm/tin/banner/editor của admin) — không vào repo
 src/RenewZone.Web/wwwroot/uploads/
+

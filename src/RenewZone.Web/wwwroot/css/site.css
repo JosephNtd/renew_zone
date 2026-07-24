@@ -1,10 +1,9 @@
-/* =====================================================================
+/*
    RenewZone Clone — site.css
-   Base + component layout dùng chung của WEB KHÁCH (theo docs/DESIGN.md).
-   ⚠️ Tokens (:root) đã tách sang tokens.css — file đó phải nạp TRƯỚC file này.
-   ===================================================================== */
+   Base + component layout dùng chung của WEB KHÁCH.
+*/
 
-/* =========================== 2. BASE =========================== */
+/*  2. BASE  */
 html { scroll-behavior: smooth; }
 
 body {
@@ -30,7 +29,7 @@ img { max-width: 100%; }
 
 ::selection { background: var(--brand-200); color: var(--ink-900); }
 
-/* =========================== 3. TOPBAR =========================== */
+/*  3. TOPBAR  */
 .topbar {
   background: var(--grad-brand);
   color: #fff;
@@ -44,7 +43,7 @@ img { max-width: 100%; }
 .topbar .bi { font-size: .8rem; margin-right: 4px; opacity: .85; }
 .topbar-item + .topbar-item { margin-left: 20px; }
 
-/* =========================== 4. HEADER =========================== */
+/*  4. HEADER  */
 .site-header {
   position: sticky;
   top: 0;
@@ -199,7 +198,7 @@ img { max-width: 100%; }
 /* --- Search hàng 2 (mobile) --- */
 .header-search-mobile { padding: 0 12px 10px; }
 
-/* =========================== 5. MAIN NAV (desktop) =========================== */
+/*  5. MAIN NAV (desktop)  */
 .mainnav { background: var(--grad-brand); }
 .mainnav-list {
   display: flex;
@@ -299,7 +298,7 @@ img { max-width: 100%; }
   transform: translateX(0);
 }
 
-/* =========================== 6. OFFCANVAS MOBILE MENU =========================== */
+/*  6. OFFCANVAS MOBILE MENU  */
 .mobile-menu { width: 300px !important; }
 .mobile-menu .offcanvas-header {
   background: var(--grad-brand);
@@ -333,7 +332,7 @@ img { max-width: 100%; }
 }
 .mm-hotline .hotline-number { font-size: 1.15rem; }
 
-/* =========================== 7. FOOTER =========================== */
+/*  7. FOOTER  */
 .site-footer {
   background: var(--ink-900);
   color: #B9B3BC;
@@ -389,7 +388,7 @@ img { max-width: 100%; }
   color: #8A8290;
 }
 
-/* =========================== 8. FLOATING CONTACT + BACK TO TOP =========================== */
+/*  8. FLOATING CONTACT + BACK TO TOP  */
 .float-contact {
   position: fixed;
   right: 16px;
@@ -462,7 +461,7 @@ img { max-width: 100%; }
 #backToTop.show { opacity: 1; visibility: visible; transform: scale(1); }
 #backToTop:hover { background: var(--brand-500); border-color: var(--brand-500); color: #fff; }
 
-/* =========================== 9. BUTTONS (theo DESIGN 3.4) =========================== */
+/*  9. BUTTONS (theo DESIGN 3.4)  */
 .btn-rz {
   display: inline-flex;
   align-items: center;
@@ -508,7 +507,7 @@ img { max-width: 100%; }
 .btn-dark-rz { background: var(--ink-900); color: #fff; }
 .btn-dark-rz:hover { background: var(--ink-700); color: #fff; }
 
-/* =========================== 10. BADGES (theo DESIGN 3.5) =========================== */
+/*  10. BADGES (theo DESIGN 3.5)  */
 .badge-installment {
   display: inline-block;
   background: var(--grad-cta);
@@ -558,7 +557,7 @@ img { max-width: 100%; }
   border-radius: var(--r-pill);
 }
 
-/* =========================== 11. TOAST =========================== */
+/*  11. TOAST  */
 .toast-stack {
   position: fixed;
   top: 90px;
@@ -589,7 +588,7 @@ img { max-width: 100%; }
   animation: toast-progress 3.5s linear forwards;
 }
 
-/* =========================== 12. REVEAL + SKELETON =========================== */
+/*  12. REVEAL + SKELETON  */
 .reveal { opacity: 0; transform: translateY(24px); }
 .reveal.is-inview {
   opacity: 1;
@@ -611,7 +610,7 @@ img { max-width: 100%; }
   animation: shine 1.2s linear infinite;
 }
 
-/* =========================== 13. KEYFRAMES =========================== */
+/*  13. KEYFRAMES  */
 @keyframes badge-pop {
   0% { transform: scale(0); }
   60% { transform: scale(1.25); }
@@ -646,7 +645,7 @@ img { max-width: 100%; }
   to { width: 0; }
 }
 
-/* =========================== 14. PRODUCT CARD (DESIGN 3.6) =========================== */
+/*  14. PRODUCT CARD (DESIGN 3.6)  */
 /* Component dùng chung: trang chủ (Giai đoạn 2) và trang danh mục (Giai đoạn 3). */
 .p-card {
   position: relative;
@@ -719,6 +718,16 @@ img { max-width: 100%; }
   overflow: hidden;
 }
 .p-card-name a { color: var(--ink-900); transition: color var(--t-fast); }
+
+/* Sao hiển thị dùng chung (partial _StarRating) — dùng ở card SP + PDP + admin */
+.rz-stars { color: var(--warning); display: inline-flex; gap: 2px; font-size: 1rem; line-height: 1; }
+.rz-stars .bi-star { color: var(--ink-400); }
+
+/* Điểm sao trên card sản phẩm — chỉ hiện khi ReviewCount > 0 (ẩn hẳn khi chưa có đánh giá) */
+.p-card-rating { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px; }
+.p-card-rating .rz-stars { font-size: .82rem; }
+.p-card-rating-count { color: var(--ink-500); font-size: .8rem; }
+
 .p-card-price {
   display: flex;
   flex-wrap: wrap;
@@ -819,7 +828,7 @@ img { max-width: 100%; }
 .carousel-nav:hover { background: var(--brand-500); color: #fff; border-color: var(--brand-500); }
 .carousel-nav.swiper-button-disabled { opacity: .3; pointer-events: none; }
 
-/* =========================== 15. BREADCRUMB (partial _Breadcrumb) ===========================
+/*  15. BREADCRUMB (partial _Breadcrumb) 
    Partial dùng chung ⇒ CSS phải ở site.css. Trước đây nằm trong product.css nên
    trang giỏ/đặt hàng (chỉ nạp cart.css) rơi về <ol> mặc định "1. 2. 3.". */
 .rz-breadcrumb { padding: 16px 0 4px; }
@@ -840,7 +849,7 @@ img { max-width: 100%; }
 .rz-breadcrumb a:hover { color: var(--brand-600); }
 .rz-breadcrumb li[aria-current] { color: var(--ink-900); font-weight: 600; }
 
-/* =========================== 16. GIỎ HÀNG — PHẦN GLOBAL (Giai đoạn 4) ===========================
+/*  16. GIỎ HÀNG — PHẦN GLOBAL (Giai đoạn 4) 
    Ở đây CHỈ những thứ xuất hiện trên MỌI trang (offcanvas mini-cart, toast thêm giỏ,
    clone bay vào giỏ, stepper dùng chung). Style riêng trang giỏ/checkout nằm ở cart.css. */
 
@@ -1030,7 +1039,7 @@ img { max-width: 100%; }
   will-change: transform, opacity;
 }
 
-/* =========================== 17. FORM CONTROLS (Giai đoạn 5) ===========================
+/*  17. FORM CONTROLS (Giai đoạn 5) 
    Dùng chung form checkout (/dat-hang) và form liên hệ (/lien-he). Trước đây nằm trong
    cart.css nên trang liên hệ không xài lại được — chuyển lên đây theo quy tắc
    "CSS dùng chung ở site.css" (CLAUDE.md mục 4.6). */
@@ -1096,7 +1105,7 @@ select.rz-input { appearance: none; padding-right: 38px; cursor: pointer; backgr
   80% { transform: translateX(4px); }
 }
 
-/* =========================== 18. CHIP LỌC (.rz-chip) ===========================
+/*  18. CHIP LỌC (.rz-chip) 
    Component chung: tab series ở trang danh mục + chip chuyên mục ở /tin-tuc. */
 .rz-chip {
   display: inline-flex;
@@ -1135,7 +1144,7 @@ select.rz-input { appearance: none; padding-right: 38px; cursor: pointer; backgr
 }
 .rz-chips::-webkit-scrollbar { display: none; }
 
-/* =========================== 19. NEWS CARD (partial _NewsCard) ===========================
+/*  19. NEWS CARD (partial _NewsCard) 
    Trước đây định nghĩa TRÙNG ở home.css + product.css — gom về đây (trang chủ, /tin-tuc,
    khối bài liên quan cùng dùng 1 bản). */
 .news-card {
@@ -1183,7 +1192,7 @@ select.rz-input { appearance: none; padding-right: 38px; cursor: pointer; backgr
   .news-card:hover .news-title { color: var(--brand-600); }
 }
 
-/* =========================== 20. SVG CHECK VẼ NÉT ===========================
+/*  20. SVG CHECK VẼ NÉT 
    Dùng ở trang cảm ơn đặt hàng + trạng thái gửi liên hệ thành công. */
 .done-check { width: 92px; height: 92px; margin-bottom: 8px; }
 .done-circle {
@@ -1208,7 +1217,7 @@ select.rz-input { appearance: none; padding-right: 38px; cursor: pointer; backgr
   to { stroke-dashoffset: 0; }
 }
 
-/* =========================== 21. THÔNG TIN CHUYỂN KHOẢN (partial _BankInfo) ===========================
+/*  21. THÔNG TIN CHUYỂN KHOẢN (partial _BankInfo) 
    Dùng ở /dat-hang và /dat-hang-thanh-cong. Số liệu đọc từ SiteSettings (giả lập). */
 .bank-row {
   display: flex;
@@ -1230,7 +1239,7 @@ select.rz-input { appearance: none; padding-right: 38px; cursor: pointer; backgr
 }
 .bank-hint .bi { color: var(--brand-500); }
 
-/* =========================== 22b. TRANG 404 (Giai đoạn 7) ===========================
+/*  22b. TRANG 404 (Giai đoạn 7) 
    Trang 404 dùng full _Layout nên CSS để Ở ĐÂY (site.css) — bài học GĐ4: CSS của trang/partial
    dùng chung phải nằm ở file mọi trang dùng nó đều nạp. (Trang 500 tự chứa trong _ErrorLayout.) */
 .err404 {
@@ -1265,7 +1274,7 @@ select.rz-input { appearance: none; padding-right: 38px; cursor: pointer; backgr
   50% { transform: translateY(-7px); }
 }
 
-/* =========================== 22. RESPONSIVE =========================== */
+/*  22. RESPONSIVE  */
 @media (max-width: 991.98px) {
   :root { --header-h: 64px; --header-h-shrink: 58px; }
   .brand-word { font-size: 1.35rem; }

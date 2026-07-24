@@ -1,11 +1,8 @@
-/* =====================================================================
-   RenewZone Clone — admin.js
-   Runtime dùng chung của trang quản trị. Admin KHÔNG nạp site.js (theme + API khác hẳn)
-   nên toast/ajax ở đây được định nghĩa lại dưới namespace RZAdmin riêng.
+/* admin.js — runtime dùng chung của trang quản trị. Admin KHÔNG nạp site.js (theme + API
+   khác hẳn) nên toast/ajax ở đây được định nghĩa lại dưới namespace RZAdmin riêng.
 
    Nguyên tắc: không hiệu ứng nào được CHẶN thao tác. Người nhập liệu 100 sản phẩm
-   sẽ ghét animation 400ms lặp lại 100 lần ⇒ admin dùng --t-fast/--t-base là chính.
-   ===================================================================== */
+   sẽ ghét animation 400ms lặp lại 100 lần ⇒ admin dùng --t-fast/--t-base là chính. */
 (function (window, document) {
     "use strict";
 
@@ -13,7 +10,7 @@
 
     var RZAdmin = {};
 
-    /* ============ 1. Toast ============ */
+    /* 1. Toast */
     var ICONS = {
         success: "bi-check-circle-fill",
         error: "bi-x-circle-fill",
@@ -59,7 +56,7 @@
         }
     };
 
-    /* ============ 2. AJAX có anti-forgery ============
+    /* 2. AJAX có anti-forgery.
        [AutoValidateAntiforgeryToken] ở BaseAdminController bảo vệ MỌI POST, kể cả AJAX,
        nên request nào thiếu header này cũng nhận 400 rất khó hiểu. */
     RZAdmin.token = function () {
@@ -93,13 +90,13 @@
         });
     };
 
-    /* ============ 3. Thông báo cho trình đọc màn hình ============ */
+    /* 3. Thông báo cho trình đọc màn hình */
     RZAdmin.announce = function (message) {
         var live = document.getElementById("admLive");
         if (live) live.textContent = message;
     };
 
-    /* ============ 4. Sidebar ============ */
+    /* 4. Sidebar */
     var SIDEBAR_KEY = "rz_adm_sidebar";
 
     function initSidebar() {
@@ -164,7 +161,7 @@
         });
     }
 
-    /* ============ 5. Count-up cho stat card ============ */
+    /* 5. Count-up cho stat card */
     function initCountUp() {
         document.querySelectorAll("[data-countup]").forEach(function (el) {
             var target = parseFloat(el.getAttribute("data-countup")) || 0;
@@ -190,7 +187,7 @@
         function format(n) { return n.toLocaleString("vi-VN"); }
     }
 
-    /* ============ 6. Modal xác nhận ============
+    /* 6. Modal xác nhận.
        Trả Promise. Mặc định resolve BOOLEAN: gọi RZAdmin.confirm({...}).then(ok => ...).
        Nếu truyền options.note ({ label, placeholder }) thì modal hiện thêm ô ghi chú tùy chọn
        và resolve OBJECT { confirmed: bool, note: string } — dùng khi đổi trạng thái đơn hàng. */
@@ -321,7 +318,7 @@
     }
     RZAdmin.postForm = postForm;
 
-    /* ============ 7. Bảng: hiệu ứng vào + chế độ gọn ============ */
+    /* 7. Bảng: hiệu ứng vào + chế độ gọn */
     var COMPACT_KEY = "rz_adm_compact";
 
     function initTable() {
@@ -355,7 +352,7 @@
         });
     }
 
-    /* ============ 8. Ô tìm kiếm có debounce ============ */
+    /* 8. Ô tìm kiếm có debounce */
     function initSearchDebounce() {
         document.querySelectorAll("[data-autosubmit]").forEach(function (input) {
             var timer = null;
@@ -369,7 +366,7 @@
         });
     }
 
-    /* ============ 9. Nút submit: chống bấm 2 lần ============ */
+    /* 9. Nút submit: chống bấm 2 lần */
     function initFormSubmit() {
         document.querySelectorAll("form[data-adm-form]").forEach(function (form) {
             form.addEventListener("submit", function () {
@@ -390,7 +387,7 @@
         });
     }
 
-    /* ============ 10. Cảnh báo rời trang khi chưa lưu ============ */
+    /* 10. Cảnh báo rời trang khi chưa lưu */
     function initDirtyGuard() {
         document.querySelectorAll("form[data-dirty-guard]").forEach(function (form) {
             var dirty = false;
@@ -406,7 +403,7 @@
         });
     }
 
-    /* ============ 11. Ô nhập tiền ============ */
+    /* 11. Ô nhập tiền */
     function initMoneyInputs() {
         document.querySelectorAll("[data-money]").forEach(function (input) {
             var render = function () {
@@ -427,7 +424,7 @@
         });
     }
 
-    /* ============ 12. Ô slug: tự sinh + kiểm realtime ============ */
+    /* 12. Ô slug: tự sinh + kiểm realtime */
     function initSlugInputs() {
         document.querySelectorAll("[data-slug-input]").forEach(function (wrap) {
             var input = wrap.querySelector("input");
@@ -518,7 +515,7 @@
     }
     RZAdmin.slugify = slugify;
 
-    /* ============ 13. Tab trong form ============ */
+    /* 13. Tab trong form */
     function initFormTabs() {
         document.querySelectorAll("[data-tabs]").forEach(function (group) {
             var tabs = group.querySelectorAll(".adm-form-tab");
@@ -548,7 +545,7 @@
         });
     }
 
-    /* ============ Khởi động ============ */
+    /* Khởi động */
     function init() {
         initSidebar();
         initCountUp();

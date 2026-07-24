@@ -31,30 +31,31 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         _cacheInvalidator = cacheInvalidator;
     }
 
-    // ----- Catalog -----
+    // Catalog
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<ProductOptionGroup> ProductOptionGroups => Set<ProductOptionGroup>();
     public DbSet<ProductOptionValue> ProductOptionValues => Set<ProductOptionValue>();
+    public DbSet<ProductReview> ProductReviews => Set<ProductReview>();
 
-    // ----- Bán hàng -----
+    // Bán hàng
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
 
-    // ----- Nội dung -----
+    // Nội dung
     public DbSet<NewsArticle> NewsArticles => Set<NewsArticle>();
     public DbSet<NewsCategory> NewsCategories => Set<NewsCategory>();
     public DbSet<StaticPage> StaticPages => Set<StaticPage>();
     public DbSet<Banner> Banners => Set<Banner>();
     public DbSet<Testimonial> Testimonials => Set<Testimonial>();
 
-    // ----- Điều hướng & khối nội dung (Giai đoạn 5 — khử hardcode) -----
+    // Điều hướng & khối nội dung (Giai đoạn 5 — khử hardcode)
     public DbSet<MenuItem> MenuItems => Set<MenuItem>();
     public DbSet<ContentBlock> ContentBlocks => Set<ContentBlock>();
 
-    // ----- Tương tác & cấu hình -----
+    // Tương tác & cấu hình
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<SiteSetting> SiteSettings => Set<SiteSetting>();
 

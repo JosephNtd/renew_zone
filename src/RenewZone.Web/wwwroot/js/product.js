@@ -7,7 +7,7 @@
     var vnd = new Intl.NumberFormat("vi-VN");
     function formatVnd(n) { return vnd.format(Math.round(n)) + "đ"; }
 
-    /* ---------- 1. Gallery: click thumbnail đổi ảnh chính ---------- */
+    /* 1. Gallery: click thumbnail đổi ảnh chính */
     var mainImg = document.getElementById("pdpMainImg");
     document.querySelectorAll(".pdp-thumb").forEach(function (thumb) {
         thumb.addEventListener("click", function () {
@@ -23,7 +23,7 @@
         });
     });
 
-    /* ---------- 2. Variant → tính lại giá ---------- */
+    /* 2. Variant → tính lại giá */
     var priceBox = document.querySelector(".pdp-price-box[data-price-base]");
     var priceEl = document.getElementById("pdpPrice");
 
@@ -50,7 +50,7 @@
     });
     recalcPrice();
 
-    /* ---------- 3. Tabs nội dung ---------- */
+    /* 3. Tabs nội dung */
     document.querySelectorAll(".pdp-tab").forEach(function (tab) {
         tab.addEventListener("click", function () {
             var key = tab.getAttribute("data-tab");
@@ -62,7 +62,7 @@
         });
     });
 
-    /* ---------- 4. Carousel sản phẩm liên quan ---------- */
+    /* 4. Carousel sản phẩm liên quan */
     if (typeof Swiper !== "undefined" && document.querySelector(".related-swiper")) {
         new Swiper(".related-swiper", {
             slidesPerView: 2,
@@ -75,7 +75,7 @@
         });
     }
 
-    /* ---------- 5. Stepper số lượng ---------- */
+    /* 5. Stepper số lượng */
     var qtyBox = document.getElementById("pdpQty");
 
     function currentQty() {
@@ -105,7 +105,7 @@
         });
     }
 
-    /* ---------- 6. Thêm giỏ / Mua ngay ---------- */
+    /* 6. Thêm giỏ / Mua ngay */
     /** Id các OptionValue đang chọn — server dùng chính các id này để tính lại giá. */
     function selectedOptionValueIds() {
         var ids = [];
@@ -141,4 +141,81 @@
             });
         });
     });
+
+    /* 7. Đánh giá & bình luận: chọn sao + gửi AJAX (kết quả báo qua toast, PDP không đổi ngay
+          vì đánh giá phải chờ admin duyệt). */
+    var reviewSection = document.getElementById("danh-gia");
+    var reviewForm = document.getElementById("reviewForm");
+    if (reviewSection && reviewForm) {
+        var starWrap = document.getElementById("reviewStars");
+        var starBtns = starWrap ? Array.prototype.slice.call(starWrap.querySelectorAll(".rv-star-btn")) : [];
+        var chosen = 0;
+
+        function paintStars(upto) {
+            starBtns.forEach(function (b, i) {
+                var icon = b.querySelector("i");
+                var on = i < upto;
+                if (icon) icon.className = on ? "bi bi-star-fill" : "bi bi-star";
+                b.setAttribute("aria-checked", (i + 1) === chosen ? "true" : "false");
+            });
+        }
+
+        starBtns.forEach(function (btn, idx) {
+            btn.addEventListener("click", function () { chosen = idx + 1; paintStars(chosen); });
+            btn.addEventListener("mouseenter", function () { paintStars(idx + 1); });
+        });
+        if (starWrap) {
+            starWrap.addEventListener("mouseleave", function () { paintStars(chosen); });
+        }
+
+        function reviewToast(message, type) {
+            if (window.RZ && RZ.toast) RZ.toast(message, type || "success");
+        }
+
+        reviewForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            var nameEl = document.getElementById("rvName");
+            var contentEl = document.getElementById("rvContent");
+            var hpEl = reviewForm.querySelector('input[name="rvWebsite"]');
+            var submitBtn = document.getElementById("reviewSubmit");
+
+            // Kiểm nhanh phía client cho phản hồi tức thì; server luôn kiểm lại
+            if (chosen < 1) { reviewToast("Vui lòng chọn số sao.", "error"); return; }
+            if (!nameEl || nameEl.value.trim().length < 2) { reviewToast("Vui lòng nhập tên hiển thị.", "error"); return; }
+            if (!contentEl || contentEl.value.trim().length < 10) { reviewToast("Nội dung cần ít nhất 10 ký tự.", "error"); return; }
+
+            var tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (submitBtn) submitBtn.disabled = true;
+
+            fetch("/danh-gia/gui", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "RequestVerificationToken": tokenEl ? tokenEl.value : ""
+                },
+                body: JSON.stringify({
+                    productId: parseInt(reviewSection.getAttribute("data-product-id"), 10),
+                    productName: document.querySelector(".pdp-name") ? document.querySelector(".pdp-name").textContent.trim() : "",
+                    authorName: nameEl.value,
+                    rating: chosen,
+                    content: contentEl.value,
+                    website: hpEl ? hpEl.value : ""
+                })
+            }).then(function (res) {
+                return res.ok ? res.json() : { ok: false, message: "Có lỗi xảy ra, vui lòng thử lại." };
+            }).then(function (data) {
+                reviewToast(data.message, data.ok ? "success" : "error");
+                if (data.ok) {
+                    reviewForm.reset();
+                    chosen = 0;
+                    paintStars(0);
+                }
+            }).catch(function () {
+                reviewToast("Không kết nối được máy chủ. Vui lòng thử lại.", "error");
+            }).finally(function () {
+                if (submitBtn) submitBtn.disabled = false;
+            });
+        });
+    }
 })();

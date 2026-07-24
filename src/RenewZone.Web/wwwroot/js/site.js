@@ -1,11 +1,8 @@
-/* =====================================================================
-   RenewZone Clone — site.js
-   Header shrink · Back-to-top · Reveal-on-scroll · Toast · Cart badge
-   ===================================================================== */
+/* site.js — Header shrink · Back-to-top · Reveal-on-scroll · Toast · Cart badge */
 (function () {
     "use strict";
 
-    /* ---------- 1. Header shrink khi cuộn ---------- */
+    /* 1. Header shrink khi cuộn */
     const header = document.getElementById("siteHeader");
     const backToTop = document.getElementById("backToTop");
 
@@ -17,12 +14,12 @@
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
 
-    /* ---------- 2. Back to top ---------- */
+    /* 2. Back to top */
     if (backToTop) {
         backToTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
     }
 
-    /* ---------- 3. Reveal-on-scroll (thay animate.css của site gốc) ----------
+    /* 3. Reveal-on-scroll (thay animate.css của site gốc).
        Dùng: thêm class "reveal" vào phần tử. Các phần tử reveal cùng cha
        được stagger 60ms theo thứ tự xuất hiện. */
     const revealEls = document.querySelectorAll(".reveal");
@@ -44,7 +41,7 @@
         revealEls.forEach(el => el.classList.add("is-inview"));
     }
 
-    /* ---------- 4. API dùng chung (toast + cart badge) ---------- */
+    /* 4. API dùng chung (toast + cart badge) */
     window.RZ = {
         /** Hiện toast góc phải. type: "success" | "error" */
         toast(message, type = "success") {

@@ -1,12 +1,9 @@
-/* =====================================================================
+/* 
    RenewZone Clone — tokens.css
    Design tokens DÙNG CHUNG cho cả web khách (site.css) và trang quản trị (admin.css).
-   Tách riêng ở Giai đoạn 6: admin KHÔNG nạp site.css (theme khác hẳn) nhưng vẫn phải
-   dùng chung một bảng màu/thang cỡ — sửa màu brand ở đây là đổi cả hai nơi.
-   ⚠️ File này PHẢI được nạp TRƯỚC site.css / admin.css trong mọi layout.
-   ===================================================================== */
+    */
 
-/* =========================== 1. TOKENS =========================== */
+/*  1. TOKENS  */
 :root {
   /* Brand — hồng RenewZone tinh chỉnh từ #d78dba gốc */
   --brand-50:  #FDF2F8;

@@ -673,6 +673,10 @@ namespace RenewZone.Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal>("AvgRating")
+                        .HasPrecision(3, 2)
+                        .HasColumnType("decimal(3,2)");
+
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
@@ -711,6 +715,9 @@ namespace RenewZone.Infrastructure.Data.Migrations
                     b.Property<decimal>("OriginalPrice")
                         .HasPrecision(18)
                         .HasColumnType("decimal(18,0)");
+
+                    b.Property<int>("ReviewCount")
+                        .HasColumnType("int");
 
                     b.Property<decimal?>("SalePrice")
                         .HasPrecision(18)
@@ -830,6 +837,59 @@ namespace RenewZone.Infrastructure.Data.Migrations
                     b.HasIndex("GroupId");
 
                     b.ToTable("ProductOptionValues");
+                });
+
+            modelBuilder.Entity("RenewZone.Domain.Entities.ProductReview", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminReply")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("AuthorName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RepliedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId", "Status");
+
+                    b.ToTable("ProductReviews");
                 });
 
             modelBuilder.Entity("RenewZone.Domain.Entities.SiteSetting", b =>
@@ -1153,6 +1213,17 @@ namespace RenewZone.Infrastructure.Data.Migrations
                     b.Navigation("Group");
                 });
 
+            modelBuilder.Entity("RenewZone.Domain.Entities.ProductReview", b =>
+                {
+                    b.HasOne("RenewZone.Domain.Entities.Product", "Product")
+                        .WithMany("Reviews")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("RenewZone.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Children");
@@ -1182,6 +1253,8 @@ namespace RenewZone.Infrastructure.Data.Migrations
                     b.Navigation("Images");
 
                     b.Navigation("OptionGroups");
+
+                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("RenewZone.Domain.Entities.ProductOptionGroup", b =>

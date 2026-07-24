@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using RenewZone.Domain.Entities;
+using RenewZone.Domain.Enums;
 using RenewZone.Domain.Interfaces;
 using RenewZone.Domain.Models;
 using RenewZone.Infrastructure.Data;
@@ -98,11 +99,18 @@ public class CatalogQueryService(AppDbContext db) : ICatalogQueryService
             .Take(MaxRelated)
             .ToListAsync();
 
+        // Đánh giá đã duyệt (truy vấn riêng thay vì Include để tránh cartesian với Images/OptionGroups)
+        var reviews = await db.ProductReviews.AsNoTracking()
+            .Where(r => r.ProductId == productId && r.Status == ReviewStatus.Approved)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
+
         return new ProductDetail
         {
             Product = product,
             ParentCategory = parentCategory,
-            Related = related
+            Related = related,
+            Reviews = reviews
         };
     }
 

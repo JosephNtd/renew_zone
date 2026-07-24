@@ -62,6 +62,10 @@
                     <input type="file" id="imageFile" accept=".jpg,.jpeg,.png,.webp" hidden />
                 </div>
                 <span class="adm-error" asp-validation-for="ImageUrl"></span>
+                <div class="adm-hint">
+                    Khuyến nghị ~1920×800px (ảnh ngang). Không bắt buộc đúng kích thước — ảnh sẽ tự
+                    được thu nhỏ và nén; ảnh quá nhỏ sẽ bị từ chối.
+                </div>
 
                 <div class="adm-banner-preview mt-2" id="preview">
                     @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
@@ -121,6 +125,7 @@
 
                 var form = new FormData();
                 form.append("file", file.files[0]);
+                form.append("profile", "Banner"); // áp min-size của banner (khung hero lớn)
 
                 pick.classList.add("is-loading");
 

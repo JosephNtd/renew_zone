@@ -15,6 +15,9 @@ public class AdminBadgeService(AppDbContext db) : IAdminBadgeService
         // ContactMessages có global query filter ⇒ tin đã xóa mềm tự động không được đếm
         var unreadContacts = await db.ContactMessages.CountAsync(c => !c.IsRead);
 
-        return new AdminBadgeCounts(newOrders, unreadContacts);
+        // Đánh giá chờ duyệt (query filter loại các review đã xóa mềm)
+        var pendingReviews = await db.ProductReviews.CountAsync(r => r.Status == ReviewStatus.Pending);
+
+        return new AdminBadgeCounts(newOrders, unreadContacts, pendingReviews);
     }
 }

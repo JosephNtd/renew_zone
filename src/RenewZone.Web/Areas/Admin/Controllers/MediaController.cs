@@ -10,9 +10,17 @@ namespace RenewZone.Web.Areas.Admin.Controllers;
 public class MediaController(IMediaService media) : BaseAdminController
 {
     [HttpPost("/admin/media/upload-editor")]
-    public async Task<IActionResult> UploadEditor(IFormFile? file)
+    public async Task<IActionResult> UploadEditor(IFormFile? file, string? profile)
     {
-        var result = await media.SaveAsync(file, UploadProfile.Editor);
+        // Nút "Tải ảnh lên" ở banner/tin gửi kèm `profile` để áp min-size riêng của loại đó.
+        // TinyMCE inline (và các form khác) KHÔNG gửi → mặc định Editor (sàn nhẹ, cho phép ảnh nhỏ
+        // chèn trong bài). Whitelist qua Enum.IsDefined để chuỗi/số rác không lọt (Lưu ý 6.16).
+        var target = Enum.TryParse<UploadProfile>(profile, ignoreCase: true, out var parsed)
+            && Enum.IsDefined(parsed)
+                ? parsed
+                : UploadProfile.Editor;
+
+        var result = await media.SaveAsync(file, target);
 
         if (!result.Ok)
         {

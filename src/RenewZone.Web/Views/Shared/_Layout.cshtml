@@ -72,7 +72,7 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    @* ============ TOPBAR ============ *@
+    @* TOPBAR *@
     <div class="topbar d-none d-md-block">
         <div class="container d-flex justify-content-between">
             <div class="topbar-item text-truncate">
@@ -91,7 +91,7 @@
         </div>
     </div>
 
-    @* ============ HEADER ============ *@
+    @* HEADER *@
     <header class="site-header" id="siteHeader">
         <div class="container header-inner">
             <button class="hamburger-btn d-lg-none" type="button"
@@ -135,7 +135,7 @@
         </div>
     </header>
 
-    @* ============ MAIN NAV (desktop) ============ *@
+    @* MAIN NAV (desktop) *@
     <nav class="mainnav d-none d-lg-block" aria-label="Menu chính">
         <div class="container">
             <ul class="mainnav-list">
@@ -199,7 +199,7 @@
         </div>
     </nav>
 
-    @* ============ OFFCANVAS MENU (mobile) ============ *@
+    @* OFFCANVAS MENU (mobile) *@
     <div class="offcanvas offcanvas-start mobile-menu" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
         <div class="offcanvas-header">
             <span class="brand-word" id="mobileMenuLabel" style="font-size:1.2rem;color:#fff">
@@ -277,12 +277,12 @@
         </div>
     </div>
 
-    @* ============ NỘI DUNG TRANG ============ *@
+    @* NỘI DUNG TRANG *@
     <main id="mainContent">
         @RenderBody()
     </main>
 
-    @* ============ FOOTER ============ *@
+    @* FOOTER *@
     <footer class="site-footer">
         <div class="container footer-main">
             <div class="row g-4">
@@ -350,7 +350,7 @@
         </div>
     </footer>
 
-    @* ============ NÚT NỔI + BACK TO TOP + TOAST ============ *@
+    @* NÚT NỔI + BACK TO TOP + TOAST *@
     <div class="float-contact">
         <a class="fbtn fbtn-phone" href="@hotlineTel" aria-label="Gọi điện">
             <i class="bi bi-telephone-fill"></i>
@@ -376,7 +376,7 @@
 
     <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 
-    @* ============ MINI-CART (offcanvas, mở từ icon giỏ) ============ *@
+    @* MINI-CART (offcanvas, mở từ icon giỏ) *@
     @await Html.PartialAsync("_MiniCart")
 
     @* Token cho các POST AJAX của cart.js (gửi qua header "RequestVerificationToken") *@

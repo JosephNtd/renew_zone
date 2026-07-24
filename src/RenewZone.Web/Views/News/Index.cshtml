@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="~/css/news.css" asp-append-version="true" />
 }
 
-@* ---------------- HERO ---------------- *@
+@* HERO *@
 <div class="news-hero">
     <div class="container">
         @await Html.PartialAsync("_Breadcrumb", new BreadcrumbViewModel { Items = new[] { new Crumb(Model.PageTitle) } })
@@ -39,7 +39,7 @@
 </div>
 
 <div class="container news-page">
-    @* ---------------- BÀI NỔI BẬT (chỉ trang 1, không lọc, không tìm) ---------------- *@
+    @* BÀI NỔI BẬT (chỉ trang 1, không lọc, không tìm) *@
     @if (lead is not null)
     {
         <section class="nf-grid reveal" aria-label="Bài viết nổi bật">
@@ -86,7 +86,7 @@
         </section>
     }
 
-    @* ---------------- CHIP LỌC CHUYÊN MỤC ---------------- *@
+    @* CHIP LỌC CHUYÊN MỤC *@
     @if (data.Categories.Count > 0)
     {
         <nav class="rz-chips news-filter" aria-label="Lọc theo chuyên mục">
@@ -106,7 +106,7 @@
         </nav>
     }
 
-    @* ---------------- DÒNG KẾT QUẢ khi đang lọc/tìm ---------------- *@
+    @* DÒNG KẾT QUẢ khi đang lọc/tìm *@
     @if (data.IsFiltered)
     {
         <div class="news-result" aria-live="polite">
@@ -125,7 +125,7 @@
         </div>
     }
 
-    @* ---------------- DANH SÁCH BÀI ---------------- *@
+    @* DANH SÁCH BÀI *@
     @if (data.Articles.Items.Count > 0)
     {
         <div class="nw-list">
@@ -155,7 +155,7 @@
         </div>
     }
 
-    @* ---------------- CTA CUỐI TRANG ---------------- *@
+    @* CTA CUỐI TRANG *@
     <section class="news-cta reveal">
         <div class="news-cta-text">
             <h2>Cần tư vấn chọn máy?</h2>

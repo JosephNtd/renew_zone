@@ -34,6 +34,14 @@
     <div class="p-card-body">
         <h3 class="p-card-name"><a class="stretched-link" href="/@Model.Slug">@Model.Name</a></h3>
 
+        @if (Model.ReviewCount > 0)
+        {
+            <div class="p-card-rating">
+                @await Html.PartialAsync("_StarRating", Model.AvgRating)
+                <span class="p-card-rating-count">(@Model.ReviewCount)</span>
+            </div>
+        }
+
         @if (Model.IsContactPrice)
         {
             <div class="p-card-price"><span class="badge-contact">Liên hệ</span></div>

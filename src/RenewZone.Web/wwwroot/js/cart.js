@@ -1,13 +1,11 @@
-/* =====================================================================
-   cart.js — giỏ hàng phía client (Giai đoạn 4). NẠP TRÊN MỌI TRANG
+/* cart.js — giỏ hàng phía client (Giai đoạn 4). NẠP TRÊN MỌI TRANG
    (sau site.js) vì icon giỏ + mini-cart + toast thêm giỏ nằm ở layout.
 
    Mở rộng window.RZ:
      RZ.addToCart(payload, sourceImgEl)  → gọi API + fly + toast + badge + refresh mini-cart
      RZ.cartToast(item) · RZ.flyToCart(imgEl) · RZ.refreshMiniCart() · RZ.syncCart(cart)
 
-   Hợp đồng JSON xem CartController.CartJson — mọi số tiền do SERVER format sẵn.
-   ===================================================================== */
+   Hợp đồng JSON xem CartController.CartJson — mọi số tiền do SERVER format sẵn. */
 (function () {
     "use strict";
 
@@ -15,7 +13,7 @@
     var FLY_MS = 600;
     var DEFAULT_MAX_QTY = 10; // khớp CartService.MaxQuantityPerItem (view truyền qua data-max)
 
-    /* ---------- 1. Tiện ích gọi API ---------- */
+    /* 1. Tiện ích gọi API */
     function antiForgeryToken() {
         var el = document.querySelector('input[name="__RequestVerificationToken"]');
         return el ? el.value : "";
@@ -39,7 +37,7 @@
         if (window.RZ && RZ.toast) RZ.toast(message || "Có lỗi xảy ra, vui lòng thử lại", "error");
     }
 
-    /* ---------- 2. Đồng bộ UI theo giỏ mới ---------- */
+    /* 2. Đồng bộ UI theo giỏ mới */
     function syncCart(cart, badgeDelay) {
         if (!cart) return;
 
@@ -67,7 +65,7 @@
         }
     }
 
-    /* ---------- 3. Mini-cart offcanvas ---------- */
+    /* 3. Mini-cart offcanvas */
     function refreshMiniCart() {
         var host = document.getElementById("miniCartBody");
         if (!host) return Promise.resolve();
@@ -91,7 +89,7 @@
         return true;
     }
 
-    /* ---------- 4. Fly-to-cart (DESIGN 4.4) ---------- */
+    /* 4. Fly-to-cart (DESIGN 4.4) */
     function flyToCart(imgEl) {
         var target = document.querySelector(".cart-btn");
         if (reduceMotion || !imgEl || !target) return false;
@@ -122,7 +120,7 @@
         return true;
     }
 
-    /* ---------- 5. Toast "Đã thêm vào giỏ" (DESIGN 3.18) ---------- */
+    /* 5. Toast "Đã thêm vào giỏ" (DESIGN 3.18) */
     function cartToast(item) {
         var stack = document.getElementById("toastStack");
         if (!stack) return;
@@ -173,7 +171,7 @@
         }, 3500);
     }
 
-    /* ---------- 6. Thêm vào giỏ ---------- */
+    /* 6. Thêm vào giỏ */
     function addToCart(payload, sourceImgEl) {
         return postJson("/gio-hang/them", {
             productId: payload.productId,
@@ -195,7 +193,7 @@
         });
     }
 
-    /* ---------- 7. Trang giỏ hàng: stepper + xóa ---------- */
+    /* 7. Trang giỏ hàng: stepper + xóa */
     function maxQtyOf(stepper) {
         return parseInt(stepper.getAttribute("data-max"), 10) || DEFAULT_MAX_QTY;
     }
@@ -298,7 +296,7 @@
             });
     }
 
-    /* ---------- 8. Gắn sự kiện (ủy quyền — nội dung mini-cart được thay động) ---------- */
+    /* 8. Gắn sự kiện (ủy quyền — nội dung mini-cart được thay động) */
     document.addEventListener("click", function (e) {
         var stepBtn = e.target.closest ? e.target.closest(".js-step") : null;
         if (stepBtn) { onStep(stepBtn); return; }
@@ -320,7 +318,7 @@
         miniEl.addEventListener("show.bs.offcanvas", function () { refreshMiniCart(); });
     }
 
-    /* ---------- 9. Xuất API ---------- */
+    /* 9. Xuất API */
     window.RZ = window.RZ || {};
     window.RZ.addToCart = addToCart;
     window.RZ.cartToast = cartToast;

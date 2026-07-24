@@ -33,9 +33,20 @@ public class UploadProfileOptions
     public int MaxWidth { get; set; } = 1600;
 
     /// <summary>
-    /// ⚠️ Mặc định RỖNG là có chủ đích: binder của IConfiguration **nối thêm** vào collection
+    /// Chiều rộng/cao TỐI THIỂU (px) chấp nhận khi upload. `0` = KHÔNG kiểm (mặc định — giữ hành vi
+    /// cũ cho profile không khai báo). Mục đích: chặn ảnh quá nhỏ bị phóng to làm vỡ/mờ khi hiển thị
+    /// ở khung lớn (vd ảnh 300px cho hero 1920px). KHÔNG ép đúng kích thước/tỉ lệ — chỉ là sàn dưới.
+    /// Kiểm trong <see cref="MediaService"/> sau khi decode nên file rác giả đuôi ảnh vẫn bị chặn trước.
+    /// </summary>
+    public int MinWidth { get; set; }
+
+    /// <summary>Chiều cao tối thiểu (px). Xem <see cref="MinWidth"/>.</summary>
+    public int MinHeight { get; set; }
+
+    /// <summary>
+    ///  Mặc định RỖNG là có chủ đích: binder của IConfiguration **nối thêm** vào collection
     /// sẵn có chứ không thay thế, nên gán sẵn giá trị ở đây sẽ làm danh sách bị lặp đôi khi
-    /// appsettings.json cũng khai báo (đã dính một lần ở Giai đoạn 5 — CLAUDE.md Lưu ý 6.14).
+    /// appsettings.json cũng khai báo .
     /// Muốn giá trị mặc định thì dùng <see cref="EffectiveExtensions"/>.
     /// </summary>
     public string[] AllowedExtensions { get; set; } = [];

@@ -21,7 +21,7 @@
         <span class="cart-count" id="cartCountLabel">@cart.TotalQuantity sản phẩm</span>
     </header>
 
-    @* ---------- GIỎ TRỐNG (JS bật lên khi xóa hết dòng cuối, không cần reload) ---------- *@
+    @* GIỎ TRỐNG (JS bật lên khi xóa hết dòng cuối, không cần reload) *@
     <div class="cart-empty" id="cartEmpty" hidden="@(!cart.IsEmpty)">
         <img src="~/images/empty-cart.svg" alt="" width="180" height="180" />
         <p class="cart-empty-msg">Không tồn tại sản phẩm nào trong giỏ hàng !</p>
@@ -32,7 +32,7 @@
         </div>
     </div>
 
-    @* ---------- GIỎ CÓ HÀNG ---------- *@
+    @* GIỎ CÓ HÀNG *@
     <div id="cartBody" hidden="@cart.IsEmpty">
         <div class="cart-grid">
             <div class="cart-lines" id="cartLines">

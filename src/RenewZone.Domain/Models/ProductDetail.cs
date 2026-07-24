@@ -12,4 +12,7 @@ public class ProductDetail
 
     /// <summary>Sản phẩm cùng danh mục — carousel "Sản phẩm liên quan".</summary>
     public IReadOnlyList<Product> Related { get; init; } = [];
+
+    /// <summary>Đánh giá ĐÃ DUYỆT của sản phẩm, mới nhất trước — section "Đánh giá & bình luận".</summary>
+    public IReadOnlyList<ProductReview> Reviews { get; init; } = [];
 }

@@ -63,7 +63,7 @@
 
 <div class="container">
     <div class="pdp-grid">
-        @* ---------- GALLERY ---------- *@
+        @* GALLERY *@
         <div class="pdp-gallery reveal">
             <div class="pdp-stage">
                 @* Ảnh chính PDP là LCP: eager + fetchpriority cao, KHÔNG lazy *@
@@ -83,7 +83,7 @@
             }
         </div>
 
-        @* ---------- MUA HÀNG ---------- *@
+        @* MUA HÀNG *@
         <div class="pdp-buy reveal">
             <h1 class="pdp-name">@p.Name</h1>
 
@@ -115,7 +115,7 @@
                     <span class="pdp-price-now" id="pdpPrice">@p.DisplayPrice.ToVnd()</span>
                 </div>
 
-                @* ---------- VARIANT SELECTOR ---------- *@
+                @* VARIANT SELECTOR *@
                 @if (p.OptionGroups.Count > 0)
                 {
                     <div class="pdp-options">
@@ -175,13 +175,13 @@
                 </a>
             }
 
-            @* ---------- CAM KẾT (nội dung từ bảng ContentBlocks — rỗng thì tự ẩn) ---------- *@
+            @* CAM KẾT (nội dung từ bảng ContentBlocks — rỗng thì tự ẩn) *@
             @await Component.InvokeAsync("ContentBlocks",
                 new { groupKey = ContentBlockGroups.ProductCommitments, cssClass = "pdp-commit" })
         </div>
     </div>
 
-    @* ---------- TABS NỘI DUNG ---------- *@
+    @* TABS NỘI DUNG *@
     <div class="pdp-tabs reveal">
         <div class="pdp-tabbar" role="tablist">
             @if (!string.IsNullOrWhiteSpace(p.SpecsHtml))
@@ -208,7 +208,93 @@
         }
     </div>
 
-    @* ---------- SẢN PHẨM LIÊN QUAN ---------- *@
+    @* ĐÁNH GIÁ & BÌNH LUẬN — section riêng, không phải tab *@
+    <section class="pdp-reviews reveal" id="danh-gia" data-product-id="@p.Id">
+        <div class="rv-head">
+            <h2 class="rv-title">Đánh giá &amp; bình luận</h2>
+            @if (p.ReviewCount > 0)
+            {
+                <div class="rv-summary">
+                    <span class="rv-score">@p.AvgRating.ToString("0.0")</span>
+                    @await Html.PartialAsync("_StarRating", p.AvgRating)
+                    <span class="rv-count">@p.ReviewCount đánh giá</span>
+                </div>
+            }
+        </div>
+
+        @* Danh sách đánh giá đã duyệt *@
+        <div class="rv-list">
+            @if (Model.Reviews.Count == 0)
+            {
+                <p class="rv-empty">Chưa có đánh giá nào. Hãy là người đầu tiên đánh giá sản phẩm này!</p>
+            }
+            else
+            {
+                @foreach (var rv in Model.Reviews)
+                {
+                    <article class="rv-item">
+                        <div class="rv-item-head">
+                            <span class="rv-avatar" aria-hidden="true">@(rv.AuthorName.Trim().Length > 0 ? rv.AuthorName.Trim()[..1].ToUpper() : "?")</span>
+                            <div>
+                                <div class="rv-author">@rv.AuthorName</div>
+                                <div class="rv-meta">
+                                    @await Html.PartialAsync("_StarRating", (decimal)rv.Rating)
+                                    <span class="rv-date">@rv.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="rv-content">@rv.Content</p>
+                        @if (!string.IsNullOrWhiteSpace(rv.AdminReply))
+                        {
+                            <div class="rv-reply">
+                                <div class="rv-reply-head"><i class="bi bi-shop" aria-hidden="true"></i> Phản hồi từ shop</div>
+                                <p class="rv-reply-content">@rv.AdminReply</p>
+                            </div>
+                        }
+                    </article>
+                }
+            }
+        </div>
+
+        @* Form gửi đánh giá — AJAX, kết quả báo qua JS (đánh giá chờ duyệt nên PDP không đổi ngay) *@
+        <form class="rv-form" id="reviewForm">
+            <h3 class="rv-form-title">Viết đánh giá của bạn</h3>
+
+            <div class="rv-field">
+                <span class="rv-label">Đánh giá của bạn</span>
+                <div class="rv-star-input" id="reviewStars" role="radiogroup" aria-label="Chọn số sao">
+                    @for (var i = 1; i <= 5; i++)
+                    {
+                        <button type="button" class="rv-star-btn" data-value="@i" role="radio" aria-checked="false" aria-label="@i sao">
+                            <i class="bi bi-star" aria-hidden="true"></i>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <div class="rv-field">
+                <label class="rv-label" for="rvName">Tên hiển thị</label>
+                <input class="rz-input" id="rvName" name="authorName" type="text" maxlength="150" placeholder="Tên của bạn" autocomplete="name" />
+            </div>
+
+            <div class="rv-field">
+                <label class="rv-label" for="rvContent">Nội dung</label>
+                <textarea class="rz-input" id="rvContent" name="content" rows="4" maxlength="2000"
+                          placeholder="Chia sẻ cảm nhận của bạn về sản phẩm (tối thiểu 10 ký tự)"></textarea>
+            </div>
+
+            @* Honeypot — ẩn bằng CSS, người thật không điền *@
+            <div class="hp-field" aria-hidden="true">
+                <label>Website<input type="text" name="rvWebsite" tabindex="-1" autocomplete="off" /></label>
+            </div>
+
+            <p class="rv-note">Đánh giá sẽ hiển thị sau khi được shop duyệt.</p>
+
+            <button class="btn-rz btn-buy rv-submit" type="submit" id="reviewSubmit">Gửi đánh giá</button>
+        </form>
+    </section>
+
+    @* SẢN PHẨM LIÊN QUAN *@
     @if (Model.Related.Count > 0)
     {
         <section class="pdp-related reveal">

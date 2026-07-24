@@ -13,7 +13,7 @@ public class OrderListViewModel
     public required PagedResult<OrderListItem> Result { get; init; }
     public required IReadOnlyDictionary<OrderStatus, int> StatusCounts { get; init; }
 
-    // ----- Giá trị đang lọc (đổ ngược lại vào form) -----
+    // Giá trị đang lọc (đổ ngược lại vào form)
     public OrderStatus? Status { get; init; }
     public PaymentMethod? PaymentMethod { get; init; }
     public string? Search { get; init; }

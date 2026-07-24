@@ -1,12 +1,10 @@
-/* =====================================================================
-   admin-product.js — form sản phẩm 5 tab (chỉ nạp ở màn này, không vào admin.js)
+/* admin-product.js — form sản phẩm 5 tab (chỉ nạp ở màn này, không vào admin.js)
    Gồm: uploader ảnh · repeater biến thể · xem trước giá.
-   TinyMCE do admin-editor.js lo (dùng chung với form bài viết/trang tĩnh).
-   ===================================================================== */
+   TinyMCE do admin-editor.js lo (dùng chung với form bài viết/trang tĩnh). */
 (function (window, document) {
     "use strict";
 
-    /* ============ 1. Giá liên hệ khóa 2 ô giá ============ */
+    /* 1. Giá liên hệ khóa 2 ô giá */
     function initContactPrice() {
         var toggle = document.getElementById("IsContactPrice");
         var hint = document.getElementById("contactPriceHint");
@@ -25,7 +23,7 @@
         apply();
     }
 
-    /* ============ 2. Đếm ký tự mô tả ngắn ============ */
+    /* 2. Đếm ký tự mô tả ngắn */
     function initShortDescCount() {
         var input = document.getElementById("ShortDescription");
         var out = document.getElementById("shortDescCount");
@@ -36,7 +34,7 @@
         render();
     }
 
-    /* ============ 3. Repeater biến thể ============ */
+    /* 3. Repeater biến thể */
     var groupList = document.getElementById("groupList");
 
     function initRepeater() {
@@ -129,7 +127,7 @@
         });
     }
 
-    /* ============ 4. Xem trước giá theo lựa chọn mặc định ============ */
+    /* 4. Xem trước giá theo lựa chọn mặc định */
     function updatePreview() {
         var preview = document.getElementById("variantPreview");
         if (!preview) return;
@@ -163,7 +161,7 @@
         return isNaN(n) ? 0 : n;
     }
 
-    /* ============ 5. Uploader ảnh ============ */
+    /* 5. Uploader ảnh */
     function initUploader() {
         var zone = document.getElementById("imgDropzone");
         var input = document.getElementById("imgInput");
@@ -304,7 +302,7 @@
         initImageSort();
     }
 
-    /* ============ Khởi động ============ */
+    /* Khởi động */
     function init() {
         initContactPrice();
         initShortDescCount();

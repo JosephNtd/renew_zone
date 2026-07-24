@@ -73,7 +73,7 @@
                 </button>
             </div>
 
-            @* ==================== TAB 1: THÔNG TIN CHUNG ==================== *@
+            @* TAB 1: THÔNG TIN CHUNG *@
             <div class="adm-tab-panel is-active" data-panel="general">
                 <div class="adm-form-grid">
                     <div class="adm-field" style="--col-span: 8;">
@@ -187,14 +187,14 @@
                 </div>
             </div>
 
-            @* ==================== TAB 2: MÔ TẢ ==================== *@
+            @* TAB 2: MÔ TẢ *@
             <div class="adm-tab-panel" data-panel="desc">
                 <label class="adm-label" asp-for="DescriptionHtml">Mô tả chi tiết</label>
                 <textarea class="adm-textarea js-editor" asp-for="DescriptionHtml" rows="16"></textarea>
                 <div class="adm-hint">Hiện ở tab “Mô tả” trên trang chi tiết sản phẩm.</div>
             </div>
 
-            @* ==================== TAB 3: THÔNG SỐ ==================== *@
+            @* TAB 3: THÔNG SỐ *@
             <div class="adm-tab-panel" data-panel="specs">
                 <div class="d-flex align-items-center gap-2 mb-2">
                     <label class="adm-label mb-0" asp-for="SpecsHtml">Thông số kỹ thuật</label>
@@ -207,7 +207,7 @@
                 <div class="adm-hint">Hiện ở tab “Thông số kỹ thuật” trên trang chi tiết sản phẩm.</div>
             </div>
 
-            @* ==================== TAB 4: HÌNH ẢNH ==================== *@
+            @* TAB 4: HÌNH ẢNH *@
             <div class="adm-tab-panel" data-panel="images">
                 @if (!Model.IsEdit)
                 {
@@ -225,7 +225,10 @@
                          aria-label="Chọn hoặc kéo thả ảnh sản phẩm vào đây">
                         <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
                         <div><b>Kéo thả ảnh vào đây</b> hoặc bấm để chọn file</div>
-                        <div class="adm-small adm-muted mt-1">JPG, PNG, WEBP · tối đa 4MB mỗi ảnh</div>
+                        <div class="adm-small adm-muted mt-1">
+                            JPG, PNG, WEBP · tối đa 4MB mỗi ảnh · khuyến nghị ~1200×1200px nền trắng
+                            (không bắt buộc đúng kích thước)
+                        </div>
                         <input type="file" id="imgInput" accept=".jpg,.jpeg,.png,.webp"
                                multiple hidden />
                     </div>
@@ -262,7 +265,7 @@
                 }
             </div>
 
-            @* ==================== TAB 5: BIẾN THỂ ==================== *@
+            @* TAB 5: BIẾN THỂ *@
             <div class="adm-tab-panel" data-panel="variants">
                 <div class="adm-alert adm-alert-info">
                     <i class="bi bi-calculator" aria-hidden="true"></i>

@@ -1,27 +1,4 @@
-/* =====================================================================
-   RenewZone Clone — admin.css
-   Design system TRANG QUẢN TRỊ. Nạp SAU tokens.css (dùng lại toàn bộ biến brand/shadow/easing),
-   KHÔNG nạp site.css — admin là công cụ làm việc, ngôn ngữ thị giác khác web bán hàng:
-   đặc dữ liệu hơn, ít trang trí hơn, phản hồi nhanh hơn.
-
-   ⚠️ CSS của partial trong Areas/Admin/Views/Shared PHẢI nằm ở file này (bài học Giai đoạn 4:
-   .rz-breadcrumb để nhầm trong product.css làm vỡ trang giỏ hàng).
-
-   MỤC LỤC
-    1. Tokens admin              9. Form
-    2. Base                     10. Toggle switch · Slug input
-    3. Khung layout             11. Uploader · Repeater
-    4. Sidebar                  12. Badge trạng thái
-    5. Topbar                   13. Modal
-    6. Page header              14. Toast
-    7. Stat card · Chart        15. Empty state · Skeleton
-    8. Bảng dữ liệu · Lọc       16. Login
-                                17. Responsive
-                                18. In ấn
-                                19. prefers-reduced-motion
-   ===================================================================== */
-
-/* ===================== 1. TOKENS ADMIN ===================== */
+/* 1. TOKENS ADMIN */
 :root {
   --adm-sidebar-w:        260px;
   --adm-sidebar-w-mini:   72px;
@@ -30,10 +7,11 @@
   --adm-bg:               #F4F2F5;
   --adm-surface:          #FFFFFF;
   --adm-surface-2:        #FAF9FB;
-  --adm-sidebar-bg:       #17141A;
-  --adm-sidebar-bg-2:     #221D28;
+  /* --adm-sidebar-bg:       #17141A; */
+  --adm-sidebar-bg-2:     #B9B2C0; 
+  --adm-sidebar-bg:       #FFFFFF;
   --adm-sidebar-text:     #B9B2C0;
-  --adm-sidebar-text-on:  #FFFFFF;
+  --adm-sidebar-text-on:  #B9B2C0;
 
   --adm-border:           #E6E1E8;
   --adm-border-strong:    #D5CEDA;
@@ -51,8 +29,9 @@
   --adm-r-sm:     6px;
 }
 
-/* ===================== 2. BASE ===================== */
+/* 2. BASE */
 html { -webkit-text-size-adjust: 100%; }
+*, *::before, *::after { box-sizing: border-box; }
 
 body.adm {
   font-family: var(--font-body);
@@ -97,7 +76,7 @@ body.adm :focus-visible {
   clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
 
-/* ===================== 3. KHUNG LAYOUT ===================== */
+/* 3. KHUNG LAYOUT */
 .adm-shell { min-height: 100vh; }
 
 .adm-main {
@@ -116,7 +95,7 @@ body.adm :focus-visible {
   width: 100%;
 }
 
-/* ===================== 4. SIDEBAR ===================== */
+/*  4. SIDEBAR  */
 .adm-sidebar {
   position: fixed;
   inset: 0 auto 0 0;
@@ -179,6 +158,7 @@ body.adm :focus-visible {
   gap: 12px;
   padding: 10px 16px;
   color: var(--adm-sidebar-text);
+  font-weight: bold;
   border-left: 3px solid transparent;
   white-space: nowrap;
   transition: background var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
@@ -256,7 +236,7 @@ body.adm :focus-visible {
 }
 .adm-shell.is-open .adm-sidebar-backdrop { opacity: 1; pointer-events: auto; }
 
-/* ===================== 5. TOPBAR ===================== */
+/*  5. TOPBAR  */
 .adm-topbar {
   position: sticky;
   top: 0;
@@ -291,6 +271,36 @@ body.adm :focus-visible {
   background: var(--red-500);
   border: 2px solid var(--adm-surface);
   border-radius: 50%;
+}
+
+/* Badge SỐ (chuông "Đơn mới") — khác .adm-dot (chỉ chấm): hiện con số thật để nhảy realtime thấy rõ */
+.adm-icon-btn .adm-badge-count {
+  position: absolute; top: 2px; right: 2px;
+  min-width: 17px; height: 17px;
+  padding: 0 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--red-500);
+  color: #fff;
+  border: 2px solid var(--adm-surface);
+  border-radius: 999px;
+  font-size: .64rem; font-weight: 700; line-height: 1;
+  box-sizing: border-box;
+}
+.adm-icon-btn .adm-badge-count[hidden] { display: none; }
+
+/* Nhảy số khi có đơn mới (JS thêm .is-bump trong ~500ms). Tắt ở reduced-motion (mục 19) */
+.adm-icon-btn .adm-badge-count.is-bump { animation: adm-badge-bump .5s ease; }
+@keyframes adm-badge-bump {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.45); }
+  100% { transform: scale(1); }
+}
+
+/* Dòng đơn mới vừa được chèn vào đầu bảng danh sách đơn (realtime) — flash nền rồi mờ dần */
+.adm-table tbody tr.adm-row-fresh { animation: adm-row-fresh 2.4s ease-out; }
+@keyframes adm-row-fresh {
+  0%   { background: var(--adm-new-bg); }
+  100% { background: transparent; }
 }
 
 /* Breadcrumb topbar */
@@ -343,7 +353,7 @@ body.adm :focus-visible {
 .adm-dropdown-menu .dropdown-item:hover { background: var(--brand-50); color: var(--brand-700); }
 .adm-dropdown-menu .dropdown-item.text-danger:hover { background: var(--adm-cancel-bg); color: var(--adm-cancel); }
 
-/* ===================== 6. PAGE HEADER ===================== */
+/* 6. PAGE HEADER  */
 .adm-page-head {
   display: flex;
   align-items: flex-start;
@@ -355,7 +365,7 @@ body.adm :focus-visible {
 .adm-page-head .adm-page-sub { color: var(--ink-500); font-size: .86rem; margin-top: 3px; }
 .adm-page-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
 
-/* ----- Nút ----- */
+/* Nút */
 .adm-btn {
   display: inline-flex;
   align-items: center;
@@ -375,15 +385,15 @@ body.adm :focus-visible {
 .adm-btn:disabled { opacity: .6; cursor: not-allowed; }
 .adm-btn .bi { font-size: 1rem; }
 
-.adm-btn-primary { background: var(--grad-brand); color: #fff; box-shadow: 0 2px 8px rgba(206,95,154,.28); }
-.adm-btn-primary:hover { color: #fff; filter: brightness(1.05); }
-.adm-btn-primary:active { transform: translateY(1px); }
+.adm-btn.adm-btn-primary { background: linear-gradient(135deg, var(--brand-700) 0%, var(--brand-900) 100%); color: #fff; box-shadow: 0 2px 8px rgba(92,35,67,.32); }
+.adm-btn.adm-btn-primary:hover { color: #fff; filter: brightness(1.08); }
+.adm-btn.adm-btn-primary:active { transform: translateY(1px); }
 
-.adm-btn-ghost { background: var(--adm-surface); border-color: var(--adm-border); color: var(--ink-700); }
-.adm-btn-ghost:hover { border-color: var(--brand-300); color: var(--brand-700); background: var(--brand-50); }
+.adm-btn.adm-btn-ghost { background: var(--adm-surface); border-color: var(--adm-border); color: var(--ink-700); }
+.adm-btn.adm-btn-ghost:hover { border-color: var(--brand-300); color: var(--brand-700); background: var(--brand-50); }
 
-.adm-btn-danger { background: var(--red-500); color: #fff; }
-.adm-btn-danger:hover { color: #fff; background: var(--red-600); }
+.adm-btn.adm-btn-danger { background: var(--red-500); color: #fff; }
+.adm-btn.adm-btn-danger:hover { color: #fff; background: var(--red-600); }
 
 .adm-btn-sm { height: 32px; padding: 0 12px; font-size: .8rem; }
 
@@ -402,7 +412,7 @@ body.adm :focus-visible {
 .adm-btn.is-loading .bi { display: none; }
 @keyframes adm-spin { to { transform: rotate(360deg); } }
 
-/* ===================== 7. STAT CARD · CHART ===================== */
+/* 7. STAT CARD · CHART */
 .adm-card {
   background: var(--adm-surface);
   border: 1px solid var(--adm-border);
@@ -506,7 +516,7 @@ body.adm :focus-visible {
   font-weight: 600;
 }
 
-/* ===================== 8. BẢNG DỮ LIỆU · LỌC ===================== */
+/* 8. BẢNG DỮ LIỆU · LỌC */
 .adm-table-wrap {
   background: var(--adm-surface);
   border: 1px solid var(--adm-border);
@@ -579,7 +589,7 @@ body.adm :focus-visible {
   border: 1px solid var(--adm-border);
 }
 
-/* ----- Thanh lọc ----- */
+/* Thanh lọc */
 .adm-filters {
   display: flex;
   gap: 10px;
@@ -631,7 +641,7 @@ body.adm :focus-visible {
 }
 .adm-tab.is-active .adm-tab-count { background: var(--brand-100); border-color: var(--brand-200); color: var(--brand-700); }
 
-/* ----- Phân trang ----- */
+/* Phân trang */
 .adm-pager {
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   margin-top: 16px;
@@ -654,7 +664,7 @@ body.adm :focus-visible {
 .adm-pager-list .is-current { background: var(--grad-brand); border-color: transparent; color: #fff; }
 .adm-pager-list .is-disabled { opacity: .45; pointer-events: none; }
 
-/* ===================== 9. FORM ===================== */
+/* 9. FORM */
 .adm-form-card {
   background: var(--adm-surface);
   border: 1px solid var(--adm-border);
@@ -776,7 +786,7 @@ body.adm :focus-visible {
 .adm-tab-panel.is-active { display: block; animation: adm-fade .12s var(--ease-out); }
 @keyframes adm-fade { from { opacity: 0; } to { opacity: 1; } }
 
-/* ===================== 10. TOGGLE SWITCH · SLUG INPUT ===================== */
+/*  10. TOGGLE SWITCH · SLUG INPUT  */
 .adm-switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
 .adm-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
 .adm-switch-track {
@@ -822,7 +832,7 @@ body.adm :focus-visible {
 .adm-slug-msg.is-bad  { color: var(--red-500); }
 .adm-slug-msg.is-warn { color: #8A5A08; }
 
-/* ===================== 11. UPLOADER · REPEATER ===================== */
+/*  11. UPLOADER · REPEATER */
 .adm-dropzone {
   border: 2px dashed var(--adm-border-strong);
   border-radius: var(--adm-r);
@@ -845,7 +855,7 @@ body.adm :focus-visible {
   background: var(--adm-surface-2);
   aspect-ratio: 1;
 }
-.adm-media-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.adm-media-item img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .adm-media-item.is-main { border-color: var(--brand-500); box-shadow: 0 0 0 2px var(--brand-200); }
 .adm-media-badge {
   position: absolute; left: 6px; bottom: 6px;
@@ -895,7 +905,7 @@ body.adm :focus-visible {
 .adm-move-btns button:hover:not(:disabled) { color: var(--brand-600); }
 .adm-move-btns button:disabled { opacity: .3; cursor: default; }
 
-/* ===================== 11b. CÂY DANH MỤC / MENU =====================
+/*  11b. CÂY DANH MỤC / MENU 
    Dạng cây (không phải bảng phẳng) vì quan hệ cha–con là thông tin quan trọng nhất
    của màn này — thụt lề nói lên cấu trúc nhanh hơn bất kỳ cột nào. */
 .adm-tree-branch + .adm-tree-branch { border-top: 1px solid var(--adm-border); }
@@ -956,7 +966,7 @@ body.adm :focus-visible {
   .adm-tree-count { width: 100%; padding-left: 44px; }
 }
 
-/* ===================== 11c. BANNER · HỘP THƯ · DRAWER ===================== */
+/*  11c. BANNER · HỘP THƯ · DRAWER  */
 .adm-banner-grid { display: flex; flex-direction: column; gap: 10px; }
 
 .adm-banner-card {
@@ -972,14 +982,15 @@ body.adm :focus-visible {
 .adm-banner-card.is-off { opacity: .55; }
 .adm-banner-card > img {
   width: 160px; height: 52px;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: var(--adm-r-sm);
   background: var(--adm-surface-2);
   flex-shrink: 0;
 }
 .adm-banner-body { flex: 1; min-width: 0; }
 
-.adm-banner-preview img {
+.adm-banner-preview img,
+.adm-img-preview img {
   max-width: 100%;
   border: 1px solid var(--adm-border);
   border-radius: var(--adm-r-sm);
@@ -1037,7 +1048,7 @@ body.adm :focus-visible {
   border-radius: var(--adm-r-sm);
 }
 
-/* ===================== 12. BADGE TRẠNG THÁI ===================== */
+/*  12. BADGE TRẠNG THÁI  */
 .adm-badge {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 3px 10px;
@@ -1093,7 +1104,7 @@ button.adm-badge:hover { filter: brightness(.96); }
 .adm-timeline-step.is-done .adm-timeline-label,
 .adm-timeline-step.is-current .adm-timeline-label { color: var(--ink-900); font-weight: 600; }
 
-/* --------- 12b. Timeline DỌC — nhật ký xử lý đơn (Giai đoạn 7) ---------
+/* 12b. Timeline DỌC — nhật ký xử lý đơn (Giai đoạn 7).
    Khác timeline ngang ở trên: ngang cho biết đơn "đang ở đâu", dọc là SỔ NHẬT KÝ
    đầy đủ mọi lần đổi (ai, lúc nào, từ đâu sang đâu, ghi chú). */
 .adm-vtl { list-style: none; margin: 4px 0 0; padding: 0; }
@@ -1136,7 +1147,7 @@ button.adm-badge:hover { filter: brightness(.96); }
   font-style: italic; font-size: .86rem; color: var(--ink-700);
 }
 
-/* ===================== 13. MODAL ===================== */
+/*  13. MODAL  */
 .adm-modal {
   position: fixed; inset: 0;
   z-index: 1090;
@@ -1171,7 +1182,7 @@ button.adm-badge:hover { filter: brightness(.96); }
   font-size: 1.3rem; margin-bottom: 12px;
 }
 
-/* ===================== 14. TOAST ===================== */
+/*  14. TOAST  */
 .adm-toast-stack {
   position: fixed;
   right: 20px; bottom: 20px;
@@ -1206,7 +1217,7 @@ button.adm-badge:hover { filter: brightness(.96); }
 .adm-toast.is-info    { border-left-color: var(--info); }
 .adm-toast.is-info .bi { color: var(--info); }
 
-/* ===================== 15. EMPTY STATE · SKELETON ===================== */
+/*  15. EMPTY STATE ·   */
 .adm-empty { text-align: center; padding: 46px 20px; color: var(--ink-500); }
 .adm-empty .bi { font-size: 2.6rem; color: var(--adm-border-strong); display: block; margin-bottom: 12px; }
 .adm-empty h3 { font-size: 1rem; margin-bottom: 6px; }
@@ -1229,7 +1240,7 @@ button.adm-badge:hover { filter: brightness(.96); }
   backdrop-filter: blur(1px);
 }
 
-/* ===================== 16. LOGIN ===================== */
+/*  16. LOGIN  */
 body.adm-login {
   min-height: 100vh;
   display: grid;
@@ -1280,7 +1291,7 @@ body.adm-login::before {
 .adm-check { display: inline-flex; align-items: center; gap: 8px; font-size: .85rem; cursor: pointer; }
 .adm-check input { width: 16px; height: 16px; accent-color: var(--brand-500); cursor: pointer; }
 
-/* ===================== 17. RESPONSIVE ===================== */
+/* 17. RESPONSIVE */
 @media (max-width: 1199.98px) {
   /* Tablet: nhường chỗ cho nội dung, sidebar về chế độ icon */
   .adm-main { margin-left: var(--adm-sidebar-w-mini); }
@@ -1354,9 +1365,8 @@ body.adm-login::before {
   .adm-toast-stack { left: 14px; right: 14px; bottom: 14px; max-width: none; }
 }
 
-/* ===================== 18. IN ẤN =====================
-   Dùng cho nút "In đơn" ở màn chi tiết đơn hàng: bỏ hết phần điều hướng,
-   chỉ còn nội dung đơn trên giấy. */
+/*  18. IN ẤN 
+   Dùng cho nút "In đơn" ở màn chi tiết đơn hàng: bỏ hết phần điều hướng, chỉ còn nội dung đơn trên giấy. */
 @media print {
   .adm-sidebar, .adm-topbar, .adm-sidebar-backdrop,
   .adm-page-actions, .adm-toast-stack, .adm-modal,
@@ -1379,7 +1389,36 @@ body.adm-login::before {
   a { text-decoration: none !important; color: #000 !important; }
 }
 
-/* ===================== 19. prefers-reduced-motion ===================== */
+/* 18c. Màn Đánh giá sản phẩm (Giai đoạn 8) */
+.adm-review-list { display: flex; flex-direction: column; gap: 14px; }
+.adm-review {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+.adm-review.is-pending { border-left: 3px solid var(--brand-500); }
+.adm-review-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.adm-review-who { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.adm-review-stars { font-size: .9rem; }
+.adm-review-top .adm-badge { margin-left: auto; }
+.adm-review-product {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 8px; font-size: .85rem; color: var(--ink-500); text-decoration: none;
+}
+.adm-review-product:hover { color: var(--brand-600); }
+.adm-review-content { margin: 8px 0 0; color: var(--ink-700); line-height: 1.55; white-space: pre-line; }
+.adm-review-reply {
+  margin-top: 10px; padding: 10px 12px;
+  background: var(--brand-50); border-left: 3px solid var(--brand-400); border-radius: 8px;
+}
+.adm-review-reply-head { font-weight: 700; color: var(--brand-700); font-size: .82rem; }
+.adm-review-reply p { margin: 4px 0 0; color: var(--ink-700); line-height: 1.5; white-space: pre-line; }
+.adm-review-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.adm-review-replybox { margin-top: 12px; }
+.adm-review-replybox-actions { display: flex; gap: 8px; margin-top: 8px; }
+
+/* 19. prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   body.adm *,
   body.adm-login * {

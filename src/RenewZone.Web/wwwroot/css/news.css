@@ -1,9 +1,9 @@
-/* =====================================================================
-   news.css — Trang listing tin công nghệ (/tin-tuc), Giai đoạn 5.
+/* 
+   news.css — Trang listing tin công nghệ (/tin-tuc).
    Component dùng chung (.rz-chip, .news-card, .rz-pager, .btn-rz) nằm ở site.css.
-   ===================================================================== */
+*/
 
-/* =========================== HERO =========================== */
+/*  HERO  */
 .news-hero {
   position: relative;
   background: var(--brand-50);
@@ -49,7 +49,7 @@
 }
 .news-search { flex: 0 1 340px; max-width: 100%; }
 
-/* =========================== BÀI NỔI BẬT =========================== */
+/*  BÀI NỔI BẬT  */
 .nf-grid {
   display: grid;
   grid-template-columns: 7fr 5fr;
@@ -165,7 +165,7 @@
 .nf-mini-title a { color: var(--ink-900); text-decoration: none; transition: color var(--t-fast); }
 .nf-mini-date { font-size: .76rem; color: var(--ink-400); }
 
-/* =========================== CHIP LỌC + DÒNG KẾT QUẢ =========================== */
+/*  CHIP LỌC + DÒNG KẾT QUẢ  */
 .news-filter { margin-bottom: 20px; }
 
 .news-result {
@@ -182,7 +182,7 @@
 .news-result-text { margin: 0; font-size: .9rem; color: var(--ink-700); }
 .news-result-text strong { color: var(--brand-700); }
 
-/* =========================== DANH SÁCH BÀI (card ngang) =========================== */
+/*  DANH SÁCH BÀI (card ngang)  */
 .nw-list { display: flex; flex-direction: column; gap: 20px; margin-bottom: 32px; }
 
 .nw-card {
@@ -270,7 +270,7 @@
 }
 .nw-more .bi { transition: transform var(--t-base) var(--ease-out); }
 
-/* =========================== TRẠNG THÁI RỖNG =========================== */
+/*  TRẠNG THÁI RỖNG  */
 .news-empty {
   display: flex;
   flex-direction: column;
@@ -283,7 +283,7 @@
 .news-empty h2 { font-size: 1.25rem; font-weight: 800; color: var(--ink-900); margin: 6px 0 0; }
 .news-empty p { color: var(--ink-500); margin: 0 0 10px; }
 
-/* =========================== CTA CUỐI TRANG =========================== */
+/*  CTA CUỐI TRANG  */
 .news-cta {
   display: flex;
   align-items: center;
@@ -317,7 +317,7 @@
   transition: transform 620ms var(--ease-out);
 }
 
-/* =========================== HOVER (chỉ thiết bị có chuột) =========================== */
+/*  HOVER (chỉ thiết bị có chuột)  */
 @media (hover: hover) {
   .nf-lead:hover img { transform: scale(1.06); }
   .nf-lead:hover .nf-lead-overlay {
@@ -335,7 +335,7 @@
   .news-cta-btn:hover::after { transform: translateX(120%); }
 }
 
-/* =========================== RESPONSIVE =========================== */
+/*  RESPONSIVE  */
 @media (max-width: 991.98px) {
   .nf-grid { grid-template-columns: 1fr; }
   .nf-lead { min-height: 300px; }

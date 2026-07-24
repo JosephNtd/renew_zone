@@ -1,10 +1,8 @@
-/* =====================================================================
-   admin-editor.js — khởi tạo TinyMCE dùng chung cho MỌI form có rich text
+/* admin-editor.js — khởi tạo TinyMCE dùng chung cho MỌI form có rich text
    (sản phẩm, bài viết, trang tĩnh). Tách riêng khỏi admin-product.js để form
    bài viết không phải nạp cả đống code repeater/uploader của sản phẩm.
 
-   Nạp file này TRƯỚC admin-product.js ở những trang cần cả hai.
-   ===================================================================== */
+   Nạp file này TRƯỚC admin-product.js ở những trang cần cả hai. */
 (function (window, document) {
     "use strict";
 
@@ -73,7 +71,7 @@
         });
     }
 
-    /* ---- Nút chèn bảng thông số mẫu (chỉ có ở form sản phẩm) ---- */
+    /* Nút chèn bảng thông số mẫu (chỉ có ở form sản phẩm) */
     function initSpecTable() {
         var btn = document.getElementById("insertSpecTable");
         if (!btn) return;

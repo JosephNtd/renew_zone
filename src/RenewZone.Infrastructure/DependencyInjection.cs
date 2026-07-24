@@ -18,7 +18,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        // ----- Database -----
+        // Database
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Thiếu ConnectionStrings:DefaultConnection trong appsettings.json");
 
@@ -38,7 +38,7 @@ public static class DependencyInjection
                 w.Ignore(CoreEventId.PossibleIncorrectRequiredNavigationWithQueryFilterInteractionWarning));
         });
 
-        // ----- Identity (chỉ phục vụ Admin) -----
+        // Identity (chỉ phục vụ Admin)
         services
             .AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
@@ -54,7 +54,7 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
-        // ----- Services nghiệp vụ -----
+        // Services nghiệp vụ
         services.AddMemoryCache();
 
         // Singleton + IServiceScopeFactory: AppDbContext phụ thuộc nó nên KHÔNG được để nó
@@ -71,9 +71,10 @@ public static class DependencyInjection
         services.AddScoped<IContentBlockService, ContentBlockService>();
         services.AddScoped<INewsQueryService, NewsQueryService>();
         services.AddScoped<IContactService, ContactService>();
+        services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<ISitemapService, SitemapService>();
 
-        // ----- Services phục vụ Admin (Giai đoạn 6) -----
+        // Services phục vụ Admin (Giai đoạn 6)
         services.AddScoped<ISlugService, SlugService>();
         services.AddScoped<IAdminBadgeService, AdminBadgeService>();
         services.AddScoped<IDashboardService, DashboardService>();
@@ -85,6 +86,7 @@ public static class DependencyInjection
         services.AddScoped<INavigationAdminService, NavigationAdminService>();
         services.AddScoped<IContentBlockAdminService, ContentBlockAdminService>();
         services.AddScoped<IContactAdminService, ContactAdminService>();
+        services.AddScoped<IReviewAdminService, ReviewAdminService>();
         services.AddScoped<ISettingAdminService, SettingAdminService>();
         services.AddScoped<ITrashService, TrashService>();
 

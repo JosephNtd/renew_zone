@@ -50,6 +50,22 @@ public static class AdminDisplayExtensions
         _ => "is-muted"
     };
 
+    public static string ToVietnamese(this ReviewStatus status) => status switch
+    {
+        ReviewStatus.Pending => "Chờ duyệt",
+        ReviewStatus.Approved => "Đã duyệt",
+        ReviewStatus.Rejected => "Đã từ chối",
+        _ => status.ToString()
+    };
+
+    public static string ToBadgeClass(this ReviewStatus status) => status switch
+    {
+        ReviewStatus.Pending => "adm-badge-new",
+        ReviewStatus.Approved => "adm-badge-done",
+        ReviewStatus.Rejected => "adm-badge-cancel",
+        _ => "adm-badge-muted"
+    };
+
     public static string ToVietnamese(this PaymentMethod method) => method switch
     {
         PaymentMethod.Cod => "Thanh toán khi nhận hàng",

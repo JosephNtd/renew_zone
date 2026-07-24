@@ -121,8 +121,6 @@ public class CartService(IHttpContextAccessor accessor, ICatalogQueryService cat
         return Task.CompletedTask;
     }
 
-    // ---------------------------------------------------------------- helpers
-
     /// <summary>
     /// Đối chiếu id option client gửi lên với dữ liệu thật của sản phẩm.
     /// Id lạ (không thuộc sản phẩm) ⇒ từ chối; nhóm nào khách chưa chọn ⇒ lấy giá trị mặc định,

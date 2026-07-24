@@ -25,7 +25,7 @@
        mặc định tag helper không tự thêm) — tránh cả trường hợp phát trùng làm hỏng validate. *@
     <form method="post" action="/dat-hang" id="checkoutForm" asp-antiforgery="true" novalidate>
         <div class="checkout-grid">
-            @* ---------------- CỘT TRÁI: FORM ---------------- *@
+            @* CỘT TRÁI: FORM *@
             <div class="co-form reveal">
                 <div asp-validation-summary="ModelOnly" class="co-summary-errors"></div>
 
@@ -126,7 +126,7 @@
                 </p>
             </div>
 
-            @* ---------------- CỘT PHẢI: TÓM TẮT ĐƠN ---------------- *@
+            @* CỘT PHẢI: TÓM TẮT ĐƠN *@
             <aside class="co-summary-col">
                 <button class="co-sum-toggle d-lg-none" type="button" data-bs-toggle="collapse"
                         data-bs-target="#coSummary" aria-expanded="false" aria-controls="coSummary">

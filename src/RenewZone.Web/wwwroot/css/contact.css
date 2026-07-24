@@ -1,11 +1,11 @@
-/* =====================================================================
-   contact.css — Trang liên hệ (/lien-he), Giai đoạn 5.
+/* 
+   contact.css — Trang liên hệ (/lien-he).
    Form control (.rz-input, .co-label, .co-error) và .done-check dùng chung ở site.css.
-   ===================================================================== */
+*/
 
 .contact-page { padding-bottom: 48px; }
 
-/* =========================== ĐẦU TRANG =========================== */
+/*  ĐẦU TRANG  */
 .ct-head { margin-bottom: 24px; }
 .ct-title {
   font-family: var(--font-display);
@@ -16,7 +16,7 @@
 }
 .ct-intro { margin: 0; color: var(--ink-500); max-width: 70ch; }
 
-/* =========================== KÊNH LIÊN HỆ NHANH =========================== */
+/*  KÊNH LIÊN HỆ NHANH  */
 .ct-channels {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -56,7 +56,7 @@
 }
 .ct-channel-value { font-size: .82rem; color: var(--ink-500); }
 
-/* =========================== GRID 2 CỘT =========================== */
+/*  GRID 2 CỘT  */
 .ct-grid {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
@@ -81,7 +81,7 @@
 }
 .ct-card-sub { font-size: .86rem; color: var(--ink-500); margin: 0 0 18px; }
 
-/* =========================== FORM =========================== */
+/*  FORM  */
 .ct-fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -112,7 +112,7 @@
   overflow: hidden;
 }
 
-/* =========================== VÙNG ĐÍNH KÈM =========================== */
+/*  VÙNG ĐÍNH KÈM  */
 /* Input file thật: KHÔNG display:none (mất khả năng focus bằng bàn phím) */
 .ct-file-input {
   position: absolute;
@@ -151,7 +151,7 @@
 }
 .ct-dropzone.is-dragover .bi { transform: scale(1.1); }
 
-/* Bàn phím tab tới input file ẩn ⇒ vẫn phải thấy được vùng chọn đang focus */
+/* Bàn phím tab tới input file ẩn => vẫn phải thấy được vùng chọn đang focus */
 .ct-file-input:focus-visible + .ct-dropzone {
   border-color: var(--brand-400);
   box-shadow: 0 0 0 4px rgba(206, 95, 154, .14);
@@ -199,7 +199,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* =========================== GỬI THÀNH CÔNG =========================== */
+/*  GỬI THÀNH CÔNG  */
 .ct-success {
   display: flex;
   flex-direction: column;
@@ -211,7 +211,7 @@
 .ct-success-sub { color: var(--ink-500); margin: 0 0 22px; }
 .ct-success-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 
-/* =========================== CỘT THÔNG TIN =========================== */
+/*  CỘT THÔNG TIN  */
 .ct-info-col { position: sticky; top: 92px; }
 
 .ct-info-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
@@ -251,7 +251,7 @@
   transition: transform var(--t-base) var(--ease-spring), background var(--t-base), color var(--t-base);
 }
 
-/* =========================== BẢN ĐỒ =========================== */
+/*  BẢN ĐỒ  */
 .ct-map {
   position: relative;
   margin-top: 32px;
@@ -264,14 +264,14 @@
 .ct-map iframe { width: 100%; height: 100%; border: 0; display: block; }
 .ct-map-btn { position: absolute; top: 14px; right: 14px; box-shadow: var(--sh-md); }
 
-/* =========================== HOVER =========================== */
+/*  HOVER  */
 @media (hover: hover) {
   .ct-channel:hover { transform: translateY(-4px); box-shadow: var(--sh-md); border-color: var(--brand-200); }
   .ct-channel:hover .ct-channel-icon { background: var(--grad-brand); color: #fff; }
   .ct-social a:hover { background: var(--grad-brand); color: #fff; transform: translateY(-3px); }
 }
 
-/* =========================== RESPONSIVE =========================== */
+/*  RESPONSIVE  */
 @media (max-width: 991.98px) {
   /* Form lên trước thông tin cửa hàng */
   .ct-grid { grid-template-columns: 1fr; }

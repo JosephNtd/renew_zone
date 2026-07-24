@@ -1,0 +1,21 @@
+@model decimal
+@{
+    // Vẽ 5 sao theo điểm trung bình: đầy / nửa / rỗng. Chỉ hiển thị, không tương tác.
+    var full = (int)Math.Floor(Model);
+    var hasHalf = (Model - full) >= 0.5m;
+    var empty = 5 - full - (hasHalf ? 1 : 0);
+}
+<span class="rz-stars" role="img" aria-label="@Model.ToString("0.0") trên 5 sao">
+    @for (var i = 0; i < full; i++)
+    {
+        <i class="bi bi-star-fill" aria-hidden="true"></i>
+    }
+    @if (hasHalf)
+    {
+        <i class="bi bi-star-half" aria-hidden="true"></i>
+    }
+    @for (var i = 0; i < empty; i++)
+    {
+        <i class="bi bi-star" aria-hidden="true"></i>
+    }
+</span>

@@ -1,9 +1,10 @@
 /* cart.css — trang giỏ hàng (/gio-hang), đặt hàng (/dat-hang) và cảm ơn (/dat-hang-thanh-cong).
    Phần dùng chung mọi trang (mini-cart offcanvas, toast thêm giỏ, fly-clone, stepper) nằm ở site.css mục 15. */
 
-/* =========================== THANH TIẾN TRÌNH MUA HÀNG ===========================
+/*  THANH TIẾN TRÌNH MUA HÀNG 
    Giỏ hàng (1) → Đặt hàng (2) → Hoàn tất (3). Partial _CheckoutSteps.
-   Nét nối gồm 2 lớp: ::before nền xám + ::after hồng scaleX(0→1) khi bước đã tới. */
+   Nét nối gồm 2 lớp: ::before nền xám + ::after hồng scaleX(0→1) khi bước đã tới. 
+*/
 .rz-steps { padding: 24px 0 8px; }
 .rz-steps ol {
   display: flex;
@@ -85,7 +86,7 @@
 .rz-step:has(.rz-step-link):hover .rz-step-dot { transform: translateY(-3px); }
 .rz-step:has(.rz-step-link):hover .rz-step-label { color: var(--brand-600); }
 
-/* =========================== HEAD TRANG =========================== */
+/* HEAD TRANG */
 .cart-page,
 .checkout-page { padding-bottom: 48px; }
 
@@ -100,7 +101,7 @@
 .cart-count { font-size: .9rem; color: var(--ink-500); }
 .co-back { margin-left: auto; font-size: .88rem; font-weight: 600; }
 
-/* =========================== GIỎ TRỐNG =========================== */
+/*  GIỎ TRỐNG  */
 .cart-empty {
   text-align: center;
   padding: 40px 16px 72px;
@@ -116,7 +117,7 @@
 .cart-empty-sub { color: var(--ink-500); margin-bottom: 22px; }
 .cart-empty-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; }
 
-/* =========================== LƯỚI TRANG GIỎ =========================== */
+/*  LƯỚI TRANG GIỎ  */
 .cart-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 356px;
@@ -142,7 +143,7 @@
 .cart-lines-head span:nth-child(3),
 .cart-lines-head span:nth-child(4) { text-align: center; }
 
-/* --- Dòng sản phẩm --- */
+/*  Dòng sản phẩm  */
 .cart-line {
   display: grid;
   grid-template-columns: var(--cart-cols);
@@ -221,7 +222,7 @@
 }
 .cart-del:hover { background: #FDECEE; color: var(--red-500); }
 
-/* =========================== CARD TÓM TẮT =========================== */
+/*  CARD TÓM TẮT  */
 .cart-summary-col { position: sticky; top: 92px; }
 
 .cart-summary {
@@ -305,7 +306,7 @@
   font-weight: 600;
 }
 
-/* =========================== THANH CTA DÍNH ĐÁY (mobile) =========================== */
+/*  THANH CTA DÍNH ĐÁY (mobile)  */
 .cart-mobile-bar {
   position: fixed;
   left: 0; right: 0; bottom: 0;
@@ -328,7 +329,7 @@
   color: var(--red-500);
 }
 
-/* =========================== CHECKOUT =========================== */
+/*  CHECKOUT  */
 .checkout-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 380px;
@@ -382,7 +383,7 @@
 }
 .co-summary-errors ul { margin: 0; padding-left: 18px; }
 
-/* --- Radio card thanh toán --- */
+/*  Radio card thanh toán */
 .pay-cards { display: grid; gap: 12px; }
 .pay-card { display: block; margin: 0; cursor: pointer; }
 .pay-radio { position: absolute; opacity: 0; width: 0; height: 0; }
@@ -431,7 +432,7 @@
 }
 .pay-radio:checked + .pay-body .pay-tick { opacity: 1; transform: scale(1); }
 
-/* --- Panel chuyển khoản (hé lộ khi chọn) --- */
+/*  Panel chuyển khoản (hé lộ khi chọn)  */
 .bank-panel {
   max-height: 0;
   opacity: 0;
@@ -521,7 +522,7 @@
 .co-item-variant { display: block; font-size: .72rem; color: var(--ink-400); }
 .co-item-total { font-family: var(--font-display); font-weight: 700; font-size: .88rem; color: var(--ink-900); }
 
-/* =========================== TRANG CẢM ƠN =========================== */
+/*  TRANG CẢM ƠN  */
 .done-page { padding: 24px 0 56px; }
 .done-card {
   max-width: 620px;
@@ -602,7 +603,7 @@
 .done-hotline { margin: 18px 0 0; font-size: .85rem; color: var(--ink-500); }
 .done-hotline a { font-weight: 700; color: var(--red-500); }
 
-/* =========================== KEYFRAMES RIÊNG ===========================
+/*  KEYFRAMES RIÊNG 
    `shake` + `draw-stroke` đã chuyển sang site.css (mục 17 và 20) vì trang liên hệ dùng lại. */
 @keyframes step-line {
   to { transform: scaleX(1); }
@@ -613,7 +614,7 @@
   100% { transform: scale(1); }
 }
 
-/* =========================== RESPONSIVE =========================== */
+/*  RESPONSIVE  */
 @media (max-width: 1199.98px) {
   .cart-grid { grid-template-columns: minmax(0, 1fr) 320px; }
   .checkout-grid { grid-template-columns: minmax(0, 1fr) 330px; }

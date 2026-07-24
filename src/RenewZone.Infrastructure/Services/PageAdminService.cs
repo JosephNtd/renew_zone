@@ -13,8 +13,7 @@ namespace RenewZone.Infrastructure.Services;
 /// </summary>
 public class PageAdminService(AppDbContext db, ISlugService slugs) : IPageAdminService
 {
-    // ===================== Trang tĩnh =====================
-
+    // Trang tĩnh
     public async Task<IReadOnlyList<StaticPageItem>> GetPagesAsync() =>
         await db.StaticPages.AsNoTracking()
             .OrderBy(p => p.Title)
@@ -81,7 +80,7 @@ public class PageAdminService(AppDbContext db, ISlugService slugs) : IPageAdminS
         return AdminResult.Success($"Đã chuyển trang “{page.Title}” vào Thùng rác.{note}");
     }
 
-    // ===================== Banner =====================
+    // Banner
 
     public async Task<IReadOnlyList<BannerItem>> GetBannersAsync() =>
         await db.Banners.AsNoTracking()
@@ -175,7 +174,7 @@ public class PageAdminService(AppDbContext db, ISlugService slugs) : IPageAdminS
         return AdminResult.Success("Đã lưu thứ tự banner.");
     }
 
-    // ===================== Đánh giá =====================
+    // Đánh giá
 
     public async Task<IReadOnlyList<TestimonialItem>> GetTestimonialsAsync() =>
         await db.Testimonials.AsNoTracking()

@@ -7,7 +7,7 @@
   var form = document.getElementById("contactForm");
   if (!form) return; // trang đang ở trạng thái "đã gửi thành công", không có form
 
-  // ---------------------------------------------------------------- đếm ký tự
+  // đếm ký tự
   var content = document.getElementById("Input_Content");
   var counter = document.getElementById("contentCounter");
 
@@ -24,7 +24,7 @@
     updateCounter();
   }
 
-  // ---------------------------------------------------------- đính kèm file
+  // đính kèm file
   var fileInput = document.getElementById("attachment");
   var dropzone = document.getElementById("ctDropzone");
   var chip = document.getElementById("ctFileChip");
@@ -158,7 +158,7 @@
     });
   }
 
-  // --------------------------------------------- chống double-submit + spinner
+  // chống double-submit + spinner
   var submitBtn = document.getElementById("contactSubmit");
 
   form.addEventListener("submit", function () {
@@ -175,7 +175,7 @@
       '<span class="spinner-border" role="status" aria-hidden="true"></span> Đang gửi...';
   });
 
-  // ------------------------------------------ chấm "Đang mở cửa / Đã đóng cửa"
+  // chấm "Đang mở cửa / Đã đóng cửa"
   var dot = document.getElementById("ctOpenDot");
   if (dot) {
     var hours = dot.getAttribute("data-hours") || "";

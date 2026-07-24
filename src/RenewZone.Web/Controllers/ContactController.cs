@@ -49,13 +49,13 @@ public class ContactController : Controller
     [RequestSizeLimit(12 * 1024 * 1024)] // chặn sớm ở tầng request, giới hạn từng file kiểm riêng bên dưới
     public async Task<IActionResult> Index([Bind(Prefix = "Input")] ContactInput input, IFormFile? attachment)
     {
-        // ----- Honeypot: bot điền vào input ẩn ⇒ giả vờ thành công nhưng KHÔNG ghi DB -----
+        // Honeypot: bot điền vào input ẩn ⇒ giả vờ thành công nhưng KHÔNG ghi DB
         if (!string.IsNullOrWhiteSpace(input.Website))
         {
             return RedirectToAction(nameof(Index), new { sent = 1 });
         }
 
-        // ----- Chặn tần suất: 2 lần gửi cách nhau dưới 30 giây -----
+        // Chặn tần suất: 2 lần gửi cách nhau dưới 30 giây
         var lastTicks = HttpContext.Session.GetString(LastSubmitSessionKey);
         if (lastTicks is not null
             && long.TryParse(lastTicks, out var ticks)
@@ -66,7 +66,7 @@ public class ContactController : Controller
             return View(await BuildViewModelAsync(input, justSent: false));
         }
 
-        // ----- File đính kèm: validate server, KHÔNG tin phần kiểm ở client -----
+        // File đính kèm: validate server, KHÔNG tin phần kiểm ở client
         var attachmentPath = await TryStoreAttachmentAsync(attachment);
 
         if (!ModelState.IsValid)

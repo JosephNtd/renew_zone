@@ -3,7 +3,7 @@
 (function () {
     "use strict";
 
-    /* ---------- 1. Panel thông tin chuyển khoản hé lộ theo lựa chọn ---------- */
+    /* 1. Panel thông tin chuyển khoản hé lộ theo lựa chọn */
     var bankPanel = document.getElementById("bankPanel");
     var payRadios = document.querySelectorAll(".pay-radio");
 
@@ -19,7 +19,7 @@
     });
     syncBankPanel();
 
-    /* ---------- 2. Chặn double-submit ---------- */
+    /* 2. Chặn double-submit */
     var form = document.getElementById("checkoutForm");
     var submitBtn = document.getElementById("checkoutSubmit");
 
@@ -38,7 +38,7 @@
         });
     }
 
-    /* ---------- 3. Trang cảm ơn: copy mã đơn ---------- */
+    /* 3. Trang cảm ơn: copy mã đơn */
     var copyBtn = document.getElementById("copyOrderCode");
     if (copyBtn) {
         copyBtn.addEventListener("click", function () {

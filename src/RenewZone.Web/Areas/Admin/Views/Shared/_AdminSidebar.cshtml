@@ -46,6 +46,16 @@
            asp-area="Admin" asp-controller="Product" asp-action="Index">
             <i class="bi bi-box-seam" aria-hidden="true"></i><span>Sản phẩm</span>
         </a>
+        <a class="adm-nav-item @Active("Review")" aria-current="@Current("Review")"
+           asp-area="Admin" asp-controller="Review" asp-action="Index">
+            <i class="bi bi-star" aria-hidden="true"></i><span>Đánh giá sản phẩm</span>
+            @if (Model.PendingReviews > 0)
+            {
+                @* id riêng để realtime + màn Đánh giá cập nhật đúng badge này (không đụng đơn/liên hệ) *@
+                <span class="adm-nav-badge" id="reviewBadge"
+                      title="@Model.PendingReviews đánh giá chờ duyệt">@Model.PendingReviews</span>
+            }
+        </a>
 
         <div class="adm-nav-group-label">Nội dung</div>
         <a class="adm-nav-item @Active("News")" aria-current="@Current("News")"

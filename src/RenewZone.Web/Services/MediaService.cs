@@ -81,10 +81,10 @@ public class MediaService(IWebHostEnvironment env, IOptions<UploadOptions> optio
             // ẢNH: nạp qua ImageSharp → strip metadata → resize (chỉ khi rộng hơn mức) → nén lại.
             // Tối ưu ở NGUỒN (một lần lúc upload) thay vì mỗi request. Lớp này còn là chốt bảo mật
             // BONUS: file giả đuôi ảnh không decode được sẽ bị chặn tại đây, kể cả khi lọt whitelist.
-            var processed = await SaveProcessedImageAsync(file, absolutePath, extension, config.MaxWidth);
-            if (!processed)
+            var error = await SaveProcessedImageAsync(file, absolutePath, extension, config);
+            if (error is not null)
             {
-                return new MediaResult(false, null, "File ảnh không hợp lệ hoặc bị hỏng.", originalName);
+                return new MediaResult(false, null, error, originalName);
             }
         }
         else
@@ -155,17 +155,29 @@ public class MediaService(IWebHostEnvironment env, IOptions<UploadOptions> optio
         extension is ".jpg" or ".jpeg" or ".png" or ".webp";
 
     /// <summary>
-    /// Nạp ảnh bằng ImageSharp, xóa metadata (EXIF/ICC/XMP — bỏ GPS/thiết bị của khách + giảm dung
-    /// lượng), thu nhỏ về <paramref name="maxWidth"/> nếu rộng hơn (giữ tỉ lệ, KHÔNG phóng to ảnh nhỏ),
-    /// rồi lưu bằng encoder theo đuôi. Trả false (KHÔNG ném) khi file không decode được — bọc cả hàm
-    /// trong try/catch để file "đuôi .jpg nhưng nội dung hỏng" không làm văng 500.
+    /// Nạp ảnh bằng ImageSharp, KIỂM kích thước tối thiểu (nếu profile khai), xóa metadata
+    /// (EXIF/ICC/XMP — bỏ GPS/thiết bị của khách + giảm dung lượng), thu nhỏ về <c>MaxWidth</c> nếu
+    /// rộng hơn (giữ tỉ lệ, KHÔNG phóng to ảnh nhỏ), rồi lưu bằng encoder theo đuôi.
+    /// Trả <c>null</c> khi THÀNH CÔNG; trả CHUỖI thông báo lỗi (tiếng Việt) khi ảnh quá nhỏ hoặc
+    /// file không decode được — bọc cả hàm trong try/catch để file "đuôi .jpg nhưng nội dung hỏng"
+    /// không làm văng 500.
     /// </summary>
-    private async Task<bool> SaveProcessedImageAsync(IFormFile file, string absolutePath, string extension, int maxWidth)
+    private async Task<string?> SaveProcessedImageAsync(IFormFile file, string absolutePath, string extension, UploadProfileOptions config)
     {
         try
         {
             await using var input = file.OpenReadStream();
             using var image = await Image.LoadAsync(input);
+
+            // Sàn dưới: ảnh nhỏ hơn vùng hiển thị sẽ bị phóng to → vỡ/mờ. Kiểm SAU khi decode nên
+            // vẫn nằm trong lớp bảo vệ của catch (file giả đuôi ảnh không decode được đã bị chặn trước).
+            // KHÔNG ép đúng kích thước — chỉ từ chối ảnh quá nhỏ.
+            if ((config.MinWidth > 0 && image.Width < config.MinWidth) ||
+                (config.MinHeight > 0 && image.Height < config.MinHeight))
+            {
+                return $"Ảnh quá nhỏ (tối thiểu {config.MinWidth}×{config.MinHeight}px, " +
+                       $"ảnh của bạn {image.Width}×{image.Height}px).";
+            }
 
             // Strip metadata: bảo vệ quyền riêng tư khách (GPS) + nhẹ file
             image.Metadata.ExifProfile = null;
@@ -173,25 +185,25 @@ public class MediaService(IWebHostEnvironment env, IOptions<UploadOptions> optio
             image.Metadata.XmpProfile = null;
 
             // Chỉ resize khi ảnh RỘNG HƠN mức max — ResizeMode.Max giữ tỉ lệ, không phóng to
-            if (maxWidth > 0 && image.Width > maxWidth)
+            if (config.MaxWidth > 0 && image.Width > config.MaxWidth)
             {
                 image.Mutate(x => x.Resize(new ResizeOptions
                 {
                     Mode = ResizeMode.Max,
-                    Size = new Size(maxWidth, 0)
+                    Size = new Size(config.MaxWidth, 0)
                 }));
             }
 
             await using var output = File.Create(absolutePath);
             await image.SaveAsync(output, EncoderFor(extension));
-            return true;
+            return null;
         }
         catch (Exception ex) // UnknownImageFormatException / InvalidImageContentException cho file hỏng
         {
             logger.LogWarning(ex, "File ảnh không decode được, từ chối lưu.");
             // Dọn file rỗng/dở nếu đã tạo (LoadAsync ném trước File.Create thì không có gì để dọn)
             try { if (File.Exists(absolutePath)) File.Delete(absolutePath); } catch { /* bỏ qua */ }
-            return false;
+            return "File ảnh không hợp lệ hoặc bị hỏng.";
         }
     }
 
