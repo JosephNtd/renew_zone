@@ -49,6 +49,15 @@ public static partial class SeedData
             changed = true;
         }
 
+        // Cập nhật "Bảng giá thu cũ đổi mới" — chỉ khi nội dung vẫn là placeholder gốc
+        var tradeInPage = await db.StaticPages.FirstOrDefaultAsync(p => p.Slug == "bang-gia-thu-cu-doi-moi");
+        if (tradeInPage != null
+            && (tradeInPage.ContentHtml?.Contains("Nội dung mẫu tự viết cho dự án học tập") ?? false))
+        {
+            tradeInPage.ContentHtml = TradeInPriceTableHtml;
+            changed = true;
+        }
+
         if (changed)
         {
             await db.SaveChangesAsync();
@@ -64,7 +73,7 @@ public static partial class SeedData
             """
             <p><strong>iPhone 16 Pro Max</strong> là flagship mạnh nhất của Apple hiện tại, sở hữu khung Titan cấp 5 nhẹ và bền hơn thế hệ trước, cùng màn hình Super Retina XDR 6.9 inch lớn nhất từ trước đến nay trên dòng Pro.</p>
             <p>Chip A18 Pro cho hiệu năng vượt trội, xử lý mượt các tác vụ AI trên máy (Apple Intelligence), trong khi cụm camera 48MP với ống Telephoto 5x giúp chụp xa sắc nét hơn hẳn. Nút Camera Control mới cho phép chụp ảnh nhanh chỉ với một chạm.</p>
-            <p>Máy tại RenewZone Demo được kiểm tra 90 điểm trước khi giao, đi kèm bảo hành dài hạn, hỗ trợ trả góp 0% và thu cũ đổi mới trợ giá cao cho khách nâng cấp.</p>
+            <p>Máy tại Apple Store Uyên NTT được kiểm tra 90 điểm trước khi giao, đi kèm bảo hành dài hạn, hỗ trợ trả góp 0% và thu cũ đổi mới trợ giá cao cho khách nâng cấp.</p>
             """,
             """
             <ul>
@@ -98,9 +107,9 @@ public static partial class SeedData
         ["iphone-17-pro-max-256gb"] = new ProductContent(
             "iPhone 17 Pro Max - thế hệ mới nhất, thiết kế và camera nâng cấp toàn diện. Liên hệ để nhận giá tốt nhất và ưu đãi đặt trước.",
             """
-            <p><strong>iPhone 17 Pro Max</strong> là sản phẩm mới nhất trong dòng iPhone Pro, được nâng cấp toàn diện về thiết kế, hiệu năng và hệ thống camera so với thế hệ trước. Đây là model đang được RenewZone Demo ưu tiên nhập hàng sớm.</p>
+            <p><strong>iPhone 17 Pro Max</strong> là sản phẩm mới nhất trong dòng iPhone Pro, được nâng cấp toàn diện về thiết kế, hiệu năng và hệ thống camera so với thế hệ trước. Đây là model đang được Apple Store Uyên NTT ưu tiên nhập hàng sớm.</p>
             <p>Do mới ra mắt, thông tin cấu hình chi tiết và giá bán sẽ được cập nhật liên tục theo nguồn hàng chính hãng. Quý khách quan tâm vui lòng để lại thông tin hoặc gọi hotline để được tư vấn giá tốt nhất và giữ chỗ đặt trước.</p>
-            <p>Khách đặt trước tại RenewZone Demo được ưu tiên nhận máy sớm, hỗ trợ trả góp 0% và trợ giá thu cũ đổi mới ngay khi lên đời.</p>
+            <p>Khách đặt trước tại Apple Store Uyên NTT được ưu tiên nhận máy sớm, hỗ trợ trả góp 0% và trợ giá thu cũ đổi mới ngay khi lên đời.</p>
             """,
             """
             <ul>
@@ -134,7 +143,7 @@ public static partial class SeedData
             "iPhone 15 Pro 128GB - khung Titan nhẹ bền, chip A17 Pro, camera Telephoto 3x zoom quang học.",
             """
             <p><strong>iPhone 15 Pro</strong> là phiên bản 6.1 inch nhỏ gọn của dòng Pro, dùng khung Titan nhẹ hơn thép không gỉ, trang bị chip A17 Pro và cụm camera zoom quang 3x linh hoạt cho nhu cầu chụp ảnh hàng ngày.</p>
-            <p>Máy đã qua sử dụng được RenewZone Demo kiểm tra toàn diện, phân loại tình trạng minh bạch, phù hợp khách muốn trải nghiệm dòng Pro với chi phí hợp lý hơn máy mới.</p>
+            <p>Máy đã qua sử dụng được Apple Store Uyên NTT kiểm tra toàn diện, phân loại tình trạng minh bạch, phù hợp khách muốn trải nghiệm dòng Pro với chi phí hợp lý hơn máy mới.</p>
             <p>Đi kèm bảo hành dài hạn, hỗ trợ trả góp 0% và trợ giá thu cũ đổi mới.</p>
             """,
             """
@@ -151,7 +160,7 @@ public static partial class SeedData
             "iPhone 15 128GB - Dynamic Island, cổng USB-C, camera chính 48MP. Lựa chọn cân bằng giữa giá và trải nghiệm.",
             """
             <p><strong>iPhone 15</strong> mang Dynamic Island và cổng USB-C - hai nâng cấp được mong chờ nhất - xuống phân khúc phổ thông, cùng camera chính 48MP cho ảnh chụp chi tiết hơn hẳn thế hệ trước.</p>
-            <p>Đây là mẫu bán chạy nhất tại RenewZone Demo nhờ mức giá hợp lý mà vẫn đầy đủ trải nghiệm iPhone hiện đại, phù hợp số đông người dùng.</p>
+            <p>Đây là mẫu bán chạy nhất tại Apple Store Uyên NTT nhờ mức giá hợp lý mà vẫn đầy đủ trải nghiệm iPhone hiện đại, phù hợp số đông người dùng.</p>
             <p>Máy được kiểm tra kỹ, bảo hành dài hạn, hỗ trợ trả góp 0% và thu cũ đổi mới.</p>
             """,
             """
@@ -169,7 +178,7 @@ public static partial class SeedData
             """
             <p><strong>iPhone 14 Pro Max</strong> là chiếc iPhone đầu tiên giới thiệu Dynamic Island và camera chính 48MP, cùng màn hình Always-On hiển thị thông tin liên tục mà không cần chạm mở khóa.</p>
             <p>Sau thời gian sử dụng, máy vẫn giữ hiệu năng ổn định nhờ chip A16 Bionic mạnh mẽ, là lựa chọn tốt cho khách muốn trải nghiệm dòng Pro Max với chi phí thấp hơn đáng kể so với đời mới.</p>
-            <p>RenewZone Demo kiểm tra pin, màn hình, camera kỹ trước khi bán, bảo hành dài hạn kèm trả góp 0%.</p>
+            <p>Apple Store Uyên NTT kiểm tra pin, màn hình, camera kỹ trước khi bán, bảo hành dài hạn kèm trả góp 0%.</p>
             """,
             """
             <ul>
@@ -203,7 +212,7 @@ public static partial class SeedData
             """
             <p><strong>iPhone 11</strong> là lựa chọn tiết kiệm nhất để bắt đầu trải nghiệm hệ sinh thái Apple, với camera kép 12MP chụp ảnh tốt trong tầm giá và chip A13 Bionic vẫn đáp ứng tốt các tác vụ hàng ngày, lướt web, mạng xã hội.</p>
             <p>Phù hợp làm máy phụ, máy cho người lớn tuổi hoặc trẻ em, hay đơn giản là người dùng không đặt nặng cấu hình mạnh.</p>
-            <p>Máy đã qua kiểm tra kỹ tại RenewZone Demo, bảo hành dài hạn, giá cực kỳ cạnh tranh.</p>
+            <p>Máy đã qua kiểm tra kỹ tại Apple Store Uyên NTT, bảo hành dài hạn, giá cực kỳ cạnh tranh.</p>
             """,
             """
             <ul>
@@ -407,7 +416,7 @@ public static partial class SeedData
         ["iphone-12-64gb-thanh-ly"] = new ProductContent(
             "iPhone 12 64GB - hàng thanh lý 97%, đã kiểm tra kỹ pin và ngoại hình, giá cực tốt cho người dùng tiết kiệm.",
             """
-            <p><strong>iPhone 12 64GB</strong> hàng thanh lý được RenewZone Demo kiểm tra kỹ về pin, màn hình và các cảm biến trước khi lên kệ, ngoại hình đạt tình trạng 97% - vết xước rất nhỏ khó nhận thấy khi sử dụng bình thường.</p>
+            <p><strong>iPhone 12 64GB</strong> hàng thanh lý được Apple Store Uyên NTT kiểm tra kỹ về pin, màn hình và các cảm biến trước khi lên kệ, ngoại hình đạt tình trạng 97% - vết xước rất nhỏ khó nhận thấy khi sử dụng bình thường.</p>
             <p>Máy vẫn hỗ trợ MagSafe, camera kép chụp ảnh tốt và chip A14 Bionic đủ mượt cho các nhu cầu hàng ngày, là lựa chọn tiết kiệm nếu bạn muốn dùng iPhone màn OLED với chi phí thấp.</p>
             <p>Hàng thanh lý có bảo hành ngắn hạn tại cửa hàng, hỗ trợ đổi trả trong thời gian quy định nếu phát sinh lỗi kỹ thuật.</p>
             """,
@@ -452,7 +461,7 @@ public static partial class SeedData
             <p>Nguồn tin từ các nhà phân tích chuỗi cung ứng cho biết Apple sẽ đầu tư mạnh vào cảm biến camera chính với độ phân giải cao hơn, cải thiện đáng kể khả năng chụp thiếu sáng và quay video ở độ phân giải cao. Ống kính Telephoto cũng được cho là sẽ có bước nhảy vọt về khả năng zoom quang học.</p>
             <h3>Hiệu năng và thời điểm ra mắt</h3>
             <p>Về hiệu năng, chip xử lý thế hệ mới được kỳ vọng mang lại cải thiện lớn cho các tác vụ trí tuệ nhân tạo trên thiết bị. Theo lịch trình thường niên, Apple nhiều khả năng sẽ công bố sản phẩm vào tháng 9, và người dùng tại Việt Nam có thể đặt mua ngay trong đợt mở bán đầu tiên.</p>
-            <p><em>RenewZone Demo sẽ cập nhật thông tin giá bán và cấu hình chính thức ngay khi Apple công bố. Khách quan tâm có thể để lại thông tin đặt trước để được ưu tiên nhận máy sớm.</em></p>
+            <p><em>Apple Store Uyên NTT sẽ cập nhật thông tin giá bán và cấu hình chính thức ngay khi Apple công bố. Khách quan tâm có thể để lại thông tin đặt trước để được ưu tiên nhận máy sớm.</em></p>
             """),
 
         ["apple-phat-hanh-ban-cap-nhat-ios-moi"] = new NewsContent(
@@ -515,7 +524,7 @@ public static partial class SeedData
         ["nen-mua-iphone-15-pro-max-cu-hay-iphone-16-moi"] = new NewsContent(
             "Cùng tầm giá gần nhau, nhiều khách hàng phân vân giữa iPhone 15 Pro Max cũ 99% và iPhone 16 mới. Bài viết so sánh giúp bạn chọn đúng máy phù hợp nhu cầu.",
             """
-            <p>Đây là câu hỏi mà rất nhiều khách hàng đặt ra khi đến tư vấn tại RenewZone Demo: nên chọn <strong>iPhone 15 Pro Max cũ 99%</strong> hay <strong>iPhone 16 mới nguyên seal</strong> khi mức giá hai máy khá gần nhau? Câu trả lời phụ thuộc vào nhu cầu sử dụng cụ thể của từng người.</p>
+            <p>Đây là câu hỏi mà rất nhiều khách hàng đặt ra khi đến tư vấn tại Apple Store Uyên NTT: nên chọn <strong>iPhone 15 Pro Max cũ 99%</strong> hay <strong>iPhone 16 mới nguyên seal</strong> khi mức giá hai máy khá gần nhau? Câu trả lời phụ thuộc vào nhu cầu sử dụng cụ thể của từng người.</p>
             <h3>Về hiệu năng và camera</h3>
             <p>iPhone 15 Pro Max sở hữu chip A17 Pro cùng camera Telephoto tetraprism zoom quang 5x - vốn là tính năng cao cấp của dòng Pro Max, trong khi iPhone 16 (bản thường) dùng chip A18 nhưng camera không có ống kính zoom xa. Nếu bạn ưu tiên chụp ảnh xa, quay video chuyên nghiệp, 15 Pro Max vẫn có lợi thế.</p>
             <h3>Về độ mới và bảo hành</h3>
@@ -560,7 +569,7 @@ public static partial class SeedData
             </ol>
             <h3>Lưu ý để tránh phát sinh chi phí</h3>
             <p>Trả góp 0% lãi suất qua thẻ tín dụng thường miễn phí chuyển đổi nếu thanh toán đúng hạn hàng tháng, tuy nhiên một số ngân hàng có thể thu phí chuyển đổi trả góp (khoảng 2-3% giá trị đơn hàng). Khách hàng nên hỏi kỹ nhân viên tư vấn về tổng chi phí thực tế trước khi quyết định.</p>
-            <p>Tại RenewZone Demo, khách hàng được hỗ trợ tư vấn trả góp 0% linh hoạt ngay tại quầy, thủ tục nhanh gọn và minh bạch về chi phí phát sinh (nếu có).</p>
+            <p>Tại Apple Store Uyên NTT, khách hàng được hỗ trợ tư vấn trả góp 0% linh hoạt ngay tại quầy, thủ tục nhanh gọn và minh bạch về chi phí phát sinh (nếu có).</p>
             """),
 
         ["airpods-the-he-moi-do-nhip-tim"] = new NewsContent(
@@ -577,7 +586,267 @@ public static partial class SeedData
             </ul>
             <h3>Khi nào sẽ ra mắt?</h3>
             <p>Hiện Apple chưa xác nhận chính thức về tính năng này. Nếu đúng như tin đồn, khả năng cao tính năng đo nhịp tim sẽ xuất hiện trên các mẫu AirPods cao cấp trong tương lai gần, mở ra một hướng phát triển mới cho dòng tai nghe true wireless vốn đã rất phổ biến.</p>
-            <p>RenewZone Demo sẽ cập nhật thông tin sớm nhất ngay khi Apple công bố chính thức các tính năng sức khỏe mới trên AirPods.</p>
+            <p>Apple Store Uyên NTT sẽ cập nhật thông tin sớm nhất ngay khi Apple công bố chính thức các tính năng sức khỏe mới trên AirPods.</p>
             """),
     };
+
+    // Bảng giá thu cũ đổi mới — nội dung dài chi tiết với bảng giá từ các model khác nhau.
+    // KHÔNG mở đầu bằng <h2> trùng tiêu đề: view StaticPage.cshtml đã render Model.Title thành <h1>.
+    private const string TradeInPriceTableHtml = """
+        <p><strong>Nâng cấp lên thiết bị mới chưa bao giờ dễ dàng đến thế!</strong> Apple Store Uyên NTT nhận đánh giá và trợ giá thiết bị cũ của bạn ngay tại chỗ, giúp giảm đáng kể chi phí khi lên đời máy mới. Quy trình minh bạch, định giá công khai, không phí ẩn.</p>
+
+        <h3>Tại sao nên thu cũ đổi mới tại Apple Store Uyên NTT?</h3>
+        <ul>
+          <li><strong>Giá công bằng:</strong> đánh giá dựa trên tình trạng thực tế máy (98%, 99%, 100%), so sánh thị trường khách quan.</li>
+          <li><strong>Quy trình nhanh:</strong> kiểm tra trong 5 phút, báo giá ngay, không chờ đợi lâu.</li>
+          <li><strong>Không phí tiền:</strong> khách thay ý định không mua máy mới vẫn không tính phí kiểm tra.</li>
+          <li><strong>Trực tiếp tại cửa hàng:</strong> khách chứng kiến toàn bộ quá trình đánh giá, minh bạch từ đầu đến cuối.</li>
+        </ul>
+
+        <h3>Bảng giá tham khảo</h3>
+        <p><em>Giá dưới đây là <strong>mức tham khảo</strong> cho dự án học tập, phụ thuộc tình trạng máy thực tế —
+        những chiếc máy "chưa dùng bao giờ" (100%) hoặc có vết trầy xước đáng kể sẽ được điều chỉnh giá.</em></p>
+
+        <h4>iPhone — Từ iPhone 11 đến iPhone 17</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th style="text-align: center;">Tình trạng 100%</th>
+              <th style="text-align: center;">Tình trạng 99%</th>
+              <th style="text-align: center;">Tình trạng 98%</th>
+              <th>Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>iPhone 17 Pro Max 256GB</td>
+              <td style="text-align: right;">18.500.000đ</td>
+              <td style="text-align: right;">17.200.000đ</td>
+              <td style="text-align: right;">15.900.000đ</td>
+              <td>Máy mới nhất</td>
+            </tr>
+            <tr>
+              <td>iPhone 17 Pro 128GB</td>
+              <td style="text-align: right;">15.800.000đ</td>
+              <td style="text-align: right;">14.600.000đ</td>
+              <td style="text-align: right;">13.400.000đ</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>iPhone 16 Pro Max 256GB</td>
+              <td style="text-align: right;">16.200.000đ</td>
+              <td style="text-align: right;">15.100.000đ</td>
+              <td style="text-align: right;">13.900.000đ</td>
+              <td>Bán chạy</td>
+            </tr>
+            <tr>
+              <td>iPhone 16 Pro 128GB</td>
+              <td style="text-align: right;">13.900.000đ</td>
+              <td style="text-align: right;">12.900.000đ</td>
+              <td style="text-align: right;">11.900.000đ</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>iPhone 15 Pro Max 256GB</td>
+              <td style="text-align: right;">13.500.000đ</td>
+              <td style="text-align: right;">12.600.000đ</td>
+              <td style="text-align: right;">11.600.000đ</td>
+              <td>Giảm dần theo thế hệ</td>
+            </tr>
+            <tr>
+              <td>iPhone 15 Pro 128GB</td>
+              <td style="text-align: right;">11.200.000đ</td>
+              <td style="text-align: right;">10.400.000đ</td>
+              <td style="text-align: right;">9.500.000đ</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>iPhone 15 128GB</td>
+              <td style="text-align: right;">9.800.000đ</td>
+              <td style="text-align: right;">9.100.000đ</td>
+              <td style="text-align: right;">8.300.000đ</td>
+              <td>Màn hình 6.1 inch</td>
+            </tr>
+            <tr>
+              <td>iPhone 14 Pro Max 256GB</td>
+              <td style="text-align: right;">11.200.000đ</td>
+              <td style="text-align: right;">10.400.000đ</td>
+              <td style="text-align: right;">9.500.000đ</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>iPhone 13 128GB</td>
+              <td style="text-align: right;">6.800.000đ</td>
+              <td style="text-align: right;">6.200.000đ</td>
+              <td style="text-align: right;">5.600.000đ</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>iPhone 12 64GB</td>
+              <td style="text-align: right;">5.200.000đ</td>
+              <td style="text-align: right;">4.700.000đ</td>
+              <td style="text-align: right;">4.200.000đ</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>iPhone 11 64GB</td>
+              <td style="text-align: right;">3.900.000đ</td>
+              <td style="text-align: right;">3.500.000đ</td>
+              <td style="text-align: right;">3.100.000đ</td>
+              <td>Giá thấp hơn</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h4>MacBook — Air &amp; Pro</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th style="text-align: center;">Tình trạng 100%</th>
+              <th style="text-align: center;">Tình trạng 99%</th>
+              <th style="text-align: center;">Tình trạng 98%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>MacBook Air M3 15 inch 16GB/256GB</td>
+              <td style="text-align: right;">18.500.000đ</td>
+              <td style="text-align: right;">17.300.000đ</td>
+              <td style="text-align: right;">16.100.000đ</td>
+            </tr>
+            <tr>
+              <td>MacBook Air M2 13 inch 8GB/256GB</td>
+              <td style="text-align: right;">13.200.000đ</td>
+              <td style="text-align: right;">12.300.000đ</td>
+              <td style="text-align: right;">11.400.000đ</td>
+            </tr>
+            <tr>
+              <td>MacBook Air M1 13 inch 8GB/256GB</td>
+              <td style="text-align: right;">10.200.000đ</td>
+              <td style="text-align: right;">9.500.000đ</td>
+              <td style="text-align: right;">8.800.000đ</td>
+            </tr>
+            <tr>
+              <td>MacBook Pro M4 14 inch 16GB/512GB</td>
+              <td style="text-align: right;">22.500.000đ</td>
+              <td style="text-align: right;">20.900.000đ</td>
+              <td style="text-align: right;">19.500.000đ</td>
+            </tr>
+            <tr>
+              <td>MacBook Pro M3 14 inch 8GB/512GB</td>
+              <td style="text-align: right;">18.800.000đ</td>
+              <td style="text-align: right;">17.500.000đ</td>
+              <td style="text-align: right;">16.200.000đ</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h4>iPad — Pro, Air &amp; Mini</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th style="text-align: center;">Tình trạng 100%</th>
+              <th style="text-align: center;">Tình trạng 99%</th>
+              <th style="text-align: center;">Tình trạng 98%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>iPad Pro 11 inch M4 WiFi 256GB</td>
+              <td style="text-align: right;">15.200.000đ</td>
+              <td style="text-align: right;">14.100.000đ</td>
+              <td style="text-align: right;">13.000.000đ</td>
+            </tr>
+            <tr>
+              <td>iPad Air 11 inch M2 WiFi 256GB</td>
+              <td style="text-align: right;">10.500.000đ</td>
+              <td style="text-align: right;">9.800.000đ</td>
+              <td style="text-align: right;">9.100.000đ</td>
+            </tr>
+            <tr>
+              <td>iPad Mini 7 WiFi 128GB</td>
+              <td style="text-align: right;">7.800.000đ</td>
+              <td style="text-align: right;">7.200.000đ</td>
+              <td style="text-align: right;">6.600.000đ</td>
+            </tr>
+            <tr>
+              <td>iPad 10.9 inch Gen 10 WiFi 64GB</td>
+              <td style="text-align: right;">5.800.000đ</td>
+              <td style="text-align: right;">5.400.000đ</td>
+              <td style="text-align: right;">4.900.000đ</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h4>Apple Watch &amp; AirPods</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th style="text-align: center;">Tình trạng 100%</th>
+              <th style="text-align: center;">Tình trạng 99%</th>
+              <th style="text-align: center;">Tình trạng 98%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Apple Watch Series 10 46mm GPS</td>
+              <td style="text-align: right;">6.500.000đ</td>
+              <td style="text-align: right;">6.000.000đ</td>
+              <td style="text-align: right;">5.500.000đ</td>
+            </tr>
+            <tr>
+              <td>Apple Watch Ultra 2 49mm</td>
+              <td style="text-align: right;">11.500.000đ</td>
+              <td style="text-align: right;">10.700.000đ</td>
+              <td style="text-align: right;">9.900.000đ</td>
+            </tr>
+            <tr>
+              <td>AirPods Pro 2 (USB-C)</td>
+              <td style="text-align: right;">3.500.000đ</td>
+              <td style="text-align: right;">3.200.000đ</td>
+              <td style="text-align: right;">2.900.000đ</td>
+            </tr>
+            <tr>
+              <td>AirPods 4</td>
+              <td style="text-align: right;">2.200.000đ</td>
+              <td style="text-align: right;">2.000.000đ</td>
+              <td style="text-align: right;">1.800.000đ</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Ví dụ: Lên đời từ iPhone 15 Pro Max lên iPhone 17 Pro Max</h3>
+        <p>Bạn có chiếc <strong>iPhone 15 Pro Max tình trạng 99%</strong>, muốn lên đời lên <strong>iPhone 17 Pro Max</strong>.</p>
+        <ol>
+          <li>Giá gốc iPhone 17 Pro Max: <strong>37.990.000đ</strong></li>
+          <li>Khách sở hữu iPhone 15 Pro Max 99%: shop trợ giá <strong>12.600.000đ</strong></li>
+          <li><strong>Chi phí thực tế lên đời: 37.990.000 − 12.600.000 = 25.390.000đ</strong></li>
+          <li>Có thể trả góp 0% qua thẻ tín dụng, giảm còn ~2 triệu/tháng</li>
+        </ol>
+
+        <h3>Quy trình đánh giá tại cửa hàng</h3>
+        <ol>
+          <li><strong>Kiểm tra ngoại hình:</strong> bề mặt kính, viền khung, kiểm tra vết trầy xước hay nứt vỡ.</li>
+          <li><strong>Kiểm tra chức năng:</strong> màn hình, loa, mic, cảm biến, dung lượng pin còn lại.</li>
+          <li><strong>Xác định tình trạng:</strong> 100% (chưa qua sử dụng) / 99% (dùng nhẹ, đẹp) / 98% (có vết trầy nhẹ).</li>
+          <li><strong>Báo giá tại chỗ:</strong> đối chiếu bảng giá tham khảo và báo mức trợ giá cụ thể cho khách ngay lập tức.</li>
+        </ol>
+
+        <h3>Điều kiện &amp; Lưu ý</h3>
+        <ul>
+          <li><strong>Máy phải là hàng chính hãng Apple</strong> — không nhận máy dựng, hàng nhái, máy đã thay main.</li>
+          <li><strong>Máy phải mở nguồn được, pin còn hoạt động</strong> — máy không lên nguồn hoặc pin chai nặng có mức trợ giá thấp hơn.</li>
+          <li><strong>Không nhận máy vào nước nặng</strong> — vào nước dễ gây hỏng linh kiện, có thể bị từ chối hoặc giảm giá sâu.</li>
+          <li><strong>Giá chốt sau khi ký xác nhận không thay đổi</strong> — khách nên kiểm tra kỹ càng ngay từ đầu để tránh tranh chấp.</li>
+          <li><strong>Thanh toán bằng tiền mặt hoặc chuyển khoản</strong> — tiền trợ giá được trừ thẳng vào giá máy mới khi thanh toán.</li>
+        </ul>
+
+        <h3>Còn câu hỏi nào khác?</h3>
+        <p>Liên hệ trực tiếp qua <strong>hotline 0900.000.000</strong> hoặc ghé cửa hàng để được tư vấn chi tiết.
+        Chúng tôi hỗ trợ <strong>trả góp 0%</strong> lên máy mới, giúp bạn lên đời mà không cần bỏ quá nhiều tiền ngay.</p>
+        """;
 }

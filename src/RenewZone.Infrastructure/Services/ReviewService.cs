@@ -22,7 +22,10 @@ public class ReviewService(AppDbContext db) : IReviewService
         var review = new ProductReview
         {
             ProductId = request.ProductId,
+            UserId = request.UserId,
+            IsVerifiedPurchase = request.IsVerifiedPurchase,
             AuthorName = request.AuthorName,
+            Phone = request.Phone,
             Rating = request.Rating,
             Content = request.Content,
             Status = ReviewStatus.Pending

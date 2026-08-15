@@ -1,0 +1,73 @@
+@model ProfileInput
+
+<div class="acc-page-head">
+    <h1 class="acc-page-title">Thông tin cá nhân</h1>
+    <p class="acc-page-sub">Thông tin này được dùng để điền sẵn khi bạn đặt hàng.</p>
+</div>
+
+<div class="acc-card">
+    <form method="post" action="/tai-khoan/ho-so" asp-antiforgery="true">
+        <div asp-validation-summary="ModelOnly" class="auth-alert" role="alert"></div>
+
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <div class="rz-field">
+                    <label class="co-label" asp-for="FullName"></label>
+                    <input class="rz-input" asp-for="FullName" autocomplete="name" />
+                    <span class="co-error" asp-validation-for="FullName"></span>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <div class="rz-field">
+                    <label class="co-label" asp-for="Phone"></label>
+                    <input class="rz-input" asp-for="Phone" type="tel" inputmode="tel" autocomplete="tel" />
+                    <span class="co-error" asp-validation-for="Phone"></span>
+                    @* Nói rõ hệ quả: số này VỪA là số liên lạc VỪA là tên đăng nhập. Không ghi
+                       thì khách đổi số xong lần sau đăng nhập bằng số cũ và tưởng mất tài khoản. *@
+                    <span class="rv-hint">Số điện thoại cũng chính là tên đăng nhập của bạn.</span>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <div class="rz-field">
+                    <label class="co-label" asp-for="Email">
+                        Email <span class="rv-optional">(không bắt buộc)</span>
+                    </label>
+                    <input class="rz-input" asp-for="Email" type="email" autocomplete="email" />
+                    <span class="co-error" asp-validation-for="Email"></span>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <div class="rz-field">
+                    <label class="co-label" asp-for="DateOfBirth">
+                        Ngày sinh <span class="rv-optional">(không bắt buộc)</span>
+                    </label>
+                    <input class="rz-input" asp-for="DateOfBirth" type="date" />
+                    <span class="co-error" asp-validation-for="DateOfBirth"></span>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <div class="rz-field">
+                    <label class="co-label" asp-for="Gender">
+                        Giới tính <span class="rv-optional">(không bắt buộc)</span>
+                    </label>
+                    <select class="rz-input" asp-for="Gender">
+                        <option value="">— Không chọn —</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-rz btn-buy mt-4" type="submit"><i class="bi bi-check-lg"></i> Lưu thay đổi</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

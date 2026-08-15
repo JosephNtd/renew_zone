@@ -1,0 +1,118 @@
+@model RegisterInput
+@{
+    ViewData["Title"] = "Đăng ký tài khoản";
+    ViewData["Seo"] = new RenewZone.Web.Models.SeoData
+    {
+        Title = "Đăng ký tài khoản",
+        Description = "Tạo tài khoản để mua hàng, lưu địa chỉ và theo dõi đơn hàng.",
+        NoIndex = true
+    };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/account.css" asp-append-version="true" />
+}
+
+<div class="container auth-page">
+    <div class="auth-card">
+        <div class="auth-card-head">
+            <div class="auth-card-icon"><i class="bi bi-person-plus-fill"></i></div>
+            <h1 class="auth-card-title">Tạo tài khoản</h1>
+            <p class="auth-card-sub">Chỉ mất 30 giây — mua hàng nhanh hơn ở những lần sau</p>
+        </div>
+
+        <div class="auth-card-body">
+            @* Đang đăng nhập sẵn bằng tài khoản khác — nói rõ để không ai bối rối vì sao vào
+               đây mà header lại hiện tên người khác. Đăng nhập tiếp là THAY tài khoản hiện tại. *@
+            @if (ViewData["CurrentAccount"] is string current)
+            {
+                <div class="auth-note mb-3">
+                    <i class="bi bi-info-circle"></i>
+                    Bạn đang đăng nhập bằng <strong>@current</strong>.
+                    Đăng nhập tài khoản khác sẽ thoát khỏi tài khoản này.
+                    <a href="/tai-khoan">Về tài khoản của tôi</a>
+                </div>
+            }
+
+            <form method="post" action="/dang-ky" asp-antiforgery="true">
+                <input type="hidden" asp-for="ReturnUrl" />
+
+                <div asp-validation-summary="ModelOnly" class="auth-alert" role="alert"></div>
+
+                <div class="rz-field">
+                    <label class="co-label" asp-for="FullName"></label>
+                    <input class="rz-input" asp-for="FullName" autocomplete="name"
+                           placeholder="VD: Nguyễn Văn A" autofocus />
+                    <span class="co-error" asp-validation-for="FullName"></span>
+                </div>
+
+                <div class="rz-field">
+                    <label class="co-label" asp-for="Phone"></label>
+                    <input class="rz-input" asp-for="Phone" type="tel" inputmode="tel"
+                           autocomplete="username" placeholder="VD: 0912345678" />
+                    <span class="co-error" asp-validation-for="Phone"></span>
+                </div>
+
+                <div class="rz-field">
+                    <label class="co-label" asp-for="Email">
+                        Email <span class="rv-optional">(không bắt buộc)</span>
+                    </label>
+                    <input class="rz-input" asp-for="Email" type="email" autocomplete="email"
+                           placeholder="email@example.com" />
+                    <span class="co-error" asp-validation-for="Email"></span>
+                </div>
+
+                <div class="rz-field">
+                    <label class="co-label" asp-for="Password"></label>
+                    <div class="auth-pass">
+                        <input class="rz-input" asp-for="Password" autocomplete="new-password"
+                               placeholder="Ít nhất 6 ký tự" />
+                        <button class="auth-pass-toggle" type="button" aria-label="Hiện mật khẩu">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <span class="co-error" asp-validation-for="Password"></span>
+                </div>
+
+                <div class="rz-field">
+                    <label class="co-label" asp-for="ConfirmPassword"></label>
+                    <input class="rz-input" asp-for="ConfirmPassword" autocomplete="new-password"
+                           placeholder="Nhập lại mật khẩu" />
+                    <span class="co-error" asp-validation-for="ConfirmPassword"></span>
+                </div>
+
+                @* Honeypot — ẩn bằng CSS (.hp-field) chứ KHÔNG dùng type="hidden": bot điền
+                   được cả input hidden, còn ô ẩn bằng CSS thì người thật không thấy để mà điền. *@
+                <div class="hp-field" aria-hidden="true">
+                    <label asp-for="Website">Website</label>
+                    <input asp-for="Website" tabindex="-1" autocomplete="off" />
+                </div>
+
+                <button class="btn-rz btn-buy w-100" type="submit">
+                    <i class="bi bi-person-plus"></i> Tạo tài khoản
+                </button>
+            </form>
+
+            <p class="auth-foot">
+                Đã có tài khoản?
+                <a asp-controller="Auth" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">Đăng nhập</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.querySelectorAll(".auth-pass-toggle").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                var input = btn.parentElement.querySelector("input");
+                if (!input) return;
+                var show = input.type === "password";
+                input.type = show ? "text" : "password";
+                btn.querySelector("i").className = show ? "bi bi-eye-slash" : "bi bi-eye";
+                btn.setAttribute("aria-label", show ? "Ẩn mật khẩu" : "Hiện mật khẩu");
+            });
+        });
+    </script>
+}

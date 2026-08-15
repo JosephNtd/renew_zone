@@ -13,4 +13,10 @@ public interface IContentQueryService
     Task<StaticPage?> GetStaticPageAsync(int id);
 
     Task<NewsDetail?> GetNewsDetailAsync(int id);
+
+    /// <summary>
+    /// Tăng lượt xem bài viết +1 (mỗi lần khách mở trang chi tiết). Chạy 1 câu UPDATE nguyên tử
+    /// trên DB — giống <c>ICatalogQueryService.IncrementProductViewAsync</c>, không xóa cache.
+    /// </summary>
+    Task IncrementNewsViewAsync(int id);
 }

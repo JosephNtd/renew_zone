@@ -1,0 +1,212 @@
+@using RenewZone.Domain.Enums
+@using RenewZone.Domain.Models.Account
+@using RenewZone.Web.Helpers
+@model MyOrderDetail
+
+<div class="acc-page-head d-flex flex-wrap align-items-start justify-content-between gap-3">
+    <div>
+        <h1 class="acc-page-title">Đơn hàng #@Model.Code</h1>
+        <p class="acc-page-sub">Đặt lúc @Model.CreatedAt.ToString("HH:mm dd/MM/yyyy")</p>
+    </div>
+    <a class="addr-action" href="/tai-khoan/don-hang"><i class="bi bi-chevron-left"></i> Về danh sách</a>
+</div>
+
+@* Băng trạng thái: điều khách muốn biết đầu tiên khi mở đơn *@
+<div class="acc-card">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <span class="acc-status @Model.Status.ToCustomerStatusClass()">
+                <i class="bi @Model.Status.ToCustomerIcon()"></i>@Model.Status.ToCustomerLabel()
+            </span>
+            @* class js-status-hint để customer-realtime.js cập nhật tại chỗ khi shop đổi trạng thái *@
+            <p class="acc-card-sub mb-0 mt-2 js-status-hint">@Model.Status.ToCustomerHint()</p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+            @if (Model.CanCancel)
+            {
+                <button class="addr-action is-danger" type="button"
+                        id="btnCancelOrder" data-code="@Model.Code">
+                    <i class="bi bi-x-circle"></i> Hủy đơn hàng
+                </button>
+            }
+
+            @* "Mua lại" chỉ có ý nghĩa khi đơn đã khép lại — đơn đang xử lý mà mua lại thì
+               khách rất dễ đặt trùng hai lần mà không nhận ra. *@
+            @if (Model.Status is OrderStatus.Completed or OrderStatus.Cancelled)
+            {
+                <form method="post" action="/tai-khoan/don-hang/@Model.Code/mua-lai" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button class="addr-action" type="submit"><i class="bi bi-arrow-repeat"></i> Mua lại</button>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="acc-detail-grid mt-3">
+    <div>
+        <div class="acc-card">
+            <h2 class="acc-card-title"><i class="bi bi-box-seam"></i>Sản phẩm đã đặt</h2>
+
+            @foreach (var item in Model.Items)
+            {
+                <div class="acc-line">
+                    <div class="acc-line-thumb">
+                        <img src="@(item.ImageUrl ?? "/images/placeholder-product.svg")"
+                             alt="@item.ProductName" width="66" height="66" loading="lazy" decoding="async" />
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        @if (item.ProductSlug is not null)
+                        {
+                            <a class="acc-line-name" href="/@item.ProductSlug">@item.ProductName</a>
+                        }
+                        else
+                        {
+                            @* Sản phẩm đã bị gỡ khỏi shop — dòng hàng vẫn sống bằng snapshot tên/giá
+                               (DeleteBehavior.SetNull từ Giai đoạn 1), chỉ là không còn link để mở. *@
+                            <span class="acc-line-name">@item.ProductName</span>
+                            <span class="acc-line-variant">(sản phẩm đã ngừng kinh doanh)</span>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(item.VariantDescription))
+                        {
+                            <div class="acc-line-variant">@item.VariantDescription</div>
+                        }
+                        <div class="acc-line-qty">@item.UnitPrice.ToVnd() × @item.Quantity</div>
+                    </div>
+                    <div class="acc-line-total">@item.LineTotal.ToVnd()</div>
+                </div>
+            }
+
+            <div class="mt-3">
+                <div class="acc-sum-row">
+                    <span>Tạm tính</span>
+                    <span>@Model.TotalAmount.ToVnd()</span>
+                </div>
+                <div class="acc-sum-row">
+                    <span>Phí vận chuyển</span>
+                    <span>Shop liên hệ xác nhận</span>
+                </div>
+                <div class="acc-sum-row is-total">
+                    <span>Tổng cộng</span>
+                    <span>@Model.TotalAmount.ToVnd()</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="acc-card">
+            <h2 class="acc-card-title"><i class="bi bi-clock-history"></i>Lịch sử xử lý</h2>
+
+            @if (Model.History.Count == 0)
+            {
+                @* Đơn đặt TRƯỚC Giai đoạn 7 không có sổ nhật ký — hiện trạng thái rỗng, không vỡ *@
+                <p class="acc-card-sub mb-0">Chưa có mốc xử lý nào được ghi nhận cho đơn này.</p>
+            }
+            else
+            {
+                <div class="acc-timeline">
+                    @foreach (var entry in Model.History)
+                    {
+                        <div class="acc-tl-item">
+                            <div class="acc-tl-title">@entry.ToStatus.ToCustomerLabel()</div>
+                            <div class="acc-tl-meta">
+                                @entry.ChangedAt.ToString("HH:mm dd/MM/yyyy") · @entry.ActorLabel
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(entry.Note))
+                            {
+                                <div class="acc-tl-note">@entry.Note</div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div>
+        <div class="acc-card">
+            <h2 class="acc-card-title"><i class="bi bi-truck"></i>Thông tin nhận hàng</h2>
+            <div class="acc-info-row">
+                <i class="bi bi-person"></i>
+                <div><div class="acc-info-label">Người nhận</div>@Model.CustomerName</div>
+            </div>
+            <div class="acc-info-row">
+                <i class="bi bi-telephone"></i>
+                <div><div class="acc-info-label">Điện thoại</div>@Model.Phone</div>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.Email))
+            {
+                <div class="acc-info-row">
+                    <i class="bi bi-envelope"></i>
+                    <div><div class="acc-info-label">Email</div>@Model.Email</div>
+                </div>
+            }
+            <div class="acc-info-row">
+                <i class="bi bi-geo-alt"></i>
+                <div><div class="acc-info-label">Địa chỉ</div>@Model.Address</div>
+            </div>
+            <div class="acc-info-row">
+                <i class="bi bi-credit-card"></i>
+                <div><div class="acc-info-label">Thanh toán</div>@Model.PaymentMethod.ToCustomerLabel()</div>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.Note))
+            {
+                <div class="acc-info-row">
+                    <i class="bi bi-chat-left-text"></i>
+                    <div><div class="acc-info-label">Ghi chú</div>@Model.Note</div>
+                </div>
+            }
+        </div>
+
+        @if (Model.PaymentMethod == PaymentMethod.BankTransfer)
+        {
+            <div class="acc-card">
+                <h2 class="acc-card-title"><i class="bi bi-bank"></i>Thông tin chuyển khoản</h2>
+                @* Partial dùng chung đọc từ SiteSettings — admin sửa ở /admin/cau-hinh (mục 4.7) *@
+                @await Html.PartialAsync("_BankInfo", Model.Code)
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Hủy đơn: AJAX để giữ nguyên trang, có xác nhận + ô lý do (không bắt buộc).
+        // Chốt chặn thật nằm ở CustomerOrderService — nó kiểm cả quyền sở hữu lẫn trạng thái.
+        (function () {
+            var btn = document.getElementById("btnCancelOrder");
+            if (!btn) return;
+
+            btn.addEventListener("click", function () {
+                if (!window.confirm("Bạn chắc chắn muốn hủy đơn hàng này?")) return;
+
+                var reason = window.prompt("Lý do hủy (không bắt buộc):") || "";
+                btn.disabled = true;
+
+                var tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+                fetch("/tai-khoan/don-hang/" + encodeURIComponent(btn.getAttribute("data-code")) + "/huy", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": tokenEl ? tokenEl.value : ""
+                    },
+                    body: JSON.stringify({ reason: reason })
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (window.RZ && RZ.toast) RZ.toast(data.message, data.ok ? "success" : "error");
+                        if (data.ok) {
+                            setTimeout(function () { window.location.reload(); }, 900);
+                        } else {
+                            btn.disabled = false;
+                        }
+                    })
+                    .catch(function () {
+                        btn.disabled = false;
+                        if (window.RZ && RZ.toast) RZ.toast("Có lỗi xảy ra, vui lòng thử lại.", "error");
+                    });
+            });
+        })();
+    </script>
+}

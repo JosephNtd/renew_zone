@@ -52,4 +52,9 @@ public class ContentQueryService(AppDbContext db) : IContentQueryService
 
         return new NewsDetail { Article = article, Related = sameCategory };
     }
+
+    public Task IncrementNewsViewAsync(int id) =>
+        db.NewsArticles
+            .Where(n => n.Id == id && n.IsActive)
+            .ExecuteUpdateAsync(s => s.SetProperty(n => n.ViewCount, n => n.ViewCount + 1));
 }

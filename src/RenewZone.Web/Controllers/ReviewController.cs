@@ -1,8 +1,12 @@
+using System.Security.Claims;
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using RenewZone.Domain.Entities;
 using RenewZone.Domain.Interfaces;
 using RenewZone.Domain.Models;
+using RenewZone.Infrastructure.Identity;
 using RenewZone.Web.Helpers;
 using RenewZone.Web.Hubs;
 
@@ -16,11 +20,16 @@ namespace RenewZone.Web.Controllers;
 /// </summary>
 public class ReviewController(
     IReviewService reviews,
+    ICustomerOrderService customerOrders,
+    UserManager<ApplicationUser> userManager,
     IHubContext<AdminNotifyHub> adminHub,
     ILogger<ReviewController> logger) : Controller
 {
     private const string LastSubmitSessionKey = "rz_review_last";
     private static readonly TimeSpan MinInterval = TimeSpan.FromSeconds(30);
+
+    // Cùng định dạng SĐT với form liên hệ / checkout để nhất quán toàn site.
+    private static readonly Regex PhoneRegex = new(@"^(0|\+84)\d{9,10}$", RegexOptions.Compiled);
 
     [HttpPost("/danh-gia/gui")]
     [ValidateAntiForgeryToken]
@@ -29,6 +38,32 @@ public class ReviewController(
         if (request is null)
         {
             return Json(new { ok = false, message = "Dữ liệu không hợp lệ." });
+        }
+
+        // Giai đoạn 9: chỉ người ĐÃ MUA sản phẩm này mới được đánh giá (quyết định 2026-07-28).
+        // Trả cờ requireLogin để PDP bật hộp thoại đăng nhập thay vì chỉ hiện thông báo lỗi.
+        if (User.Identity?.IsAuthenticated != true)
+        {
+            return Json(new
+            {
+                ok = false,
+                requireLogin = true,
+                message = "Vui lòng đăng nhập để đánh giá sản phẩm."
+            });
+        }
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+        // Chốt chặn THẬT nằm ở đây, không phải ở chỗ ẩn/hiện form trên PDP: gọi thẳng bằng curl
+        // với cookie hợp lệ vẫn bị chặn nếu tài khoản chưa có đơn hoàn thành chứa sản phẩm này.
+        if (!await customerOrders.HasPurchasedAsync(userId, request.ProductId))
+        {
+            return Json(new
+            {
+                ok = false,
+                message = "Chỉ khách đã mua và nhận sản phẩm này mới đánh giá được. "
+                          + "Nếu bạn vừa nhận hàng, hãy đợi shop cập nhật đơn sang “Hoàn thành” nhé."
+            });
         }
 
         // Honeypot: người thật không điền ⇒ giả vờ thành công nhưng KHÔNG ghi DB
@@ -46,27 +81,55 @@ public class ReviewController(
             return Json(new { ok = false, message = "Bạn vừa gửi đánh giá xong. Vui lòng đợi khoảng 30 giây rồi gửi tiếp nhé." });
         }
 
+        var user = await userManager.GetUserAsync(User);
+        if (user is null)
+        {
+            return Json(new { ok = false, requireLogin = true, message = "Phiên đăng nhập đã hết hạn." });
+        }
+
         // Validate ở SERVER — không tin client
-        var name = (request.AuthorName ?? "").Trim();
         var content = (request.Content ?? "").Trim();
+        var phone = (request.Phone ?? "").Trim();
+
+        // Tên hiển thị lấy từ HỒ SƠ, không nhận từ client nữa: đã đăng nhập rồi thì không có lý do
+        // gì để người gửi tự khai tên — đó là cửa để mạo danh khách khác dưới một đánh giá đã duyệt.
+        var name = string.IsNullOrWhiteSpace(user.FullName) ? (user.UserName ?? "Khách hàng") : user.FullName.Trim();
+        if (name.Length > 150)
+        {
+            name = name[..150];
+        }
+
+        // SĐT mặc định lấy từ hồ sơ (khách vẫn được ghi đè bằng số khác nếu muốn shop gọi số đó)
+        if (phone.Length == 0)
+        {
+            phone = user.PhoneNumber ?? "";
+        }
 
         if (request.Rating is < 1 or > 5)
         {
             return Json(new { ok = false, message = "Vui lòng chọn số sao từ 1 đến 5." });
         }
-        if (name.Length is < 2 or > 150)
-        {
-            return Json(new { ok = false, message = "Vui lòng nhập tên hiển thị (2–150 ký tự)." });
-        }
         if (content.Length is < 10 or > 2000)
         {
             return Json(new { ok = false, message = "Nội dung đánh giá cần từ 10 đến 2000 ký tự." });
+        }
+        // SĐT là TÙY CHỌN: bỏ trống thì OK; đã nhập thì phải đúng định dạng số VN
+        if (phone.Length > 0 && !PhoneRegex.IsMatch(phone))
+        {
+            return Json(new { ok = false, message = "Số điện thoại không hợp lệ. Vui lòng để trống hoặc nhập đúng số VN (VD: 0912345678)." });
         }
 
         var review = await reviews.SubmitAsync(new ReviewRequest
         {
             ProductId = request.ProductId,
+            UserId = userId,
+
+            // Đã qua HasPurchasedAsync ở trên nên luôn true. Chốt thành cột trong DB thay vì tính
+            // lại lúc hiển thị: đơn có thể bị đổi trạng thái về sau, nhưng huy hiệu "Đã mua hàng"
+            // phải phản ánh sự thật TẠI THỜI ĐIỂM đánh giá.
+            IsVerifiedPurchase = true,
             AuthorName = name,
+            Phone = phone.Length > 0 ? phone : null,
             Rating = request.Rating,
             Content = content
         });
@@ -113,7 +176,16 @@ public class ReviewController(
 public class ReviewSubmitRequest
 {
     public int ProductId { get; set; }
-    public string? AuthorName { get; set; }
+
+    // Giai đoạn 9 BỎ trường AuthorName: tên hiển thị lấy từ hồ sơ tài khoản đang đăng nhập.
+    // Để client tự khai tên là mở đường mạo danh khách khác dưới một đánh giá đã được duyệt.
+
+    /// <summary>
+    /// SĐT tùy chọn — để admin liên hệ lại. Bỏ trống thì lấy số của tài khoản.
+    /// Chỉ lưu + hiện ở admin, KHÔNG bao giờ render ra web khách (bất biến ở CLAUDE.md mục 4.15).
+    /// </summary>
+    public string? Phone { get; set; }
+
     public int Rating { get; set; }
     public string? Content { get; set; }
 

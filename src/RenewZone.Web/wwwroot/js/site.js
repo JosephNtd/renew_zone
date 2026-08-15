@@ -1,6 +1,40 @@
-/* site.js — Header shrink · Back-to-top · Reveal-on-scroll · Toast · Cart badge */
+/* site.js — Header shrink · Back-to-top · Reveal-on-scroll · Menu tài khoản · Toast · Cart badge */
 (function () {
     "use strict";
+
+    /* 0. Menu tài khoản mở khi RÊ CHUỘT (Giai đoạn 9).
+       Menu chính của site vốn đã mở bằng hover (thuần CSS), nên menu tài khoản cũng hover cho
+       nhất quán. Nhưng ở đây KHÔNG làm bằng CSS thuần được vì 3 lý do:
+
+         • Chỉ bật trên thiết bị THẬT SỰ có chuột. Trên điện thoại/máy tính bảng, cú chạm đầu
+           tiên bị trình duyệt giả lập thành hover ⇒ menu mở rồi đóng ngay, phải chạm hai lần.
+         • Menu này có mục "Đăng xuất". Nó nằm sát nút giỏ hàng, chuột đi ngang qua là menu bật
+           ra — nên phải có ĐỘ TRỄ khi rời chuột, tránh vừa lỡ tay vừa nhấp trúng Đăng xuất.
+         • Có khoảng hở giữa nút và panel; rời nút là menu đóng trước khi chuột kịp tới panel.
+           Vì vậy vùng theo dõi hover là cả cụm .acc-menu (nút + panel), không riêng cái nút.
+
+       Vẫn đi qua API Dropdown của Bootstrap chứ không tự thêm/bớt class: bấm chuột, phím Esc,
+       bấm ra ngoài, bẫy focus… đều giữ nguyên hành vi sẵn có. */
+    const accMenu = document.querySelector(".acc-menu");
+    const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+    if (accMenu && canHover && window.bootstrap) {
+        const toggle = accMenu.querySelector('[data-bs-toggle="dropdown"]');
+        if (toggle) {
+            const dropdown = bootstrap.Dropdown.getOrCreateInstance(toggle);
+            let closeTimer = null;
+
+            accMenu.addEventListener("mouseenter", () => {
+                clearTimeout(closeTimer);
+                dropdown.show();
+            });
+
+            accMenu.addEventListener("mouseleave", () => {
+                // 220ms đủ để chuột đi chéo từ nút xuống panel mà không bị đóng giữa chừng
+                closeTimer = setTimeout(() => dropdown.hide(), 220);
+            });
+        }
+    }
 
     /* 1. Header shrink khi cuộn */
     const header = document.getElementById("siteHeader");

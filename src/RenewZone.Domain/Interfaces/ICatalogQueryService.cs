@@ -14,6 +14,13 @@ public interface ICatalogQueryService
 
     Task<ProductDetail?> GetProductDetailAsync(int productId);
 
+    /// <summary>
+    /// Tăng lượt xem sản phẩm +1 (mỗi lần khách mở trang chi tiết). Chạy 1 câu UPDATE nguyên tử
+    /// trên DB (không load entity, không race). KHÔNG xóa cache — ViewCount chỉ hiển thị ở admin
+    /// (đọc thẳng DB), nếu invalidate mỗi lượt xem sẽ phá hiệu năng Home/Slugs.
+    /// </summary>
+    Task IncrementProductViewAsync(int productId);
+
     /// <summary>Toàn bộ sản phẩm active, phân trang — cho trang "/san-pham".</summary>
     Task<PagedResult<Domain.Entities.Product>> GetAllProductsAsync(int page, int pageSize);
 

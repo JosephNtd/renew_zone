@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using RenewZone.Domain.Enums;
 using RenewZone.Domain.Interfaces;
 using RenewZone.Domain.Models.Admin;
 using RenewZone.Web.Areas.Admin.Models;
 using RenewZone.Web.Helpers;
+using RenewZone.Web.Hubs;
 
 namespace RenewZone.Web.Areas.Admin.Controllers;
 
@@ -11,7 +13,10 @@ namespace RenewZone.Web.Areas.Admin.Controllers;
 /// Quản lý đơn hàng. Route tiếng Việt bằng attribute routing giống web khách.
 /// Đơn hàng KHÔNG có thao tác xóa — muốn hủy thì chuyển trạng thái sang Cancelled.
 /// </summary>
-public class OrderController(IOrderAdminService orders) : BaseAdminController
+public class OrderController(
+    IOrderAdminService orders,
+    IHubContext<CustomerNotifyHub> customerHub,
+    ILogger<OrderController> logger) : BaseAdminController
 {
     [HttpGet("/admin/don-hang")]
     public async Task<IActionResult> Index(
@@ -87,6 +92,11 @@ public class OrderController(IOrderAdminService orders) : BaseAdminController
 
         var result = await orders.ChangeStatusAsync(id, input.Status, actor, input.Note);
 
+        if (result.Ok)
+        {
+            await NotifyCustomerAsync(result, input.Note);
+        }
+
         return Json(new
         {
             ok = result.Ok,
@@ -101,6 +111,48 @@ public class OrderController(IOrderAdminService orders) : BaseAdminController
                 icon = s.ToIcon()
             })
         });
+    }
+
+    /// <summary>
+    /// Báo cho CHÍNH khách đặt đơn biết đơn vừa đổi trạng thái (Giai đoạn 9) — họ đang mở web
+    /// thì thấy ngay, không phải F5 trang "Đơn hàng của tôi".
+    /// <para>
+    /// <c>Clients.User(userId)</c> nhắm đúng một tài khoản (SignalR gom mọi kết nối của họ qua
+    /// claim NameIdentifier) ⇒ không có đường nào lọt thông tin đơn sang người khác.
+    /// </para>
+    /// <para>
+    /// Bọc try/catch chỉ LOG, y hệt cách <c>CheckoutController</c> đẩy "donMoi": trạng thái ĐÃ
+    /// lưu vào DB xong khi hàm này chạy, sự cố realtime tuyệt đối không được biến một thao tác
+    /// thành công của admin thành thông báo lỗi.
+    /// </para>
+    /// </summary>
+    private async Task NotifyCustomerAsync(ChangeStatusResult result, string? note)
+    {
+        // Đơn của khách vãng lai đặt trước Giai đoạn 9 không có chủ ⇒ không có ai để báo
+        if (string.IsNullOrEmpty(result.UserId))
+        {
+            return;
+        }
+
+        try
+        {
+            await customerHub.Clients.User(result.UserId).SendAsync("donCapNhat", new
+            {
+                status = result.Status.ToString(),
+
+                // Nhãn + gợi ý format Ở SERVER bằng bộ từ vựng dành cho KHÁCH ("Chờ xác nhận"),
+                // không dùng nhãn quản trị ("Mới") — xem AccountDisplayExtensions.
+                statusText = result.Status.ToCustomerLabel(),
+                statusHint = result.Status.ToCustomerHint(),
+                statusClass = result.Status.ToCustomerStatusClass(),
+                statusIcon = result.Status.ToCustomerIcon(),
+                note
+            });
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Không gửi được thông báo realtime cho khách {UserId}.", result.UserId);
+        }
     }
 
     /// <summary>

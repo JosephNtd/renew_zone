@@ -2,13 +2,19 @@
     Layout riêng cho trang đăng nhập: KHÔNG sidebar/topbar (chưa đăng nhập thì không có gì để điều hướng),
     nền gradient phủ toàn màn hình. Dùng chung tokens.css + admin.css với phần còn lại của admin.
 *@
+@inject RenewZone.Domain.Interfaces.ISiteContentService SiteContent
+@{
+    // Chỉ cần cái TÊN cho tiêu đề tab — helper đã bọc try/catch nên DB hỏng cũng không làm
+    // sập trang đăng nhập (xem AdminBrandExtensions).
+    var brandName = (await SiteContent.GetAdminBrandAsync()).Name;
+}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>@ViewData["Title"] - RenewZone Admin</title>
+    <title>@ViewData["Title"] - @brandName Admin</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

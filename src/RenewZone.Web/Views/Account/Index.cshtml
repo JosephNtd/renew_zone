@@ -1,0 +1,78 @@
+@using RenewZone.Web.Helpers
+@model AccountDashboardViewModel
+@{
+    var s = Model.Summary;
+}
+
+<div class="acc-page-head">
+    <h1 class="acc-page-title">Xin chào, @Model.DisplayName 👋</h1>
+    <p class="acc-page-sub">Đây là nơi bạn theo dõi đơn hàng và quản lý thông tin của mình.</p>
+</div>
+
+<div class="acc-stats">
+    <div class="acc-stat">
+        <div class="acc-stat-icon"><i class="bi bi-receipt"></i></div>
+        <div class="acc-stat-value">@s.TotalOrders</div>
+        <div class="acc-stat-label">Tổng số đơn</div>
+    </div>
+    <div class="acc-stat">
+        <div class="acc-stat-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div class="acc-stat-value">@s.ActiveOrders</div>
+        <div class="acc-stat-label">Đang xử lý</div>
+    </div>
+    <div class="acc-stat">
+        <div class="acc-stat-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="acc-stat-value">@s.CompletedOrders</div>
+        <div class="acc-stat-label">Đã hoàn thành</div>
+    </div>
+    <div class="acc-stat">
+        <div class="acc-stat-icon"><i class="bi bi-wallet2"></i></div>
+        <div class="acc-stat-value">@s.TotalSpent.ToVnd()</div>
+        <div class="acc-stat-label">Đã mua sắm</div>
+    </div>
+</div>
+
+<div class="acc-card">
+    <div class="d-flex align-items-start justify-content-between gap-3">
+        <div>
+            <h2 class="acc-card-title"><i class="bi bi-clock-history"></i>Đơn hàng gần đây</h2>
+            <p class="acc-card-sub">5 đơn mới nhất của bạn</p>
+        </div>
+        @if (s.RecentOrders.Count > 0)
+        {
+            <a class="addr-action" href="/tai-khoan/don-hang">Xem tất cả</a>
+        }
+    </div>
+
+    @if (s.RecentOrders.Count == 0)
+    {
+        <div class="acc-empty">
+            <div class="acc-empty-icon"><i class="bi bi-bag"></i></div>
+            <div class="acc-empty-title">Bạn chưa có đơn hàng nào</div>
+            <p class="acc-empty-text">Khám phá các sản phẩm Apple chính hãng và ưu đãi trả góp 0% của shop nhé.</p>
+            <a class="btn-rz btn-buy" href="/san-pham"><i class="bi bi-shop"></i> Mua sắm ngay</a>
+        </div>
+    }
+    else
+    {
+        foreach (var order in s.RecentOrders)
+        {
+            <partial name="_MyOrderRow" model="order" />
+        }
+    }
+</div>
+
+<div class="acc-card">
+    <h2 class="acc-card-title"><i class="bi bi-lightning-charge"></i>Lối tắt</h2>
+    <p class="acc-card-sub">Những việc bạn hay làm nhất</p>
+    <div class="addr-actions">
+        <a class="addr-action" href="/tai-khoan/yeu-thich">
+            <i class="bi bi-heart"></i> Yêu thích (@s.WishlistCount)
+        </a>
+        <a class="addr-action" href="/tai-khoan/dia-chi">
+            <i class="bi bi-geo-alt"></i> Sổ địa chỉ (@s.AddressCount)
+        </a>
+        <a class="addr-action" href="/tai-khoan/ho-so"><i class="bi bi-person-gear"></i> Sửa thông tin</a>
+        <a class="addr-action" href="/tai-khoan/doi-mat-khau"><i class="bi bi-shield-lock"></i> Đổi mật khẩu</a>
+    </div>
+</div>

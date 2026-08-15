@@ -1,0 +1,109 @@
+@using RenewZone.Web.Helpers
+@model CustomerListViewModel
+@{
+    ViewData["Title"] = "Khách hàng";
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Khách hàng</h1>
+        <div class="adm-page-sub">
+            Tài khoản khách đăng ký trên web. Bạn có thể khóa tài khoản hoặc cấp lại mật khẩu khi khách quên.
+        </div>
+    </div>
+</div>
+
+<form class="adm-filters" method="get" action="/admin/khach-hang">
+    <div class="adm-search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input class="adm-input" type="search" name="q" value="@Model.Search"
+               placeholder="Tìm theo số điện thoại, tên, email..." aria-label="Tìm khách hàng" />
+    </div>
+
+    <select class="adm-select" name="trangThai" style="width: auto;" aria-label="Lọc theo trạng thái tài khoản">
+        <option value="">Tất cả</option>
+        <option value="hoatDong" selected="@(Model.IsLocked == false)">Đang hoạt động</option>
+        <option value="khoa" selected="@(Model.IsLocked == true)">Đang bị khóa</option>
+    </select>
+
+    <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">
+        <i class="bi bi-funnel" aria-hidden="true"></i>
+        <span class="adm-btn-label">Lọc</span>
+    </button>
+
+    @if (Model.HasAnyFilter)
+    {
+        <a class="adm-btn adm-btn-ghost adm-btn-sm" href="/admin/khach-hang">Xóa lọc</a>
+    }
+</form>
+
+@if (Model.Result.TotalItems == 0)
+{
+    <div class="adm-card">
+        <partial name="_EmptyState" model='new EmptyStateModel {
+            Icon = "bi-people",
+            Title = Model.HasAnyFilter ? "Không có khách nào khớp bộ lọc" : "Chưa có khách hàng nào",
+            Message = Model.HasAnyFilter ? "Thử bỏ bớt điều kiện lọc." : "Tài khoản khách đăng ký trên web sẽ xuất hiện tại đây." }' />
+    </div>
+}
+else
+{
+    <div class="adm-table-wrap">
+        <table class="adm-table">
+            <caption class="visually-hidden">Danh sách khách hàng</caption>
+            <thead>
+                <tr>
+                    <th scope="col"><a href="@Model.SortUrl("name")">Khách hàng</a></th>
+                    <th scope="col"><a href="@Model.SortUrl("phone")">Số điện thoại</a></th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Đơn hàng</th>
+                    <th scope="col">Đã mua</th>
+                    <th scope="col"><a href="@Model.SortUrl("created")">Tham gia</a></th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" class="adm-col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var customer in Model.Result.Items)
+                {
+                    <tr>
+                        <td>
+                            <a href="/admin/khach-hang/@customer.Id">
+                                <b>@(string.IsNullOrWhiteSpace(customer.FullName) ? "(chưa đặt tên)" : customer.FullName)</b>
+                            </a>
+                        </td>
+                        <td class="adm-num">@customer.Phone</td>
+                        <td class="adm-small adm-muted">@(customer.Email ?? "—")</td>
+                        <td class="adm-num">@customer.OrderCount</td>
+                        <td class="adm-num">@customer.TotalSpent.ToVnd()</td>
+                        <td class="adm-small adm-muted">@customer.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            @if (customer.IsLocked)
+                            {
+                                <span class="adm-badge adm-badge-cancel"><i class="bi bi-lock-fill"></i> Đã khóa</span>
+                            }
+                            else
+                            {
+                                <span class="adm-badge adm-badge-done"><i class="bi bi-check-lg"></i> Hoạt động</span>
+                            }
+                        </td>
+                        <td class="adm-col-actions">
+                            <span class="adm-row-actions">
+                                <a class="adm-act" href="/admin/khach-hang/@customer.Id" title="Xem chi tiết">
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
+                                    <span class="visually-hidden">Xem chi tiết</span>
+                                </a>
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <partial name="_AdminPager" model='new AdminPagerModel {
+        Page = Model.Result.Page,
+        PageSize = Model.Result.PageSize,
+        TotalItems = Model.Result.TotalItems,
+        UrlFor = p => Model.BuildUrl(p) }' />
+}

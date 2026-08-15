@@ -128,6 +128,11 @@ body.adm :focus-visible {
   font-family: var(--font-display);
   font-weight: 800; font-size: .95rem; color: #fff;
 }
+/* Ảnh logo admin đã tải lên (bản nền tối) — thay ô vuông chữ tắt + tên.
+   Khống chế bằng CHIỀU CAO + max-width + contain nên logo tỉ lệ nào cũng vừa thanh bên. */
+.adm-brand-logo { height: 34px; width: auto; max-width: 168px; object-fit: contain; }
+.adm-brand.has-logo .adm-brand-mark { display: none; }
+
 .adm-brand-text { font-family: var(--font-display); font-weight: 800; font-size: 1.02rem; line-height: 1.1; white-space: nowrap; }
 .adm-brand-text small { display: block; font-size: .62rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--brand-300); }
 
@@ -201,6 +206,9 @@ body.adm :focus-visible {
 .adm-shell.is-mini .adm-nav-item span,
 .adm-shell.is-mini .adm-nav-group-label,
 .adm-shell.is-mini .adm-brand-text { display: none; }
+/* Thu gọn còn 64px: logo ngang bóp vào đó không đọc nổi ⇒ quay về ô vuông chữ tắt */
+.adm-shell.is-mini .adm-brand-logo { display: none; }
+.adm-shell.is-mini .adm-brand.has-logo .adm-brand-mark { display: grid; }
 .adm-shell.is-mini .adm-nav-item { justify-content: center; padding-inline: 0; gap: 0; }
 .adm-shell.is-mini .adm-nav-group-label { padding: 10px 0 0; }
 .adm-shell.is-mini .adm-nav-item .adm-nav-badge {
@@ -996,6 +1004,15 @@ body.adm :focus-visible {
   border-radius: var(--adm-r-sm);
 }
 
+/* Xem trước ảnh sẽ nằm trên nền TỐI của web khách (logo chân trang): xem trên nền trắng
+   thì logo chữ trắng biến mất, admin tưởng ảnh hỏng. Đặt nền lên chính thẻ img nên khi
+   chưa có ảnh sẽ không có khung đen rỗng nào hiện ra. */
+.adm-img-preview.is-dark img {
+  padding: 10px 14px;
+  background: var(--ink-900);
+  border-color: transparent;
+}
+
 /* Hàng chưa đọc: đậm + nền nhạt — quy ước hộp thư quen thuộc */
 .adm-table tbody tr.is-unread { background: var(--brand-50); font-weight: 600; }
 .adm-table tbody tr.is-unread:hover { background: var(--brand-100); }
@@ -1270,6 +1287,8 @@ body.adm-login::before {
 .adm-login-card.is-shake { animation: adm-shake .3s var(--ease-out); }
 .adm-login-head { text-align: center; margin-bottom: 24px; }
 .adm-login-head .adm-brand-mark { width: 46px; height: 46px; margin: 0 auto 12px; font-size: 1.2rem; border-radius: 13px; }
+/* Ảnh logo (bản nền sáng) trên thẻ đăng nhập nền trắng */
+.adm-login-logo { display: block; height: 56px; width: auto; max-width: 220px; margin: 0 auto 12px; object-fit: contain; }
 .adm-login-head h1 { font-size: 1.22rem; }
 .adm-login-head p { font-size: .84rem; color: var(--ink-500); margin: 5px 0 0; }
 .adm-login-card .adm-field + .adm-field { margin-top: 14px; }
@@ -1298,7 +1317,9 @@ body.adm-login::before {
   .adm-sidebar { width: var(--adm-sidebar-w-mini); }
   .adm-sidebar .adm-nav-item span,
   .adm-sidebar .adm-nav-group-label,
+  .adm-sidebar .adm-brand-logo,
   .adm-sidebar .adm-brand-text { display: none; }
+  .adm-sidebar .adm-brand.has-logo .adm-brand-mark { display: grid; }
   .adm-sidebar .adm-nav-item { justify-content: center; padding-inline: 0; gap: 0; position: relative; }
   .adm-sidebar .adm-brand { justify-content: center; padding: 0; }
   .adm-topbar-search { width: 190px; }
@@ -1313,7 +1334,9 @@ body.adm-login::before {
   }
   .adm-sidebar .adm-nav-item span,
   .adm-sidebar .adm-nav-group-label,
+  .adm-sidebar .adm-brand-logo,
   .adm-sidebar .adm-brand-text { display: revert; }
+  .adm-sidebar .adm-brand.has-logo .adm-brand-mark { display: none; }
   .adm-sidebar .adm-nav-item { justify-content: flex-start; padding-inline: 16px; gap: 12px; }
   .adm-sidebar .adm-brand { justify-content: flex-start; padding: 0 18px; }
   .adm-shell.is-open .adm-sidebar { transform: none; }
@@ -1407,6 +1430,12 @@ body.adm-login::before {
   margin-top: 8px; font-size: .85rem; color: var(--ink-500); text-decoration: none;
 }
 .adm-review-product:hover { color: var(--brand-600); }
+.adm-review-phone {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 6px; margin-left: 12px; font-size: .85rem; font-weight: 600;
+  color: var(--adm-shipping, #2563eb); text-decoration: none;
+}
+.adm-review-phone:hover { text-decoration: underline; }
 .adm-review-content { margin: 8px 0 0; color: var(--ink-700); line-height: 1.55; white-space: pre-line; }
 .adm-review-reply {
   margin-top: 10px; padding: 10px 12px;

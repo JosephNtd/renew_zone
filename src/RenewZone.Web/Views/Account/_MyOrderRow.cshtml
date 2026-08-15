@@ -1,0 +1,35 @@
+@using RenewZone.Domain.Models.Account
+@using RenewZone.Web.Helpers
+@model MyOrderListItem
+@*
+    Một dòng đơn hàng trong "Đơn hàng của tôi" + ở trang tổng quan.
+    Dùng chung để hai nơi không bao giờ hiển thị lệch nhau.
+*@
+<div class="acc-order">
+    <div class="acc-order-thumb">
+        <img src="@(Model.FirstImageUrl ?? "/images/placeholder-product.svg")"
+             alt="@Model.FirstItemName" width="62" height="62" loading="lazy" decoding="async" />
+    </div>
+
+    <div class="acc-order-main">
+        <a class="acc-order-code" href="/tai-khoan/don-hang/@Model.Code">#@Model.Code</a>
+        <div class="acc-order-name">
+            @Model.FirstItemName
+            @if (Model.ItemCount > 1)
+            {
+                <span class="text-muted">và @(Model.ItemCount - 1) sản phẩm khác</span>
+            }
+        </div>
+        <div class="acc-order-meta">
+            <i class="bi bi-calendar3"></i> @Model.CreatedAt.ToString("HH:mm dd/MM/yyyy")
+            · @Model.PaymentMethod.ToCustomerLabel()
+        </div>
+    </div>
+
+    <div class="acc-order-side">
+        <span class="acc-status @Model.Status.ToCustomerStatusClass()">
+            <i class="bi @Model.Status.ToCustomerIcon()"></i>@Model.Status.ToCustomerLabel()
+        </span>
+        <div class="acc-order-total mt-1">@Model.TotalAmount.ToVnd()</div>
+    </div>
+</div>

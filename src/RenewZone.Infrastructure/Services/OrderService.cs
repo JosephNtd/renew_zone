@@ -30,6 +30,7 @@ public class OrderService(AppDbContext db) : IOrderService
 
         var order = new Order
         {
+            UserId = request.UserId,
             CustomerName = request.CustomerName.Trim(),
             Phone = request.Phone.Trim(),
             Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),

@@ -1,5 +1,6 @@
 @model Product
 @inject RenewZone.Domain.Interfaces.ISiteContentService SiteContent
+@inject RenewZone.Domain.Interfaces.IWishlistService Wishlist
 @{
     var mainImg = Model.Images.FirstOrDefault(i => i.IsMain) ?? Model.Images.FirstOrDefault();
     var imgUrl = mainImg?.Url ?? "/images/placeholder-product.svg";
@@ -16,6 +17,12 @@
         var hotline = settings.GetValueOrDefault(SettingKeys.Hotline) ?? "";
         hotlineTel = "tel:" + hotline.Replace(".", "").Replace(" ", "");
     }
+
+    // Nút ♡ (Giai đoạn 9). Tập id đã thích được nhớ trong HttpContext.Items nên trang 12 card
+    // vẫn chỉ tốn 1 truy vấn. Khách vãng lai vẫn thấy nút — bấm vào sẽ mở hộp thoại đăng nhập,
+    // như vậy họ biết tính năng tồn tại thay vì thấy một giao diện trống trải khó hiểu.
+    var favoriteIds = await Wishlist.GetFavoriteIdsAsync(Context);
+    var isFavorite = favoriteIds.Contains(Model.Id);
 }
 <article class="p-card">
     <div class="p-card-media">
@@ -29,6 +36,13 @@
         }
         <img class="p-card-img" src="@imgUrl" alt="@Model.Name" width="400" height="400" loading="lazy" decoding="async" />
         <span class="p-card-hover"><span class="p-quick">Xem nhanh <i class="bi bi-arrow-right"></i></span></span>
+
+        <button class="js-wishlist p-card-fav @(isFavorite ? "is-on" : "")" type="button"
+                data-product-id="@Model.Id"
+                aria-pressed="@(isFavorite ? "true" : "false")"
+                aria-label="@(isFavorite ? "Bỏ yêu thích" : "Thêm vào yêu thích")">
+            <i class="bi @(isFavorite ? "bi-heart-fill" : "bi-heart")"></i>
+        </button>
     </div>
 
     <div class="p-card-body">

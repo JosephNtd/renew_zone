@@ -25,8 +25,31 @@ public class CartController(ICartService cart) : Controller
 
     [HttpPost("/gio-hang/them")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Add([FromBody] AddToCartRequest request)
+    public async Task<IActionResult> Add([FromBody] AddToCartRequest? request)
     {
+        // Body hỏng/thiếu ⇒ binder trả null. Không chặn ở đây thì action ném NullReference và
+        // khách nhận trang lỗi HTML thay vì JSON (cùng loại bẫy đã gặp ở Lưu ý 6.16).
+        if (request is null)
+        {
+            return Json(new { ok = false, message = "Dữ liệu không hợp lệ." });
+        }
+
+        // Giai đoạn 9: chỉ tài khoản đã đăng nhập mới mua được.
+        //
+        // Cố ý KHÔNG dùng [Authorize] ở đây: attribute sẽ khiến request AJAX bị chuyển hướng
+        // sang trang đăng nhập và JS nhận về HTML với mã 200 rồi vỡ khi parse JSON. Trả đúng
+        // hợp đồng JSON kèm cờ requireLogin để client bật hộp thoại đăng nhập ngay tại chỗ,
+        // giữ nguyên trang khách đang xem. Đây LÀ chốt chặn ở server, không phải trang trí.
+        if (User.Identity?.IsAuthenticated != true)
+        {
+            return Json(new
+            {
+                ok = false,
+                requireLogin = true,
+                message = "Vui lòng đăng nhập để mua hàng."
+            });
+        }
+
         var result = await cart.AddAsync(
             request.ProductId,
             request.OptionValueIds ?? [],

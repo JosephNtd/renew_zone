@@ -1,0 +1,103 @@
+@*
+    Hộp thoại đăng nhập/đăng ký bật lên khi khách vãng lai bấm "Thêm vào giỏ" / "Mua ngay" /
+    tim yêu thích / gửi đánh giá (Giai đoạn 9).
+
+    Vì sao là hộp thoại chứ không phải chuyển sang trang đăng nhập: khách đang xem một sản phẩm
+    cụ thể, thường đã chọn xong dung lượng/màu/tình trạng. Đá họ sang trang khác là mất toàn bộ
+    lựa chọn đó và mất luôn ngữ cảnh. Ở đây đăng nhập xong thì THAO TÁC ĐANG DỞ tự chạy tiếp
+    (auth.js giữ lại hàm cần gọi lại) — khách chỉ thấy "à, xong rồi, hàng đã vào giỏ".
+
+    Vẫn giữ trang /dang-nhap và /dang-ky đầy đủ cho người vào thẳng URL, cho returnUrl khi bị
+    chặn ở /dat-hang, và để hoạt động cả khi tắt JavaScript.
+*@
+<div class="modal fade auth-modal" id="authModal" tabindex="-1" aria-labelledby="authModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="auth-modal-head">
+                <h2 class="auth-modal-title" id="authModalTitle">Đăng nhập để tiếp tục</h2>
+                <p class="auth-modal-sub" id="authModalReason">Bạn cần có tài khoản để mua hàng và theo dõi đơn.</p>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+
+            <div class="auth-tabs" role="tablist">
+                <button class="auth-tab is-active" type="button" role="tab" data-auth-pane="login" aria-selected="true">
+                    Đăng nhập
+                </button>
+                <button class="auth-tab" type="button" role="tab" data-auth-pane="register" aria-selected="false">
+                    Đăng ký
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="auth-alert" id="authAlert" role="alert" hidden></div>
+
+                @* ── Đăng nhập ── *@
+                <form class="auth-pane is-active" id="authLoginPane" novalidate>
+                    <div class="rz-field">
+                        <label class="co-label" for="authLoginPhone">Số điện thoại</label>
+                        <input class="rz-input" id="authLoginPhone" type="tel" inputmode="tel"
+                               autocomplete="username" placeholder="VD: 0912345678" />
+                    </div>
+                    <div class="rz-field">
+                        <label class="co-label" for="authLoginPassword">Mật khẩu</label>
+                        <div class="auth-pass">
+                            <input class="rz-input" id="authLoginPassword" type="password"
+                                   autocomplete="current-password" placeholder="Nhập mật khẩu" />
+                            <button class="auth-pass-toggle" type="button" aria-label="Hiện mật khẩu">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn-rz btn-buy w-100" type="submit">
+                        <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+                    </button>
+                    <p class="auth-switch">Chưa có tài khoản? <button type="button" class="auth-link" data-auth-pane="register">Đăng ký ngay</button></p>
+                </form>
+
+                @* ── Đăng ký ── *@
+                <form class="auth-pane" id="authRegisterPane" novalidate>
+                    <div class="rz-field">
+                        <label class="co-label" for="authRegName">Họ và tên</label>
+                        <input class="rz-input" id="authRegName" type="text" autocomplete="name" placeholder="VD: Nguyễn Văn A" />
+                    </div>
+                    <div class="rz-field">
+                        <label class="co-label" for="authRegPhone">Số điện thoại</label>
+                        <input class="rz-input" id="authRegPhone" type="tel" inputmode="tel"
+                               autocomplete="username" placeholder="VD: 0912345678" />
+                    </div>
+                    <div class="rz-field">
+                        <label class="co-label" for="authRegEmail">Email <span class="rv-optional">(không bắt buộc)</span></label>
+                        <input class="rz-input" id="authRegEmail" type="email" autocomplete="email" placeholder="email@example.com" />
+                    </div>
+                    <div class="rz-field">
+                        <label class="co-label" for="authRegPassword">Mật khẩu</label>
+                        <div class="auth-pass">
+                            <input class="rz-input" id="authRegPassword" type="password"
+                                   autocomplete="new-password" placeholder="Ít nhất 6 ký tự" />
+                            <button class="auth-pass-toggle" type="button" aria-label="Hiện mật khẩu">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="rz-field">
+                        <label class="co-label" for="authRegConfirm">Nhập lại mật khẩu</label>
+                        <input class="rz-input" id="authRegConfirm" type="password"
+                               autocomplete="new-password" placeholder="Nhập lại mật khẩu" />
+                    </div>
+
+                    @* Honeypot — người thật không nhìn thấy nên không bao giờ điền.
+                       Ẩn bằng CSS chứ KHÔNG dùng type="hidden": bot điền được cả input hidden. *@
+                    <div class="hp-field" aria-hidden="true">
+                        <label for="authRegWebsite">Website</label>
+                        <input id="authRegWebsite" type="text" tabindex="-1" autocomplete="off" />
+                    </div>
+
+                    <button class="btn-rz btn-buy w-100" type="submit">
+                        <i class="bi bi-person-plus"></i> Tạo tài khoản
+                    </button>
+                    <p class="auth-switch">Đã có tài khoản? <button type="button" class="auth-link" data-auth-pane="login">Đăng nhập</button></p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

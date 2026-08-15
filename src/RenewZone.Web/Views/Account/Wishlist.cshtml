@@ -1,0 +1,80 @@
+@using RenewZone.Domain.Models.Account
+@using RenewZone.Web.Helpers
+@model IReadOnlyList<WishlistEntry>
+
+<div class="acc-page-head">
+    <h1 class="acc-page-title">Sản phẩm yêu thích</h1>
+    <p class="acc-page-sub">
+        @(Model.Count > 0 ? $"Bạn đang lưu {Model.Count} sản phẩm" : "Bấm ♡ trên sản phẩm để lưu lại xem sau")
+    </p>
+</div>
+
+<div class="acc-card">
+    @if (Model.Count == 0)
+    {
+        <div class="acc-empty">
+            <div class="acc-empty-icon"><i class="bi bi-heart"></i></div>
+            <div class="acc-empty-title">Danh sách còn trống</div>
+            <p class="acc-empty-text">
+                Thấy sản phẩm ưng ý thì bấm vào biểu tượng trái tim để lưu lại, quay lại xem sau cho tiện.
+            </p>
+            <a class="btn-rz btn-buy" href="/san-pham"><i class="bi bi-search"></i> Khám phá sản phẩm</a>
+        </div>
+    }
+    else
+    {
+        @* Dựng card tại chỗ thay vì dùng partial _ProductCard: partial đó nhận entity Product
+           (kèm Images/OptionGroups), còn ở đây service trả về WishlistEntry — một projection gọn
+           chỉ có đúng các cột cần hiển thị. Nạp cả entity Product chỉ để tái dùng partial sẽ
+           kéo theo nhiều truy vấn hơn hẳn mà chẳng được gì. *@
+        <div class="wish-grid">
+            @foreach (var item in Model)
+            {
+                <article class="p-card">
+                    <div class="p-card-media">
+                        <img class="p-card-img" src="@(item.ImageUrl ?? "/images/placeholder-product.svg")"
+                             alt="@item.Name" width="400" height="400" loading="lazy" decoding="async" />
+
+                        <button class="js-wishlist p-card-fav is-on" type="button"
+                                data-product-id="@item.ProductId" aria-pressed="true" aria-label="Bỏ yêu thích">
+                            <i class="bi bi-heart-fill"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-card-body">
+                        <h3 class="p-card-name"><a class="stretched-link" href="/@item.Slug">@item.Name</a></h3>
+
+                        @if (item.ReviewCount > 0)
+                        {
+                            <div class="p-card-rating">
+                                @await Html.PartialAsync("_StarRating", item.AvgRating)
+                                <span class="p-card-rating-count">(@item.ReviewCount)</span>
+                            </div>
+                        }
+
+                        @if (!item.IsAvailable)
+                        {
+                            @* Admin đã tắt sản phẩm sau khi khách thích — nói thật ngay tại card,
+                               thay vì hiện giá rồi để khách bấm mua và nhận lỗi ở bước sau. *@
+                            <div class="p-card-price"><span class="badge-contact">Tạm ngừng kinh doanh</span></div>
+                        }
+                        else if (item.IsContactPrice)
+                        {
+                            <div class="p-card-price"><span class="badge-contact">Liên hệ</span></div>
+                        }
+                        else
+                        {
+                            <div class="p-card-price">
+                                @if (item.SalePrice.HasValue && item.SalePrice.Value < item.OriginalPrice)
+                                {
+                                    <span class="p-price-old">@item.OriginalPrice.ToVnd()</span>
+                                }
+                                <span class="p-price-now">@((item.SalePrice ?? item.OriginalPrice).ToVnd())</span>
+                            </div>
+                        }
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</div>

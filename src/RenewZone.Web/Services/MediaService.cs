@@ -27,6 +27,7 @@ public class MediaService(IWebHostEnvironment env, IOptions<UploadOptions> optio
         UploadProfile.News => _options.News,
         UploadProfile.Banner => _options.Banner,
         UploadProfile.Editor => _options.Editor,
+        UploadProfile.Logo => _options.Logo,
         _ => _options.Product
     };
 

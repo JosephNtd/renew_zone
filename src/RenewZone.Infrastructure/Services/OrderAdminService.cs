@@ -179,7 +179,7 @@ public class OrderAdminService(AppDbContext db, ILogger<OrderAdminService> logge
 
         return new ChangeStatusResult(true,
             $"Đã chuyển đơn {order.Code} sang “{Label(newStatus)}”.",
-            newStatus, OrderStatusRules.AllowedNext(newStatus));
+            newStatus, OrderStatusRules.AllowedNext(newStatus), order.UserId);
     }
 
     /// <summary>Nhãn tiếng Việt cho THÔNG BÁO NGHIỆP VỤ (khác với nhãn hiển thị ở tầng Web).</summary>

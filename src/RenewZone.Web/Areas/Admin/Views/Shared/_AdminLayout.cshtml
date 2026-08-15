@@ -1,8 +1,12 @@
 @using System.Text.Json
 @using RenewZone.Domain.Interfaces
 @inject IAdminBadgeService Badges
+@inject ISiteContentService SiteContent
 @{
     var counts = await Badges.GetCountsAsync();
+
+    // Tên cửa hàng cho tiêu đề tab — đọc từ Cấu hình website, không hardcode nữa (mục 4.16)
+    var brandName = (await SiteContent.GetAdminBrandAsync()).Name;
 
     // Toast sau PRG đi qua TempData dạng JSON (TempData chỉ nhận kiểu nguyên thủy)
     AdminToast? toast = null;
@@ -17,7 +21,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>@ViewData["Title"] - RenewZone Admin</title>
+    <title>@ViewData["Title"] - @brandName Admin</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

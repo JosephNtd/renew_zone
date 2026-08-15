@@ -26,7 +26,23 @@
         return string.IsNullOrWhiteSpace(value) ? fallback : value;
     }
 
-    var storeName = S(SettingKeys.StoreName, "RenewZone");
+    var storeName = S(SettingKeys.StoreName, "Apple Store Uyên NTT");
+
+    // LOGO (admin sửa ở /admin/cau-hinh). Có ảnh ⇒ dùng ảnh; để trống ⇒ logo chữ như cũ.
+    // Nền tối (chân trang, menu điện thoại) có ảnh riêng vì logo chữ sẫm sẽ chìm vào nền.
+    var logoUrl = S(SettingKeys.LogoUrl);
+    var logoDarkUrl = S(SettingKeys.LogoDarkUrl);
+
+    // Logo chữ tách 3 phần để tô màu phần nhấn. Không khai báo / gõ không khớp ⇒ tô cả tên
+    // (an toàn: không bao giờ ra chuỗi rỗng, không phụ thuộc dấu cách hay số từ trong tên).
+    var highlight = S(SettingKeys.LogoHighlight);
+    var markAt = highlight.Length > 0
+        ? storeName.IndexOf(highlight, StringComparison.CurrentCultureIgnoreCase)
+        : -1;
+    var wordBefore = markAt >= 0 ? storeName[..markAt] : "";
+    var wordMark = markAt >= 0 ? storeName.Substring(markAt, highlight.Length) : storeName;
+    var wordAfter = markAt >= 0 ? storeName[(markAt + highlight.Length)..] : "";
+
     var hotline = S(SettingKeys.Hotline, "0900.000.000");
     var hotlineTel = "tel:" + hotline.Replace(".", "").Replace(" ", "");
 
@@ -100,7 +116,14 @@
             </button>
 
             <a class="brand" href="/" aria-label="@storeName - Trang chủ">
-                <span class="brand-word">Renew<span class="text-brand">Zone</span><span class="brand-dot">.</span></span>
+                @if (logoUrl.Length > 0)
+                {
+                    <img class="brand-logo" src="@logoUrl" alt="@storeName" />
+                }
+                else
+                {
+                    <span class="brand-word">@wordBefore<span class="text-brand">@wordMark</span>@wordAfter<span class="brand-dot">.</span></span>
+                }
                 <span class="brand-tag">@S(SettingKeys.Tagline)</span>
             </a>
 
@@ -117,6 +140,45 @@
                         <span class="hotline-number">@hotline</span>
                     </span>
                 </a>
+
+                @* TÀI KHOẢN (Giai đoạn 9) — chưa đăng nhập thì mở hộp thoại tại chỗ thay vì
+                   rời trang; đã đăng nhập thì đổ ra menu các khu của tài khoản. *@
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="dropdown acc-menu">
+                        <button class="acc-btn" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                                aria-expanded="false" aria-label="Tài khoản của tôi">
+                            <i class="bi bi-person-circle"></i>
+                            <span class="acc-btn-text d-none d-md-inline">@User.DisplayName()</span>
+                            <i class="bi bi-chevron-down acc-caret d-none d-md-inline"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end acc-dropdown">
+                            <li><a class="dropdown-item" href="/tai-khoan"><i class="bi bi-speedometer2"></i>Tổng quan</a></li>
+                            <li><a class="dropdown-item" href="/tai-khoan/don-hang"><i class="bi bi-receipt"></i>Đơn hàng của tôi</a></li>
+                            <li><a class="dropdown-item" href="/tai-khoan/yeu-thich"><i class="bi bi-heart"></i>Sản phẩm yêu thích</a></li>
+                            <li><a class="dropdown-item" href="/tai-khoan/dia-chi"><i class="bi bi-geo-alt"></i>Sổ địa chỉ</a></li>
+                            <li><a class="dropdown-item" href="/tai-khoan/ho-so"><i class="bi bi-person-gear"></i>Thông tin cá nhân</a></li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                @* Đăng xuất phải là POST + anti-forgery: để GET thì chỉ cần dụ khách
+                                   mở một thẻ <img src="/dang-xuat"> là họ bị đăng xuất (CSRF). *@
+                                <form method="post" action="/dang-xuat">
+                                    @Html.AntiForgeryToken()
+                                    <button class="dropdown-item text-danger" type="submit">
+                                        <i class="bi bi-box-arrow-right"></i>Đăng xuất
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <a class="acc-btn js-auth-open" href="/dang-nhap" data-auth-tab="login" aria-label="Đăng nhập">
+                        <i class="bi bi-person-circle"></i>
+                        <span class="acc-btn-text d-none d-md-inline">Đăng nhập</span>
+                    </a>
+                }
 
                 <a class="cart-btn" href="/gio-hang" aria-label="Giỏ hàng">
                     <i class="bi bi-bag-fill"></i>
@@ -202,9 +264,16 @@
     @* OFFCANVAS MENU (mobile) *@
     <div class="offcanvas offcanvas-start mobile-menu" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
         <div class="offcanvas-header">
-            <span class="brand-word" id="mobileMenuLabel" style="font-size:1.2rem;color:#fff">
-                Renew<span style="color:var(--brand-200)">Zone</span><span class="brand-dot">.</span>
-            </span>
+            @if (logoDarkUrl.Length > 0)
+            {
+                <img class="mm-brand-logo" id="mobileMenuLabel" src="@logoDarkUrl" alt="@storeName" />
+            }
+            else
+            {
+                <span class="brand-word" id="mobileMenuLabel" style="font-size:1.2rem;color:#fff">
+                    @wordBefore<span style="color:var(--brand-200)">@wordMark</span>@wordAfter<span class="brand-dot">.</span>
+                </span>
+            }
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
         </div>
         <div class="offcanvas-body">
@@ -287,7 +356,14 @@
         <div class="container footer-main">
             <div class="row g-4">
                 <div class="col-12 col-md-6 col-lg-4">
-                    <div class="f-brand-word mb-2">Renew<span class="text-brand">Zone</span><span class="brand-dot">.</span></div>
+                    @if (logoDarkUrl.Length > 0)
+                    {
+                        <img class="f-brand-logo mb-2" src="@logoDarkUrl" alt="@storeName" />
+                    }
+                    else
+                    {
+                        <div class="f-brand-word mb-2">@wordBefore<span class="text-brand">@wordMark</span>@wordAfter<span class="brand-dot">.</span></div>
+                    }
                     <p class="mb-3">@S(SettingKeys.FooterAbout, "Cửa hàng thiết bị Apple mới và đã qua sử dụng.")</p>
                     @if (!string.IsNullOrWhiteSpace(address))
                     {
@@ -379,6 +455,13 @@
     @* MINI-CART (offcanvas, mở từ icon giỏ) *@
     @await Html.PartialAsync("_MiniCart")
 
+    @* HỘP THOẠI ĐĂNG NHẬP/ĐĂNG KÝ (Giai đoạn 9) — chỉ dựng cho khách CHƯA đăng nhập.
+       Người đã đăng nhập không bao giờ cần tới nó, render ra chỉ tổ nặng trang. *@
+    @if (User.Identity?.IsAuthenticated != true)
+    {
+        @await Html.PartialAsync("_AuthModal")
+    }
+
     @* Token cho các POST AJAX của cart.js (gửi qua header "RequestVerificationToken") *@
     @Html.AntiForgeryToken()
 
@@ -387,6 +470,17 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     @* Không dùng defer: cart.js phải định nghĩa RZ.addToCart TRƯỚC các script của section bên dưới *@
     <script src="~/js/cart.js" asp-append-version="true"></script>
+    @* auth.js nạp SAU cart.js: cart.js gọi RZ.requireLogin khi server báo cần đăng nhập *@
+    <script src="~/js/auth.js" asp-append-version="true"></script>
+
+    @* Realtime báo trạng thái đơn — chỉ có ý nghĩa với khách đã đăng nhập, nên không bắt
+       khách vãng lai tải thêm ~130KB thư viện SignalR mà chẳng để làm gì. *@
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <script src="~/lib/signalr/signalr.min.js"></script>
+        <script src="~/js/customer-realtime.js" asp-append-version="true"></script>
+    }
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

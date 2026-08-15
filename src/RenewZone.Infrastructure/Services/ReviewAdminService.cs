@@ -24,6 +24,7 @@ public class ReviewAdminService(AppDbContext db) : IReviewAdminService
         {
             query = query.Where(r =>
                 r.AuthorName.Contains(search) ||
+                (r.Phone != null && r.Phone.Contains(search)) ||
                 r.Content.Contains(search) ||
                 r.Product.Name.Contains(search));
         }
@@ -36,7 +37,7 @@ public class ReviewAdminService(AppDbContext db) : IReviewAdminService
             .Take(request.SafePageSize)
             .Select(r => new ReviewListItem(
                 r.Id, r.ProductId, r.Product.Name, r.Product.Slug,
-                r.AuthorName, r.Rating, r.Content, r.Status,
+                r.AuthorName, r.Phone, r.Rating, r.Content, r.Status,
                 r.AdminReply, r.RepliedAt, r.CreatedAt))
             .ToListAsync();
 

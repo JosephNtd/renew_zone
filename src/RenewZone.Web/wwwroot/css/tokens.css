@@ -1,11 +1,11 @@
 /* 
-   RenewZone Clone — tokens.css
+   Apple Store Uyên NTT — tokens.css
    Design tokens DÙNG CHUNG cho cả web khách (site.css) và trang quản trị (admin.css).
     */
 
 /*  1. TOKENS  */
 :root {
-  /* Brand — hồng RenewZone tinh chỉnh từ #d78dba gốc */
+  /* Brand — hồng thương hiệu tinh chỉnh từ #d78dba gốc */
   --brand-50:  #FDF2F8;
   --brand-100: #FCE7F1;
   --brand-200: #F8CFE2;

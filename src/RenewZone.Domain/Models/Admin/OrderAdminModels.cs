@@ -74,8 +74,14 @@ public record OrderDetailItem(
 }
 
 /// <summary>Kết quả đổi trạng thái — trả về đủ thứ để JS vẽ lại badge + dropdown mà không reload.</summary>
+/// <param name="UserId">
+/// Chủ đơn (Giai đoạn 9) — controller cần để đẩy thông báo realtime xuống đúng khách hàng đó.
+/// Null với đơn của khách vãng lai đặt trước Giai đoạn 9, và với mọi kết quả thất bại.
+/// Trả kèm ở đây thay vì bắt controller truy vấn lại đơn chỉ để lấy một cột.
+/// </param>
 public record ChangeStatusResult(
     bool Ok,
     string Message,
     OrderStatus Status,
-    IReadOnlyList<OrderStatus> AllowedNext);
+    IReadOnlyList<OrderStatus> AllowedNext,
+    string? UserId = null);

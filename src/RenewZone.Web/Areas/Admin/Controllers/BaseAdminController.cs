@@ -19,8 +19,14 @@ namespace RenewZone.Web.Areas.Admin.Controllers;
 /// <c>[ValidateAntiForgeryToken]</c> — AJAX phải gửi token qua header <c>RequestVerificationToken</c>.
 /// </para>
 /// </summary>
+/// <remarks>
+/// ⚠️ <c>AuthenticationSchemes</c> là BẮT BUỘC từ 2026-07-28: khu quản trị có cookie riêng
+/// (<see cref="AppAuthSchemes.Admin"/>). Thiếu nó thì <c>[Authorize]</c> sẽ soi cookie của KHÁCH
+/// HÀNG — tức là admin đã đăng nhập vẫn bị đá ra, còn khách thì không bao giờ vào được.
+/// Khai ở lớp cơ sở nên mọi controller admin tự có; thêm màn mới không phải nhớ gì.
+/// </remarks>
 [Area("Admin")]
-[Authorize(Roles = AppRoles.Admin)]
+[Authorize(AuthenticationSchemes = AppAuthSchemes.Admin, Roles = AppRoles.Admin)]
 [AutoValidateAntiforgeryToken]
 public abstract class BaseAdminController : Controller
 {

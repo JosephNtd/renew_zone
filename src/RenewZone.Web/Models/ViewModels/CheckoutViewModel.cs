@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using RenewZone.Domain.Entities;
 using RenewZone.Domain.Enums;
 using RenewZone.Domain.Models;
 
@@ -39,8 +40,20 @@ public class CheckoutInput
     [Required(ErrorMessage = "Vui lòng chọn phương thức thanh toán")]
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cod;
 
-    public OrderRequest ToRequest() => new()
+    /// <summary>
+    /// Id địa chỉ trong sổ mà khách vừa bấm chọn. Chỉ dùng để tô sáng thẻ địa chỉ khi form được
+    /// render lại — 3 ô họ tên/SĐT/địa chỉ vẫn là nguồn sự thật của đơn, nên khách sửa tay sau
+    /// khi chọn thì đơn đi theo cái họ sửa.
+    /// </summary>
+    public int? SelectedAddressId { get; set; }
+
+    /// <param name="userId">
+    /// Lấy từ claim của người đang đăng nhập, KHÔNG phải từ form — để form gửi lên thì ai cũng
+    /// gán được đơn của mình sang tài khoản người khác.
+    /// </param>
+    public OrderRequest ToRequest(string? userId) => new()
     {
+        UserId = userId,
         CustomerName = CustomerName,
         Phone = Phone,
         Email = Email,
@@ -50,11 +63,14 @@ public class CheckoutInput
     };
 }
 
-/// <summary>Dữ liệu trang /dat-hang: form + tóm tắt giỏ (chỉ đọc).</summary>
+/// <summary>Dữ liệu trang /dat-hang: form + tóm tắt giỏ (chỉ đọc) + sổ địa chỉ để chọn nhanh.</summary>
 public class CheckoutViewModel
 {
     public required CheckoutInput Input { get; init; }
     public required Cart Cart { get; init; }
+
+    /// <summary>Sổ địa chỉ của khách — rỗng thì view ẩn hẳn khối chọn nhanh (luật fallback mục 4.7).</summary>
+    public IReadOnlyList<CustomerAddress> Addresses { get; init; } = [];
 }
 
 // Ghi chú Giai đoạn 5: class DemoBankInfo (hardcode tên ngân hàng/STK trong C#) đã bị XÓA.

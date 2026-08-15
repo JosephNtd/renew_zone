@@ -114,6 +114,11 @@ public class CatalogQueryService(AppDbContext db) : ICatalogQueryService
         };
     }
 
+    public Task IncrementProductViewAsync(int productId) =>
+        db.Products
+            .Where(p => p.Id == productId && p.IsActive)
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.ViewCount, p => p.ViewCount + 1));
+
     public Task<PagedResult<Product>> GetAllProductsAsync(int page, int pageSize)
     {
         var query = db.Products.AsNoTracking().Where(p => p.IsActive);

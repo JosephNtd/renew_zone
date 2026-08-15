@@ -489,3 +489,12 @@ $RECYCLE.BIN/
 # File người dùng tải lên (form liên hệ + ảnh sản phẩm/tin/banner/editor của admin) — không vào repo
 src/RenewZone.Web/wwwroot/uploads/
 
+# Cấu hình môi trường deploy — chứa BÍ MẬT (chuỗi kết nối DB + mật khẩu admin seed).
+# dotnet publish vẫn đóng gói file này vì nó có thật trên đĩa; chỉ git là không thấy.
+src/RenewZone.Web/appsettings.Production.json
+
+# Bản dump DB để migrate lên hosting — chứa DỮ LIỆU THẬT: SĐT khách trong Orders/
+# ContactMessages/ProductReviews và hash mật khẩu trong AspNetUsers. Không commit.
+# Chỉ chặn ở thư mục gốc để không đụng src/db.sql (dump schema cũ đã track từ trước).
+/renewzone_*.sql
+

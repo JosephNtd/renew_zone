@@ -1,0 +1,60 @@
+@model MyOrdersViewModel
+@{
+    var orders = Model.Orders;
+}
+
+<div class="acc-page-head">
+    <h1 class="acc-page-title">Đơn hàng của tôi</h1>
+    <p class="acc-page-sub">
+        @if (orders.TotalItems > 0)
+        {
+            @($"Bạn có {orders.TotalItems} đơn hàng")
+        }
+        else
+        {
+            @("Theo dõi tình trạng các đơn bạn đã đặt tại shop")
+        }
+    </p>
+</div>
+
+<div class="acc-card">
+    @if (orders.Items.Count == 0)
+    {
+        <div class="acc-empty">
+            <div class="acc-empty-icon"><i class="bi bi-bag"></i></div>
+            <div class="acc-empty-title">Chưa có đơn hàng nào</div>
+            <p class="acc-empty-text">
+                Các đơn bạn đặt sau khi đăng nhập sẽ được lưu tại đây để tiện theo dõi.
+            </p>
+            <a class="btn-rz btn-buy" href="/san-pham"><i class="bi bi-shop"></i> Bắt đầu mua sắm</a>
+        </div>
+    }
+    else
+    {
+        foreach (var order in orders.Items)
+        {
+            <partial name="_MyOrderRow" model="order" />
+        }
+    }
+</div>
+
+@if (orders.TotalPages > 1)
+{
+    @* Phân trang tự viết (không dùng _Pagination): partial đó nhận model của trang danh mục
+       sản phẩm với cách dựng URL riêng. Ở đây chỉ có 1 tham số ?trang= nên đơn giản hơn nhiều. *@
+    <nav class="d-flex justify-content-center gap-2 mt-3" aria-label="Phân trang đơn hàng">
+        @if (orders.HasPrevious)
+        {
+            <a class="addr-action" href="@Model.PageUrl(orders.Page - 1)">
+                <i class="bi bi-chevron-left"></i> Trước
+            </a>
+        }
+        <span class="addr-action" aria-current="page">Trang @orders.Page/@orders.TotalPages</span>
+        @if (orders.HasNext)
+        {
+            <a class="addr-action" href="@Model.PageUrl(orders.Page + 1)">
+                Sau <i class="bi bi-chevron-right"></i>
+            </a>
+        }
+    </nav>
+}

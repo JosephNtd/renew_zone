@@ -59,6 +59,12 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<SiteSetting> SiteSettings => Set<SiteSetting>();
 
+    // Tài khoản khách hàng (Giai đoạn 9) — dữ liệu RIÊNG của từng user, không xóa mềm:
+    // khách xóa địa chỉ/bỏ tim là mất thật, Thùng rác của admin không chứa dữ liệu riêng tư.
+    public DbSet<CustomerAddress> CustomerAddresses => Set<CustomerAddress>();
+    public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
+    public DbSet<UserCart> UserCarts => Set<UserCart>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

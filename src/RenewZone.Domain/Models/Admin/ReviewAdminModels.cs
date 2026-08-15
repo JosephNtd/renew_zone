@@ -9,7 +9,7 @@ public class ReviewListRequest : AdminListRequest
 
 public record ReviewListItem(
     int Id, int ProductId, string ProductName, string ProductSlug,
-    string AuthorName, int Rating, string Content, ReviewStatus Status,
+    string AuthorName, string? Phone, int Rating, string Content, ReviewStatus Status,
     string? AdminReply, DateTime? RepliedAt, DateTime CreatedAt);
 
 /// <summary>Số đánh giá theo từng trạng thái — dựng tab lọc + badge, đọc từ dữ liệu THẬT.</summary>

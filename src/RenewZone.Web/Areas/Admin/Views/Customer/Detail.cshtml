@@ -1,0 +1,258 @@
+@using RenewZone.Domain.Models.Admin
+@using RenewZone.Web.Helpers
+@model CustomerDetail
+@{
+    ViewData["Title"] = "Khách hàng " + Model.Phone;
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>@(string.IsNullOrWhiteSpace(Model.FullName) ? Model.Phone : Model.FullName)</h1>
+        <div class="adm-page-sub">
+            Tham gia @Model.CreatedAt.ToString("dd/MM/yyyy")
+            @if (Model.IsLocked)
+            {
+                <span class="adm-badge adm-badge-cancel ms-2"><i class="bi bi-lock-fill"></i> Đang bị khóa</span>
+            }
+        </div>
+    </div>
+    <div class="adm-page-actions">
+        <a class="adm-btn adm-btn-ghost" asp-action="Index">
+            <i class="bi bi-chevron-left" aria-hidden="true"></i>
+            <span class="adm-btn-label">Danh sách</span>
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+    @* Cột trái: hồ sơ + đơn hàng *@
+    <div class="col-12 col-lg-8">
+        <div class="adm-card mb-3">
+            <div class="adm-card-head"><h2>Thông tin tài khoản</h2></div>
+
+            <dl class="mb-0">
+                <dt class="adm-small adm-muted">Số điện thoại (cũng là tên đăng nhập)</dt>
+                <dd>
+                    <a class="adm-num fw-bold" href="tel:@Model.Phone">
+                        <i class="bi bi-telephone" aria-hidden="true"></i> @Model.Phone
+                    </a>
+                </dd>
+
+                <dt class="adm-small adm-muted mt-2">Họ tên</dt>
+                <dd class="fw-bold">@(Model.FullName ?? "—")</dd>
+
+                <dt class="adm-small adm-muted mt-2">Email</dt>
+                <dd>
+                    @if (string.IsNullOrWhiteSpace(Model.Email))
+                    {
+                        <span class="adm-muted">— (khách không bắt buộc nhập email)</span>
+                    }
+                    else
+                    {
+                        <a href="mailto:@Model.Email"><i class="bi bi-envelope" aria-hidden="true"></i> @Model.Email</a>
+                    }
+                </dd>
+
+                <dt class="adm-small adm-muted mt-2">Ngày sinh</dt>
+                <dd>@(Model.DateOfBirth?.ToString("dd/MM/yyyy") ?? "—")</dd>
+
+                <dt class="adm-small adm-muted mt-2">Giới tính</dt>
+                <dd>@(Model.Gender ?? "—")</dd>
+
+                <dt class="adm-small adm-muted mt-2">Số lần đăng nhập sai gần đây</dt>
+                <dd class="adm-num">@Model.AccessFailedCount</dd>
+            </dl>
+
+            <div class="d-flex flex-wrap gap-2 mt-3 pt-3 border-top">
+                @* Đặt lại mật khẩu = luồng "quên mật khẩu" của site (site chưa gửi được email/SMS).
+                   Mật khẩu tạm hiện MỘT LẦN trong hộp thoại, không lưu lại ở đâu cả. *@
+                <button class="adm-btn adm-btn-ghost adm-btn-sm" type="button"
+                        id="btnResetPassword" data-id="@Model.Id">
+                    <i class="bi bi-key" aria-hidden="true"></i>
+                    <span class="adm-btn-label">Đặt lại mật khẩu</span>
+                </button>
+
+                <button class="adm-btn adm-btn-sm @(Model.IsLocked ? "adm-btn-primary" : "adm-btn-ghost text-danger")"
+                        type="button" id="btnToggleLock"
+                        data-id="@Model.Id" data-locked="@Model.IsLocked.ToString().ToLowerInvariant()">
+                    <i class="bi @(Model.IsLocked ? "bi-unlock" : "bi-lock")" aria-hidden="true"></i>
+                    <span class="adm-btn-label">@(Model.IsLocked ? "Mở khóa tài khoản" : "Khóa tài khoản")</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="adm-card">
+            <div class="adm-card-head">
+                <h2>Đơn hàng gần đây</h2>
+                <span class="adm-small adm-muted ms-auto">@Model.OrderCount đơn</span>
+            </div>
+
+            @if (Model.RecentOrders.Count == 0)
+            {
+                <partial name="_EmptyState" model='new EmptyStateModel {
+                    Icon = "bi-receipt",
+                    Title = "Khách chưa đặt đơn nào",
+                    Message = "Đơn khách đặt sau khi đăng nhập sẽ xuất hiện ở đây." }' />
+            }
+            else
+            {
+                <div class="adm-table-wrap border-0">
+                    <table class="adm-table">
+                        <caption class="visually-hidden">Đơn hàng của khách</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Mã đơn</th>
+                                <th scope="col">Ngày đặt</th>
+                                <th scope="col" class="adm-col-right">Tổng tiền</th>
+                                <th scope="col">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.RecentOrders)
+                            {
+                                <tr>
+                                    <td>
+                                        <a class="adm-num fw-bold" asp-controller="Order" asp-action="Detail"
+                                           asp-route-id="@order.Id">@order.Code</a>
+                                    </td>
+                                    <td class="adm-small adm-muted">@order.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                    <td class="adm-col-right adm-num">@order.TotalAmount.ToVnd()</td>
+                                    <td>
+                                        <span class="adm-badge @order.Status.ToBadgeClass()">
+                                            <i class="bi @order.Status.ToIcon()" aria-hidden="true"></i>
+                                            @order.Status.ToVietnamese()
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* Cột phải: thống kê + sổ địa chỉ *@
+    <div class="col-12 col-lg-4">
+        <div class="adm-card mb-3">
+            <div class="adm-card-head"><h2>Thống kê</h2></div>
+
+            <div class="d-flex align-items-center mb-2">
+                <span class="adm-muted">Tổng số đơn</span>
+                <span class="ms-auto adm-num fw-bold">@Model.OrderCount</span>
+            </div>
+            <div class="d-flex align-items-center mb-2">
+                <span class="adm-muted">Đơn hoàn thành</span>
+                <span class="ms-auto adm-num fw-bold">@Model.CompletedOrders</span>
+            </div>
+            <div class="d-flex align-items-center mb-2 pb-2 border-bottom">
+                <span class="adm-muted">Tổng chi tiêu</span>
+                <span class="ms-auto adm-num fw-bold" style="font-size: 1.05rem;">@Model.TotalSpent.ToVnd()</span>
+            </div>
+            <div class="d-flex align-items-center mb-2">
+                <span class="adm-muted">Đánh giá đã viết</span>
+                <span class="ms-auto adm-num fw-bold">@Model.ReviewCount</span>
+            </div>
+            <div class="d-flex align-items-center">
+                <span class="adm-muted">Sản phẩm yêu thích</span>
+                <span class="ms-auto adm-num fw-bold">@Model.WishlistCount</span>
+            </div>
+        </div>
+
+        <div class="adm-card">
+            <div class="adm-card-head">
+                <h2>Sổ địa chỉ</h2>
+                <span class="adm-small adm-muted ms-auto">Chỉ xem</span>
+            </div>
+
+            @if (Model.Addresses.Count == 0)
+            {
+                <p class="adm-muted adm-small mb-0">Khách chưa lưu địa chỉ nào.</p>
+            }
+            else
+            {
+                @* CHỈ ĐỌC — admin không sửa sổ địa chỉ hộ khách: đó là dữ liệu riêng, sửa hộ thì
+                   khách đặt hàng ra địa chỉ lạ mà không hiểu vì sao (xem ICustomerAdminService). *@
+                foreach (var address in Model.Addresses)
+                {
+                    <div class="pb-2 mb-2 border-bottom">
+                        <div class="fw-bold">
+                            @address.ReceiverName
+                            @if (address.IsDefault)
+                            {
+                                <span class="adm-flag">Mặc định</span>
+                            }
+                        </div>
+                        <div class="adm-small adm-muted adm-num">@address.Phone</div>
+                        <div class="adm-small adm-muted">@address.AddressLine</div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var lockBtn = document.getElementById("btnToggleLock");
+            var resetBtn = document.getElementById("btnResetPassword");
+
+            if (lockBtn) {
+                lockBtn.addEventListener("click", async function () {
+                    var next = lockBtn.getAttribute("data-locked") !== "true";
+
+                    var ok = await RZAdmin.confirm({
+                        title: next ? "Khóa tài khoản?" : "Mở khóa tài khoản?",
+                        message: next
+                            ? "Khách sẽ <b>không đăng nhập được</b> cho tới khi bạn mở khóa. Đơn hàng cũ vẫn giữ nguyên."
+                            : "Khách sẽ đăng nhập lại được bình thường.",
+                        okText: next ? "Khóa tài khoản" : "Mở khóa",
+                        okClass: next ? "adm-btn-danger" : "adm-btn-primary"
+                    });
+                    if (!ok) return;
+
+                    var data = await RZAdmin.post(
+                        "/admin/khach-hang/" + lockBtn.getAttribute("data-id") + "/khoa", { locked: next });
+
+                    RZAdmin.toast(data.message, data.ok ? "success" : "error");
+                    if (data.ok) setTimeout(function () { window.location.reload(); }, 800);
+                });
+            }
+
+            if (resetBtn) {
+                resetBtn.addEventListener("click", async function () {
+                    var ok = await RZAdmin.confirm({
+                        title: "Đặt lại mật khẩu?",
+                        message: "Hệ thống sẽ tạo <b>mật khẩu tạm</b> và hiện ra một lần duy nhất để bạn đọc cho khách. "
+                            + "Mật khẩu cũ ngừng hoạt động ngay lập tức.",
+                        okText: "Đặt lại mật khẩu",
+                        okClass: "adm-btn-danger"
+                    });
+                    if (!ok) return;
+
+                    var data = await RZAdmin.post(
+                        "/admin/khach-hang/" + resetBtn.getAttribute("data-id") + "/dat-lai-mat-khau", {});
+
+                    if (!data.ok) { RZAdmin.toast(data.message, "error"); return; }
+
+                    // Mật khẩu sinh ngẫu nhiên nên phải escape trước khi nhét vào innerHTML của
+                    // modal — dùng textContent của một node tạm để trình duyệt tự làm việc đó.
+                    var holder = document.createElement("span");
+                    holder.textContent = data.tempPassword;
+
+                    await RZAdmin.confirm({
+                        title: "Mật khẩu tạm",
+                        message: "Đọc mật khẩu này cho khách, nhắc họ đăng nhập rồi đổi lại ngay:"
+                            + '<div style="margin-top:12px;font-size:1.4rem;font-weight:800;letter-spacing:3px;">'
+                            + holder.innerHTML + "</div>",
+                        okText: "Tôi đã ghi lại",
+                        okClass: "adm-btn-primary"
+                    });
+
+                    RZAdmin.toast(data.message, "success");
+                });
+            }
+        })();
+    </script>
+}

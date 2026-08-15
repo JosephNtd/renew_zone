@@ -12,10 +12,19 @@
         return string.IsNullOrWhiteSpace(v) ? fallback : v;
     }
     var origin = $"{Context.Request.Scheme}://{Context.Request.Host}";
+
+    // Logo cho Google: dùng ảnh admin đã tải lên, chưa có thì mới về ảnh mặc định.
+    // Admin có thể dán URL tuyệt đối nên phải kiểm trước khi ghép origin.
+    var orgLogo = HS(SettingKeys.LogoUrl, "/images/placeholder-product.svg");
+    if (!orgLogo.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+    {
+        orgLogo = origin + orgLogo;
+    }
+
     var jsonOrg = StructuredData.Organization(
-        name: HS(SettingKeys.StoreName, "RenewZone"),
+        name: HS(SettingKeys.StoreName, "Apple Store Uyên NTT"),
         url: origin + "/",
-        logo: origin + "/images/placeholder-product.svg",
+        logo: orgLogo,
         phone: HS(SettingKeys.Hotline),
         sameAs: new[] { HS(SettingKeys.FacebookUrl), HS(SettingKeys.MessengerUrl), HS(SettingKeys.ZaloUrl) });
 }

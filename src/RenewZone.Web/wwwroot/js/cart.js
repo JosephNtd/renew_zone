@@ -28,13 +28,32 @@
             },
             body: JSON.stringify(body)
         }).then(function (res) {
-            if (!res.ok) throw new Error("HTTP " + res.status);
+            if (!res.ok) {
+                var err = new Error("HTTP " + res.status);
+                err.status = res.status; // để toastError phân biệt được nguyên nhân
+                throw err;
+            }
             return res.json();
         });
     }
 
-    function toastError(message) {
-        if (window.RZ && RZ.toast) RZ.toast(message || "Có lỗi xảy ra, vui lòng thử lại", "error");
+    /* Thông báo lỗi. 400 ở đây gần như luôn là ANTI-FORGERY HẾT HIỆU LỰC chứ không phải hỏng
+       mạng: token gắn với DANH TÍNH người đang đăng nhập, nên chỉ cần đăng nhập/đăng xuất ở một
+       TAB KHÁC là token của mọi tab đang mở thành vô giá trị. Báo "không kết nối được" trong
+       trường hợp đó khiến khách bấm lại mãi mà không bao giờ được — phải tải lại trang. */
+    function toastError(messageOrError) {
+        var err = messageOrError && messageOrError.status ? messageOrError : null;
+
+        if (err && err.status === 400) {
+            if (window.RZ && RZ.toast) {
+                RZ.toast("Phiên làm việc đã thay đổi, đang tải lại trang…", "error");
+            }
+            setTimeout(function () { window.location.reload(); }, 1600);
+            return;
+        }
+
+        var text = typeof messageOrError === "string" ? messageOrError : null;
+        if (window.RZ && RZ.toast) RZ.toast(text || "Có lỗi xảy ra, vui lòng thử lại", "error");
     }
 
     /* 2. Đồng bộ UI theo giỏ mới */
@@ -179,6 +198,14 @@
             quantity: payload.quantity || 1
         }).then(function (data) {
             if (!data.ok) {
+                // Giai đoạn 9: khách vãng lai ⇒ server trả cờ requireLogin. Mở hộp thoại đăng nhập
+                // và THỬ LẠI đúng thao tác này sau khi đăng nhập xong, để khách không phải nhớ
+                // mình vừa định mua gì. auth.js nạp sau file này nên kiểm tra lúc gọi, không lúc tải.
+                if (data.requireLogin && window.RZ && RZ.requireLogin) {
+                    return RZ.requireLogin(function () {
+                        return addToCart(payload, sourceImgEl);
+                    });
+                }
                 toastError(data.message);
                 return false;
             }
@@ -187,8 +214,8 @@
             cartToast(data.item);
             refreshMiniCart();
             return true;
-        }).catch(function () {
-            toastError();
+        }).catch(function (err) {
+            toastError(err);
             return false;
         });
     }
@@ -254,9 +281,9 @@
                 syncCart(data.cart);
                 refreshMiniCart();
             })
-            .catch(function () {
+            .catch(function (err) {
                 setQuantity(stepper, current);
-                toastError();
+                toastError(err);
             })
             .finally(function () { refreshStepperButtons(stepper); });
     }
@@ -290,9 +317,9 @@
                 refreshMiniCart();
                 if (window.RZ && RZ.toast) RZ.toast(data.message || "Đã xóa khỏi giỏ hàng");
             })
-            .catch(function () {
+            .catch(function (err) {
                 btn.disabled = false;
-                toastError();
+                toastError(err);
             });
     }
 

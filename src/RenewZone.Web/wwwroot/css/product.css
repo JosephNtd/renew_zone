@@ -79,16 +79,27 @@ a.rz-pager-btn:hover { border-color: var(--brand-400); color: var(--brand-600); 
 
 /* Gallery */
 .pdp-stage {
+  position: relative;              /* mốc định vị cho ảnh chính bên dưới */
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   aspect-ratio: 1 / 1;
-  display: grid;
-  place-items: center;
   overflow: hidden;
-  padding: 20px;
 }
-.pdp-stage img { max-width: 100%; max-height: 100%; object-fit: contain; transition: opacity var(--t-base); }
+/* Ảnh chính lấp đầy khung vuông bằng kích thước XÁC ĐỊNH (absolute + inset:0):
+   % height phân giải theo hộp cha thật, KHÔNG dính lỗi max-height:100% không
+   phân giải được so với chiều cao suy từ aspect-ratio — trước đây khiến thuộc tính
+   width/height=800 của thẻ img giữ ảnh cao 800px, tràn khung rồi bị cắt đáy. */
+.pdp-stage img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  object-fit: contain;
+  transition: opacity var(--t-base);
+}
 .pdp-thumbs {
   display: flex;
   gap: 10px;
@@ -405,6 +416,8 @@ a.rz-pager-btn:hover { border-color: var(--brand-400); color: var(--brand-600); 
 .rv-form-title { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; margin: 0 0 16px; }
 .rv-field { margin-bottom: 14px; }
 .rv-label { display: block; font-weight: 600; color: var(--ink-700); margin-bottom: 6px; font-size: .95rem; }
+.rv-optional { font-weight: 400; color: var(--ink-500); font-size: .85rem; }
+.rv-hint { display: block; color: var(--ink-500); font-size: .82rem; margin-top: 5px; }
 
 /* Ô chọn sao (nút bấm) */
 .rv-star-input { display: inline-flex; gap: 4px; }
@@ -417,6 +430,28 @@ a.rz-pager-btn:hover { border-color: var(--brand-400); color: var(--brand-600); 
 .rv-star-btn:hover { transform: scale(1.12); }
 .rv-note { color: var(--ink-500); font-size: .88rem; margin: 4px 0 16px; }
 .rv-submit { min-width: 160px; }
+
+/* Chưa đủ điều kiện đánh giá (chưa đăng nhập / chưa mua) — vẫn là một khối tử tế có lời giải
+   thích + lối đi tiếp, chứ không phải khoảng trống khiến khách tưởng chức năng bị hỏng.
+   Viền nét đứt để phân biệt ngay với form thật. */
+.rv-locked { border-style: dashed; text-align: center; }
+.rv-locked .rv-form-title { justify-content: center; display: flex; align-items: center; gap: 8px; }
+.rv-locked .rv-form-title .bi { color: var(--brand-500); }
+
+/* Huy hiệu "Đã mua hàng" — giá trị cốt lõi của việc bắt đăng nhập trước khi đánh giá */
+.rv-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
+  background: #ECFDF5;
+  color: #047857;
+  font-size: .72rem;
+  font-weight: 800;
+  vertical-align: middle;
+}
 
 /* Honeypot — PDP không nạp contact.css nên định nghĩa lại ở đây (khách thật không thấy) */
 .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }

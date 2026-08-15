@@ -13,8 +13,32 @@ public class ProductReview : AuditableEntity, ISoftDeletable
 {
     public int ProductId { get; set; }
 
+    /// <summary>
+    /// Tài khoản đã viết đánh giá (khóa ngoại <c>AspNetUsers</c>, không navigation — xem
+    /// <c>Order.UserId</c>). NULL = đánh giá của khách vãng lai từ Giai đoạn 8, giữ nguyên
+    /// để không mất dữ liệu cũ.
+    /// <para>
+    /// Từ Giai đoạn 9 chỉ tài khoản ĐÃ MUA sản phẩm này (đơn Hoàn thành) mới gửi được đánh giá
+    /// ⇒ mọi bản ghi mới đều có UserId, và <see cref="IsVerifiedPurchase"/> luôn true.
+    /// </para>
+    /// </summary>
+    public string? UserId { get; set; }
+
+    /// <summary>
+    /// Đã đối chiếu được với đơn hàng hoàn thành của chính người viết tại thời điểm gửi.
+    /// Chốt cứng thành cột thay vì kiểm lại lúc hiển thị: đơn có thể bị admin đổi trạng thái
+    /// hoặc sản phẩm bị gỡ về sau, nhưng huy hiệu "Đã mua hàng" phản ánh sự thật LÚC ĐÁNH GIÁ.
+    /// </summary>
+    public bool IsVerifiedPurchase { get; set; }
+
     /// <summary>Tên khách tự nhập (không xác thực) — chỉ để hiển thị.</summary>
     public string AuthorName { get; set; } = null!;
+
+    /// <summary>
+    /// Số điện thoại khách tự nhập — TÙY CHỌN, để admin liên hệ lại nếu cần (khiếu nại, tư vấn).
+    /// Là THÔNG TIN CÁ NHÂN: chỉ hiện ở màn admin, TUYỆT ĐỐI không render ra web khách cạnh bình luận.
+    /// </summary>
+    public string? Phone { get; set; }
 
     /// <summary>Số sao 1–5. Validate cứng ở server, không tin giá trị client gửi.</summary>
     public int Rating { get; set; }

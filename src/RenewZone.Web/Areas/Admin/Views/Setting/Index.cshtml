@@ -28,7 +28,8 @@
                     var value = Model.ValueOf(field.Key);
                     var inputId = "set_" + field.Key;
 
-                    <div class="adm-field" style="--col-span: @(field.Multiline ? 12 : 6);">
+                    <div class="adm-field" style="--col-span: @(field.Multiline ? 12 : 6);"
+                         @(field.IsImage ? "data-img-field" : null)>
                         <label class="adm-label" for="@inputId">@field.Label</label>
 
                         <div class="d-flex gap-2 align-items-start">
@@ -42,6 +43,16 @@
                             {
                                 <input class="adm-input" id="@inputId" name="values[@field.Key]"
                                        value="@value" placeholder="@field.Placeholder" autocomplete="off" />
+                            }
+
+                            @if (field.IsImage)
+                            {
+                                <button type="button" class="adm-btn adm-btn-ghost js-pick-image">
+                                    <i class="bi bi-upload" aria-hidden="true"></i>
+                                    <span class="adm-btn-label">Tải ảnh lên</span>
+                                </button>
+                                @* Hồ sơ Logo: giới hạn riêng (nhẹ hơn banner, cho phép ảnh nhỏ và dẹt) *@
+                                <input type="file" class="js-image-file" accept=".png,.webp,.jpg,.jpeg" hidden />
                             }
 
                             @if (field.IsUrl)
@@ -60,6 +71,16 @@
                         @if (!string.IsNullOrWhiteSpace(field.Hint))
                         {
                             <div class="adm-hint">@field.Hint</div>
+                        }
+
+                        @if (field.IsImage)
+                        {
+                            <div class="adm-img-preview js-image-preview mt-2 @(field.DarkPreview ? "is-dark" : "")">
+                                @if (!string.IsNullOrWhiteSpace(value))
+                                {
+                                    <img src="@value" alt="Xem trước @field.Label" />
+                                }
+                            </div>
                         }
 
                         @if (field.Key == SettingKeys.Hotline)
@@ -101,6 +122,62 @@
                     var value = input.value.trim();
                     link.hidden = !value;
                     link.href = value || "#";
+                });
+            });
+
+            // Ô ảnh (logo): nút tải lên + xem trước. Vẫn giữ ô gõ đường dẫn tay cho người quen việc.
+            document.querySelectorAll("[data-img-field]").forEach(function (field) {
+                var input = field.querySelector("input.adm-input");
+                var pick = field.querySelector(".js-pick-image");
+                var file = field.querySelector(".js-image-file");
+                var preview = field.querySelector(".js-image-preview");
+
+                function render() {
+                    // Dựng thẻ bằng DOM thay vì nối chuỗi HTML — đường dẫn là dữ liệu người dùng nhập
+                    preview.textContent = "";
+                    if (!input.value.trim()) return;
+
+                    var img = document.createElement("img");
+                    img.src = input.value.trim();
+                    img.alt = "Xem trước";
+                    preview.appendChild(img);
+                }
+
+                input.addEventListener("input", render);
+                pick.addEventListener("click", function () { file.click(); });
+
+                file.addEventListener("change", function () {
+                    if (!file.files.length) return;
+
+                    var form = new FormData();
+                    form.append("file", file.files[0]);
+                    form.append("profile", "Logo"); // giới hạn riêng của logo (ảnh nhỏ, dẹt)
+
+                    pick.classList.add("is-loading");
+
+                    fetch("/admin/media/upload-editor", {
+                        method: "POST",
+                        headers: { "RequestVerificationToken": RZAdmin.token() },
+                        body: form
+                    })
+                        .then(function (r) { return r.json(); })
+                        .then(function (data) {
+                            pick.classList.remove("is-loading");
+                            if (!data.location) {
+                                RZAdmin.toast(data.message || "Tải ảnh thất bại.", "error");
+                                return;
+                            }
+                            input.value = data.location;
+                            render();
+                            // Ảnh mới chỉ nằm trên đĩa — phải bấm Lưu thì website mới đổi
+                            RZAdmin.toast("Đã tải ảnh lên. Bấm “Lưu cấu hình” để áp dụng.", "success");
+                        })
+                        .catch(function () {
+                            pick.classList.remove("is-loading");
+                            RZAdmin.toast("Không kết nối được máy chủ.", "error");
+                        });
+
+                    file.value = "";
                 });
             });
 

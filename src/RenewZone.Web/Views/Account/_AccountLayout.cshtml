@@ -1,0 +1,118 @@
+@using System.Security.Claims
+@using RenewZone.Domain.Interfaces
+@using RenewZone.Web.Helpers
+@inject IWishlistService Wishlist
+@*
+    Layout LỒNG cho toàn bộ khu /tai-khoan: khung ngoài vẫn là _Layout (header/menu/footer),
+    thêm thanh điều hướng bên trái dùng chung.
+
+    Dùng layout lồng thay vì partial gọi ở 7 view: thanh bên + khung nội dung + khối thông báo
+    là cùng một bộ khung ở mọi trang, để partial thì mỗi view phải tự nhớ lặp lại đủ 3 thứ —
+    sót một chỗ là trang đó lệch hẳn bố cục.
+*@
+@{
+    Layout = "_Layout";
+
+    // Đánh dấu mục đang mở. So bằng đường dẫn (không phải tên action) để mục "Đơn hàng" vẫn
+    // sáng khi khách đang xem CHI TIẾT một đơn (/tai-khoan/don-hang/RZ...).
+    var path = Context.Request.Path.Value ?? "";
+    string Active(string href) =>
+        href == "/tai-khoan"
+            ? (path.TrimEnd('/').Equals("/tai-khoan", StringComparison.OrdinalIgnoreCase) ? "is-active" : "")
+            : (path.StartsWith(href, StringComparison.OrdinalIgnoreCase) ? "is-active" : "");
+
+    // Tên đầy đủ đến từ claim gắn lúc đăng nhập (AppUserClaimsPrincipalFactory) — không
+    // truy vấn DB; chưa đặt tên thì rơi về số điện thoại.
+    var fullName = User.DisplayName();
+
+    // Số mục yêu thích cho huy hiệu trên thanh bên. Lỗi thì bỏ qua — một con số phụ trợ
+    // tuyệt đối không được làm sập cả khu tài khoản.
+    var wishCount = 0;
+    try
+    {
+        var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!string.IsNullOrEmpty(uid))
+        {
+            wishCount = await Wishlist.CountAsync(uid);
+        }
+    }
+    catch
+    {
+        // im lặng — huy hiệu chỉ là trang trí
+    }
+
+    var flashOk = TempData["AccountMessage"] as string;
+    var flashErr = TempData["AccountError"] as string;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/account.css" asp-append-version="true" />
+    @* Section của trang con phải được chuyển tiếp lên _Layout — layout lồng không tự làm hộ *@
+    @await RenderSectionAsync("Styles", required: false)
+}
+
+<div class="container acc-wrap">
+    <div class="acc-layout">
+        <aside class="acc-side">
+            <div class="acc-side-head">
+                <div class="acc-side-avatar"><i class="bi bi-person-fill"></i></div>
+                <div class="acc-side-name">@fullName</div>
+                <div class="acc-side-phone">@User.Identity?.Name</div>
+            </div>
+
+            <nav class="acc-side-nav" aria-label="Menu tài khoản">
+                <a class="acc-side-link @Active("/tai-khoan")" href="/tai-khoan">
+                    <i class="bi bi-speedometer2"></i><span>Tổng quan</span>
+                </a>
+                <a class="acc-side-link @Active("/tai-khoan/don-hang")" href="/tai-khoan/don-hang">
+                    <i class="bi bi-receipt"></i><span>Đơn hàng của tôi</span>
+                </a>
+                <a class="acc-side-link @Active("/tai-khoan/yeu-thich")" href="/tai-khoan/yeu-thich">
+                    <i class="bi bi-heart"></i><span>Yêu thích</span>
+                    @if (wishCount > 0)
+                    {
+                        <span class="acc-side-count">@wishCount</span>
+                    }
+                </a>
+                <a class="acc-side-link @Active("/tai-khoan/dia-chi")" href="/tai-khoan/dia-chi">
+                    <i class="bi bi-geo-alt"></i><span>Sổ địa chỉ</span>
+                </a>
+                <a class="acc-side-link @Active("/tai-khoan/ho-so")" href="/tai-khoan/ho-so">
+                    <i class="bi bi-person-gear"></i><span>Thông tin cá nhân</span>
+                </a>
+                <a class="acc-side-link @Active("/tai-khoan/doi-mat-khau")" href="/tai-khoan/doi-mat-khau">
+                    <i class="bi bi-shield-lock"></i><span>Đổi mật khẩu</span>
+                </a>
+
+                @* Đăng xuất là POST + anti-forgery (xem ghi chú ở _Layout) *@
+                <form method="post" action="/dang-xuat">
+                    @Html.AntiForgeryToken()
+                    <button class="acc-side-link acc-side-logout w-100" type="submit">
+                        <i class="bi bi-box-arrow-right"></i><span>Đăng xuất</span>
+                    </button>
+                </form>
+            </nav>
+        </aside>
+
+        <div>
+            @if (!string.IsNullOrEmpty(flashOk))
+            {
+                <div class="acc-flash is-ok" role="status">
+                    <i class="bi bi-check-circle-fill"></i><span>@flashOk</span>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(flashErr))
+            {
+                <div class="acc-flash is-err" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i><span>@flashErr</span>
+                </div>
+            }
+
+            @RenderBody()
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await RenderSectionAsync("Scripts", required: false)
+}

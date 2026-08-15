@@ -1,0 +1,170 @@
+@model IReadOnlyList<CustomerAddress>
+
+<div class="acc-page-head d-flex flex-wrap align-items-start justify-content-between gap-3">
+    <div>
+        <h1 class="acc-page-title">Sổ địa chỉ</h1>
+        <p class="acc-page-sub">Lưu sẵn địa chỉ để đặt hàng nhanh hơn, không phải gõ lại mỗi lần.</p>
+    </div>
+    <button class="btn-rz btn-buy" type="button" data-bs-toggle="modal" data-bs-target="#addrModal"
+            id="btnAddAddress">
+        <i class="bi bi-plus-lg"></i> Thêm địa chỉ
+    </button>
+</div>
+
+<div class="acc-card">
+    @if (Model.Count == 0)
+    {
+        <div class="acc-empty">
+            <div class="acc-empty-icon"><i class="bi bi-geo-alt"></i></div>
+            <div class="acc-empty-title">Chưa có địa chỉ nào</div>
+            <p class="acc-empty-text">Thêm địa chỉ nhận hàng để lần đặt hàng sau chỉ cần chọn là xong.</p>
+            <button class="btn-rz btn-buy" type="button" data-bs-toggle="modal" data-bs-target="#addrModal">
+                <i class="bi bi-plus-lg"></i> Thêm địa chỉ đầu tiên
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="addr-grid">
+            @foreach (var address in Model)
+            {
+                <div class="addr-card @(address.IsDefault ? "is-default" : "")">
+                    @if (address.IsDefault)
+                    {
+                        <span class="addr-badge">Mặc định</span>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(address.Label))
+                    {
+                        <span class="addr-badge" style="background: var(--ink-400);">@address.Label</span>
+                    }
+
+                    <div class="addr-name">@address.ReceiverName</div>
+                    <div class="addr-line"><i class="bi bi-telephone"></i> @address.Phone</div>
+                    <div class="addr-line"><i class="bi bi-geo-alt"></i> @address.AddressLine</div>
+
+                    <div class="addr-actions">
+                        <button class="addr-action js-addr-edit" type="button"
+                                data-id="@address.Id"
+                                data-label="@address.Label"
+                                data-receiver="@address.ReceiverName"
+                                data-phone="@address.Phone"
+                                data-line="@address.AddressLine"
+                                data-default="@address.IsDefault.ToString().ToLowerInvariant()">
+                            <i class="bi bi-pencil"></i> Sửa
+                        </button>
+
+                        @if (!address.IsDefault)
+                        {
+                            <form method="post" action="/tai-khoan/dia-chi/mac-dinh" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@address.Id" />
+                                <button class="addr-action" type="submit"><i class="bi bi-star"></i> Đặt mặc định</button>
+                            </form>
+                        }
+
+                        <form method="post" action="/tai-khoan/dia-chi/xoa" class="d-inline js-addr-delete">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@address.Id" />
+                            <button class="addr-action is-danger" type="submit"><i class="bi bi-trash"></i> Xóa</button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@* Hộp thoại dùng chung cho cả THÊM và SỬA — một form duy nhất, JS chỉ đổ dữ liệu vào.
+   Hai form riêng nghĩa là hai bộ ô nhập phải sửa song song mỗi lần đổi trường. *@
+<div class="modal fade" id="addrModal" tabindex="-1" aria-labelledby="addrModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" action="/tai-khoan/dia-chi/luu">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" id="addrId" value="0" />
+
+            <div class="modal-header">
+                <h2 class="acc-card-title mb-0" id="addrModalTitle">Thêm địa chỉ</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="rz-field">
+                    <label class="co-label" for="addrReceiver">Tên người nhận</label>
+                    <input class="rz-input" id="addrReceiver" name="ReceiverName" required
+                           placeholder="VD: Nguyễn Văn A" />
+                </div>
+                <div class="rz-field mt-3">
+                    <label class="co-label" for="addrPhone">Số điện thoại</label>
+                    <input class="rz-input" id="addrPhone" name="Phone" type="tel" inputmode="tel" required
+                           placeholder="VD: 0912345678" />
+                </div>
+                <div class="rz-field mt-3">
+                    <label class="co-label" for="addrLine">Địa chỉ</label>
+                    <input class="rz-input" id="addrLine" name="AddressLine" required
+                           placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành" />
+                </div>
+                <div class="rz-field mt-3">
+                    <label class="co-label" for="addrLabel">
+                        Nhãn <span class="rv-optional">(không bắt buộc)</span>
+                    </label>
+                    <input class="rz-input" id="addrLabel" name="Label" placeholder="VD: Nhà riêng, Công ty" />
+                </div>
+                <label class="d-flex align-items-center gap-2 mt-3">
+                    <input type="checkbox" id="addrDefault" name="IsDefault" value="true" />
+                    <span>Đặt làm địa chỉ mặc định</span>
+                </label>
+                @* Checkbox không tích thì trình duyệt KHÔNG gửi gì cả ⇒ bind ra false.
+                   Ô hidden "false" đứng sau bảo đảm luôn có giá trị (mẫu chuẩn của MVC). *@
+                <input type="hidden" name="IsDefault" value="false" />
+            </div>
+
+            <div class="modal-footer">
+                <button class="addr-action" type="button" data-bs-dismiss="modal">Hủy</button>
+                <button class="btn-rz btn-buy" type="submit"><i class="bi bi-check-lg"></i> Lưu địa chỉ</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var modal = document.getElementById("addrModal");
+            if (!modal) return;
+
+            function fill(data) {
+                document.getElementById("addrId").value = data.id || 0;
+                document.getElementById("addrReceiver").value = data.receiver || "";
+                document.getElementById("addrPhone").value = data.phone || "";
+                document.getElementById("addrLine").value = data.line || "";
+                document.getElementById("addrLabel").value = data.label || "";
+                document.getElementById("addrDefault").checked = !!data.isDefault;
+                document.getElementById("addrModalTitle").textContent = data.id ? "Sửa địa chỉ" : "Thêm địa chỉ";
+            }
+
+            var addBtn = document.getElementById("btnAddAddress");
+            if (addBtn) addBtn.addEventListener("click", function () { fill({}); });
+
+            document.querySelectorAll(".js-addr-edit").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    fill({
+                        id: btn.getAttribute("data-id"),
+                        receiver: btn.getAttribute("data-receiver"),
+                        phone: btn.getAttribute("data-phone"),
+                        line: btn.getAttribute("data-line"),
+                        label: btn.getAttribute("data-label"),
+                        isDefault: btn.getAttribute("data-default") === "true"
+                    });
+                    new bootstrap.Modal(modal).show();
+                });
+            });
+
+            // Xóa địa chỉ là không lấy lại được ⇒ hỏi lại trước khi gửi
+            document.querySelectorAll(".js-addr-delete").forEach(function (form) {
+                form.addEventListener("submit", function (e) {
+                    if (!window.confirm("Xóa địa chỉ này khỏi sổ địa chỉ?")) e.preventDefault();
+                });
+            });
+        })();
+    </script>
+}

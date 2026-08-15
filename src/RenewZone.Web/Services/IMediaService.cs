@@ -43,5 +43,6 @@ public enum UploadProfile
     Product,
     News,
     Banner,
-    Editor
+    Editor,
+    Logo
 }

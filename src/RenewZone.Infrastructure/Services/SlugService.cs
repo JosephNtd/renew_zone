@@ -18,6 +18,30 @@ public partial class SlugService(AppDbContext db) : ISlugService
     /// <summary>Số hậu tố tối đa khi tự tìm slug rảnh — quá ngưỡng này thì gắn chuỗi ngẫu nhiên.</summary>
     private const int MaxSuffixAttempts = 100;
 
+    /// <summary>
+    /// Các đoạn đường dẫn ĐÃ thuộc về route cố định của website. Route tĩnh (literal) luôn được
+    /// ưu tiên hơn fallback <c>{slug}</c> (CLAUDE.md mục 4.3), nên bản ghi mang slug này lưu thì
+    /// vẫn lưu được mà mở ra thì ra trang khác — hỏng âm thầm, admin không thể tự đoán vì sao.
+    /// <para>
+    /// ⚠️ Thêm route 1 đoạn mới ở tầng Web thì PHẢI thêm một dòng vào đây.
+    /// </para>
+    /// </summary>
+    private static readonly HashSet<string> ReservedSlugs = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Khu quản trị + hạ tầng
+        "admin", "loi", "sitemap.xml", "robots.txt",
+        // Catalog & tìm kiếm (Giai đoạn 3)
+        "san-pham", "tim-kiem",
+        // Mua hàng (Giai đoạn 4)
+        "gio-hang", "dat-hang", "dat-hang-thanh-cong",
+        // Nội dung (Giai đoạn 5)
+        "tin-tuc", "lien-he",
+        // Đánh giá (Giai đoạn 8)
+        "danh-gia",
+        // Tài khoản khách hàng (Giai đoạn 9)
+        "dang-nhap", "dang-ky", "dang-xuat", "tai-khoan"
+    };
+
     public string Slugify(string input)
     {
         if (string.IsNullOrWhiteSpace(input))
@@ -55,6 +79,13 @@ public partial class SlugService(AppDbContext db) : ISlugService
         if (string.IsNullOrEmpty(slug))
         {
             return SlugCheckResult.Available(); // rỗng để [Required] của ViewModel bắt, không phải việc ở đây
+        }
+
+        // Kiểm TRƯỚC 4 bảng: đây là loại trùng mà không query nào phát hiện được (không bảng nào
+        // giữ slug đó cả) nhưng lại hỏng nặng nhất — trang lưu xong vĩnh viễn không mở ra được.
+        if (ReservedSlugs.Contains(slug))
+        {
+            return SlugCheckResult.Reserved();
         }
 
         // IgnoreQueryFilters: bản ghi trong Thùng rác vẫn giữ chỗ trong unique index của DB.

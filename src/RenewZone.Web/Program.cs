@@ -1,7 +1,12 @@
+using System.Security.Claims;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using RenewZone.Infrastructure;
 using RenewZone.Infrastructure.Data.Seed;
+using RenewZone.Infrastructure.Identity;
 using RenewZone.Web.Hubs;
 using RenewZone.Web.Models.Options;
 using RenewZone.Web.Services;
@@ -11,14 +16,139 @@ var builder = WebApplication.CreateBuilder(args);
 // DbContext + Identity + services nghiệp vụ (xem RenewZone.Infrastructure/DependencyInjection.cs)
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// Cookie đăng nhập Admin — đường dẫn thuộc về tầng Web nên cấu hình tại đây
+// ─────────────────── XÁC THỰC: HAI PHIÊN ĐỘC LẬP (quyết định 2026-07-28) ───────────────────
+// Khu quản trị và web khách là hai VÙNG TIN CẬY khác nhau nên có cookie riêng — xem lý do đầy
+// đủ ở AppAuthSchemes. Nhờ đó: đặt được hai thời hạn khác nhau, đăng nhập đồng thời hai vai
+// trong cùng trình duyệt, và cookie quản trị không bao giờ được gửi cho trang khách.
+
+// 1) KHÁCH HÀNG — scheme MẶC ĐỊNH của Identity. Mọi chỗ đọc `User` ở web khách vẫn như cũ.
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.LoginPath = "/admin/login";
-    options.AccessDeniedPath = "/admin/login";
+    options.Cookie.Name = AppAuthSchemes.CustomerCookie;
+    options.LoginPath = "/dang-nhap";
+    options.AccessDeniedPath = "/loi/403";
+    options.ExpireTimeSpan = TimeSpan.FromHours(24);
+    options.SlidingExpiration = true;
+    options.Cookie.HttpOnly = true;
+
+    options.Events.OnRedirectToLogin = context =>
+    {
+        // Request AJAX (fetch trong cart.js/auth.js...) mà bị đá về trang đăng nhập sẽ nhận
+        // HTML 200 rồi JSON.parse vỡ — trả 401 để client biết đường mở hộp thoại đăng nhập.
+        if (IsApiRequest(context.Request))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
+
+        context.Response.Redirect(WithReturnUrl("/dang-nhap", context.Request));
+        return Task.CompletedTask;
+    };
+
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        if (IsApiRequest(context.Request))
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        }
+
+        context.Response.Redirect("/loi/403");
+        return Task.CompletedTask;
+    };
+});
+
+// 2) QUẢN TRỊ — scheme riêng, cookie giới hạn đường dẫn /admin, hạn ngắn hơn hẳn.
+builder.Services.AddAuthentication().AddCookie(AppAuthSchemes.Admin, options =>
+{
+    options.Cookie.Name = AppAuthSchemes.AdminCookie;
+
+    // Điểm bảo mật chính: trình duyệt CHỈ gửi cookie này cho URL dưới /admin. Trang khách không
+    // bao giờ nhận được nó ⇒ lỗ hổng phía web khách cũng không chạm tới phiên quản trị.
+    options.Cookie.Path = AppAuthSchemes.AdminCookiePath;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+
+    // 8 giờ — bằng một ca làm việc. Phiên khách 24 giờ là tiện lợi; phiên quản trị mà dài như
+    // vậy thì máy bị mượn là mất quyền quản trị cả ngày.
     options.ExpireTimeSpan = TimeSpan.FromHours(8);
     options.SlidingExpiration = true;
+
+    options.LoginPath = "/admin/login";
+    options.AccessDeniedPath = "/loi/403";
+
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (IsApiRequest(context.Request))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
+
+        context.Response.Redirect(WithReturnUrl("/admin/login", context.Request));
+        return Task.CompletedTask;
+    };
+
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = IsApiRequest(context.Request)
+            ? StatusCodes.Status403Forbidden
+            : StatusCodes.Status302Found;
+
+        if (!IsApiRequest(context.Request))
+        {
+            context.Response.Redirect("/loi/403");
+        }
+
+        return Task.CompletedTask;
+    };
+
+    // Thu hồi quyền phải có tác dụng NGAY.
+    //
+    // Identity có sẵn SecurityStampValidator, nhưng nó chỉ kiểm lại mỗi 30 phút
+    // (SecurityStampValidatorOptions.ValidationInterval) và cấu hình đó là TOÀN CỤC — hạ xuống 0
+    // sẽ bắt cả web khách truy vấn DB mỗi request. Với khu quản trị (rất ít người dùng, quyền rất
+    // lớn) thì kiểm từng request là đánh đổi đúng, nên tự viết ở đây thay vì dùng validator chung.
+    //
+    // Kiểm 4 điều kiện: user còn tồn tại · security stamp còn khớp (đổi mật khẩu / đặt lại mật
+    // khẩu đều làm stamp đổi) · không bị khóa · vẫn còn role Admin.
+    options.Events.OnValidatePrincipal = async context =>
+    {
+        var services = context.HttpContext.RequestServices;
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var stampClaimType = services.GetRequiredService<IOptions<IdentityOptions>>()
+            .Value.ClaimsIdentity.SecurityStampClaimType;
+
+        var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var stamp = context.Principal?.FindFirstValue(stampClaimType);
+
+        var user = userId is null ? null : await userManager.FindByIdAsync(userId);
+
+        var stillValid = user is not null
+                         && stamp is not null
+                         && stamp == await userManager.GetSecurityStampAsync(user)
+                         && !await userManager.IsLockedOutAsync(user)
+                         && await userManager.IsInRoleAsync(user, AppRoles.Admin);
+
+        if (!stillValid)
+        {
+            context.RejectPrincipal();
+            await context.HttpContext.SignOutAsync(AppAuthSchemes.Admin);
+        }
+    };
 });
+
+static string WithReturnUrl(string path, HttpRequest request) =>
+    $"{path}?returnUrl={Uri.EscapeDataString(request.Path + request.QueryString)}";
+
+// Nhận diện request do JavaScript gửi (fetch/XHR) chứ không phải trình duyệt điều hướng trang.
+// Kiểm cả 3 dấu hiệu vì mỗi thứ có thể vắng mặt: fetch không tự thêm X-Requested-With, còn
+// Accept thì tùy client đặt. Trình duyệt điều hướng KHÔNG bao giờ có Content-Type: application/json,
+// nên dấu hiệu thứ 3 là cái chắc chắn nhất cho các endpoint JSON của dự án này.
+static bool IsApiRequest(HttpRequest request) =>
+    string.Equals(request.Headers.XRequestedWith, "XMLHttpRequest", StringComparison.OrdinalIgnoreCase)
+    || request.Headers.Accept.ToString().Contains("application/json", StringComparison.OrdinalIgnoreCase)
+    || (request.ContentType?.Contains("application/json", StringComparison.OrdinalIgnoreCase) ?? false);
 
 // Session — giỏ hàng của khách (guest checkout, không tài khoản)
 builder.Services.AddDistributedMemoryCache();
@@ -36,6 +166,10 @@ builder.Services.AddScoped<ICartService, CartService>();
 // Cấu hình KỸ THUẬT (dung lượng/đuôi file cho phép) — thuộc appsettings.json, không vào DB
 builder.Services.Configure<UploadOptions>(
     builder.Configuration.GetSection(UploadOptions.SectionName));
+
+// Công tắc cho phép/chặn công cụ tìm kiếm index site (bản demo công khai phải chặn)
+builder.Services.Configure<SeoOptions>(
+    builder.Configuration.GetSection(SeoOptions.SectionName));
 
 // Nơi DUY NHẤT ghi file người dùng tải lên (form liên hệ + 4 chỗ upload của admin).
 // Ở tầng Web vì phụ thuộc IFormFile + IWebHostEnvironment, giống ICartService phụ thuộc Session.
@@ -100,6 +234,11 @@ app.MapStaticAssets();
 // Hub realtime của admin. Đặt SAU UseAuthentication/UseAuthorization để [Authorize] trên hub
 // có hiệu lực; là endpoint riêng nên không lọt fallback route "{slug}" bên dưới.
 app.MapHub<AdminNotifyHub>("/admin/hub/thong-bao");
+
+// Hub realtime của KHÁCH (Giai đoạn 9 — báo khi đơn của họ đổi trạng thái).
+// Route 2 đoạn nên không lọt fallback "{slug}"; [Authorize] trên hub có hiệu lực vì đặt sau
+// UseAuthentication/UseAuthorization giống hub admin.
+app.MapHub<CustomerNotifyHub>("/hub/thong-bao");
 
 // Thứ tự QUAN TRỌNG: route tĩnh đăng ký trước, fallback slug (Giai đoạn 3) đăng ký CUỐI CÙNG.
 

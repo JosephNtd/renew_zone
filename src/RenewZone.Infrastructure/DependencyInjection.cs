@@ -38,7 +38,7 @@ public static class DependencyInjection
                 w.Ignore(CoreEventId.PossibleIncorrectRequiredNavigationWithQueryFilterInteractionWarning));
         });
 
-        // Identity (chỉ phục vụ Admin)
+        // Identity — dùng CHUNG cho quản trị viên và khách mua hàng (Giai đoạn 9), phân biệt bằng role
         services
             .AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
@@ -47,11 +47,26 @@ public static class DependencyInjection
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireDigit = false;
-                options.User.RequireUniqueEmail = true;
+
+                // ⚠️ Giai đoạn 9 hạ xuống false: khách đăng nhập bằng SỐ ĐIỆN THOẠI, email là
+                // TÙY CHỌN — để true thì Identity từ chối mọi tài khoản không có email.
+                // Tính duy nhất của email (khi khách có nhập) được kiểm tay trong AuthController,
+                // nên vẫn không thể có 2 tài khoản trùng email.
+                options.User.RequireUniqueEmail = false;
+
+                // UserName của khách là SĐT ⇒ phải cho phép chữ số và dấu '+' (dạng +84...).
+                // Mặc định của Identity đã gồm 0-9 nhưng khai tường minh để lần sau đọc là hiểu ngay.
+                options.User.AllowedUserNameCharacters =
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
             })
             .AddEntityFrameworkStores<AppDbContext>()
+
+            // Thêm claim họ tên vào cookie ⇒ header/thanh bên chào khách bằng TÊN chứ không
+            // phải số điện thoại, mà không phải truy vấn DB ở mỗi lần tải trang.
+            .AddClaimsPrincipalFactory<AppUserClaimsPrincipalFactory>()
             .AddDefaultTokenProviders();
 
         // Services nghiệp vụ
@@ -74,6 +89,13 @@ public static class DependencyInjection
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<ISitemapService, SitemapService>();
 
+        // Tài khoản khách hàng (Giai đoạn 9) — KHÔNG cache: dữ liệu riêng từng người và đổi
+        // ngay khi admin xử lý đơn, hiện bản cũ là khách tưởng hệ thống hỏng.
+        services.AddScoped<IUserCartStore, UserCartStore>();
+        services.AddScoped<ICustomerOrderService, CustomerOrderService>();
+        services.AddScoped<ICustomerAddressService, CustomerAddressService>();
+        services.AddScoped<IWishlistService, WishlistService>();
+
         // Services phục vụ Admin (Giai đoạn 6)
         services.AddScoped<ISlugService, SlugService>();
         services.AddScoped<IAdminBadgeService, AdminBadgeService>();
@@ -87,6 +109,7 @@ public static class DependencyInjection
         services.AddScoped<IContentBlockAdminService, ContentBlockAdminService>();
         services.AddScoped<IContactAdminService, ContactAdminService>();
         services.AddScoped<IReviewAdminService, ReviewAdminService>();
+        services.AddScoped<ICustomerAdminService, CustomerAdminService>();
         services.AddScoped<ISettingAdminService, SettingAdminService>();
         services.AddScoped<ITrashService, TrashService>();
 

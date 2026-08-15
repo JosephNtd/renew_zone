@@ -1,6 +1,11 @@
 @using RenewZone.Domain.Interfaces
 @model AdminBadgeCounts
+@inject ISiteContentService SiteContent
 @{
+    // Logo + tên lấy từ Cấu hình website (admin tự đổi được, mục 4.16). Thanh bên nền TỐI
+    // nên dùng bản logo nền tối; chưa có ảnh thì hiện ô vuông chữ tắt + tên như cũ.
+    var brand = await SiteContent.GetAdminBrandAsync();
+
     // Mục đang mở xác định bằng controller đang chạy — gắn aria-current="page" cho a11y
     var current = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
 
@@ -12,12 +17,22 @@
 }
 
 <nav class="adm-sidebar" aria-label="Điều hướng quản trị">
-    <a class="adm-brand" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
-        <span class="adm-brand-mark">RZ</span>
-        <span class="adm-brand-text">
-            RenewZone
-            <small>Quản trị</small>
-        </span>
+    <a class="adm-brand @(brand.LogoDarkUrl.Length > 0 ? "has-logo" : "")"
+       asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+        @* Ô vuông chữ tắt luôn có trong HTML: CSS ẩn nó khi có ảnh logo, nhưng bật lại lúc
+           thanh bên thu gọn còn 64px — logo ngang bóp vào đó sẽ không đọc nổi. *@
+        <span class="adm-brand-mark">@brand.Initials</span>
+        @if (brand.LogoDarkUrl.Length > 0)
+        {
+            <img class="adm-brand-logo" src="@brand.LogoDarkUrl" alt="@brand.Name" />
+        }
+        else
+        {
+            <span class="adm-brand-text">
+                @brand.Name
+                <small>Quản trị</small>
+            </span>
+        }
     </a>
 
     <div class="adm-nav">
@@ -35,6 +50,13 @@
             {
                 <span class="adm-nav-badge" title="@Model.NewOrders đơn mới chờ xác nhận">@Model.NewOrders</span>
             }
+        </a>
+
+        @* Khách hàng nằm trong nhóm "Bán hàng" chứ không phải "Hệ thống": với chủ shop đây là
+           danh sách người mua để tra cứu và chăm sóc, không phải quản trị người dùng kỹ thuật. *@
+        <a class="adm-nav-item @Active("Customer")" aria-current="@Current("Customer")"
+           asp-area="Admin" asp-controller="Customer" asp-action="Index">
+            <i class="bi bi-people" aria-hidden="true"></i><span>Khách hàng</span>
         </a>
 
         <div class="adm-nav-group-label">Catalog</div>

@@ -9,6 +9,9 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/cart.css" asp-append-version="true" />
+    @* account.css cho khối chọn nhanh địa chỉ (.addr-pick) — sổ địa chỉ là tính năng của
+       khu tài khoản, CSS của nó ở đó chứ không nhân bản sang cart.css *@
+    <link rel="stylesheet" href="~/css/account.css" asp-append-version="true" />
 }
 
 <div class="container">
@@ -28,6 +31,44 @@
             @* CỘT TRÁI: FORM *@
             <div class="co-form reveal">
                 <div asp-validation-summary="ModelOnly" class="co-summary-errors"></div>
+
+                @* CHỌN NHANH TỪ SỔ ĐỊA CHỈ (Giai đoạn 9).
+                   Sổ rỗng ⇒ ẩn hẳn cả khối, không render khung trống (luật fallback mục 4.7).
+                   Đây chỉ là phím tắt điền hộ 3 ô bên dưới — 3 ô đó vẫn là nguồn sự thật của đơn,
+                   nên khách chọn xong rồi sửa tay thì đơn đi theo cái họ sửa. *@
+                @if (Model.Addresses.Count > 0)
+                {
+                    <section class="co-block">
+                        <h2 class="co-block-title">
+                            <span class="co-step"><i class="bi bi-geo-alt-fill"></i></span> Chọn từ sổ địa chỉ
+                        </h2>
+                        <div class="d-grid gap-2">
+                            @foreach (var addr in Model.Addresses)
+                            {
+                                <button type="button"
+                                        class="addr-pick js-addr-pick @(Model.Input.SelectedAddressId == addr.Id ? "is-picked" : "")"
+                                        data-receiver="@addr.ReceiverName"
+                                        data-phone="@addr.Phone"
+                                        data-line="@addr.AddressLine">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <strong>@addr.ReceiverName</strong>
+                                        <span class="text-muted">@addr.Phone</span>
+                                        @if (addr.IsDefault)
+                                        {
+                                            <span class="addr-badge mb-0">Mặc định</span>
+                                        }
+                                    </div>
+                                    <div class="addr-line mt-1">@addr.AddressLine</div>
+                                </button>
+                            }
+                        </div>
+                        <p class="rv-hint mt-2">
+                            <i class="bi bi-info-circle"></i>
+                            Bạn vẫn sửa được thông tin bên dưới sau khi chọn.
+                            <a href="/tai-khoan/dia-chi">Quản lý sổ địa chỉ</a>
+                        </p>
+                    </section>
+                }
 
                 <section class="co-block">
                     <h2 class="co-block-title"><span class="co-step">1</span> Thông tin nhận hàng</h2>
@@ -186,4 +227,24 @@
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
     <script src="~/js/checkout.js" asp-append-version="true"></script>
+    <script>
+        // Chọn nhanh địa chỉ: chỉ điền hộ 3 ô của form, KHÔNG gửi id địa chỉ lên server.
+        // Server luôn lấy tên/SĐT/địa chỉ từ chính 3 ô đó — nhờ vậy không có chuyện đơn lưu
+        // một đằng còn khách nhìn thấy một nẻo khi họ sửa lại sau lúc chọn.
+        document.querySelectorAll(".js-addr-pick").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                var set = function (id, value) {
+                    var el = document.getElementById(id);
+                    if (el) { el.value = value || ""; }
+                };
+                set("Input_CustomerName", btn.getAttribute("data-receiver"));
+                set("Input_Phone", btn.getAttribute("data-phone"));
+                set("Input_Address", btn.getAttribute("data-line"));
+
+                document.querySelectorAll(".js-addr-pick").forEach(function (b) {
+                    b.classList.toggle("is-picked", b === btn);
+                });
+            });
+        });
+    </script>
 }

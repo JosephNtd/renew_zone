@@ -461,9 +461,17 @@ public class ContactListViewModel
 /// CHÍNH LÀ giá trị fallback trong code — admin nhìn placeholder là biết ngay
 /// "để trống thì web hiện gì".
 /// </param>
+/// <param name="IsImage">
+/// true ⇒ ô kèm nút "Tải ảnh lên" + khung xem trước (đường dẫn vẫn gõ tay được).
+/// </param>
+/// <param name="DarkPreview">
+/// true ⇒ khung xem trước dùng nền tối, vì đây là ảnh sẽ nằm trên nền tối của web khách —
+/// logo chữ sẫm màu xem trên nền trắng thì đẹp nhưng ra chân trang lại chìm mất.
+/// </param>
 public record SettingField(
     string Key, string Label, string? Hint = null,
-    bool Multiline = false, string? Placeholder = null, bool IsUrl = false);
+    bool Multiline = false, string? Placeholder = null, bool IsUrl = false,
+    bool IsImage = false, bool DarkPreview = false);
 
 public record SettingGroup(string Name, string Icon, IReadOnlyList<SettingField> Fields);
 
@@ -479,9 +487,25 @@ public class SettingViewModel
     /// </summary>
     public static readonly SettingGroup[] Groups =
     [
+        new("Logo & nhận diện", "bi-image",
+        [
+            new(SettingKeys.LogoUrl, "Ảnh logo (nền sáng)",
+                "Hiện ở đầu trang website và trên trang đăng nhập quản trị. Khuyến nghị ảnh PNG " +
+                "nền trong suốt, cao khoảng 120px. Để trống thì hiện logo chữ dựng từ tên cửa hàng bên dưới.",
+                IsImage: true),
+            new(SettingKeys.LogoDarkUrl, "Ảnh logo trên nền tối",
+                "Dùng ở chân trang, menu trên điện thoại và thanh bên trang quản trị (đều nền tối). " +
+                "Nên là bản logo chữ trắng. Để trống thì những chỗ đó hiện logo chữ.",
+                IsImage: true, DarkPreview: true),
+            new(SettingKeys.LogoHighlight, "Phần chữ tô màu hồng",
+                "Chỉ dùng cho logo chữ (khi chưa có ảnh logo): phần tên cửa hàng được tô màu " +
+                "thương hiệu. Ví dụ tên “Apple Store Uyên NTT”, tô “Uyên NTT”. " +
+                "Để trống hoặc gõ không khớp thì tô cả tên.")
+        ]),
+
         new("Thông tin cửa hàng", "bi-shop",
         [
-            new(SettingKeys.StoreName, "Tên cửa hàng", Placeholder: "RenewZone"),
+            new(SettingKeys.StoreName, "Tên cửa hàng", Placeholder: "Apple Store Uyên NTT"),
             new(SettingKeys.Tagline, "Câu khẩu hiệu", "Hiện ở topbar và thẻ mô tả trang."),
             new(SettingKeys.Hotline, "Hotline", "Hiện ở header, nút gọi và trang liên hệ.",
                 Placeholder: "0900.000.000"),
@@ -550,4 +574,39 @@ public class TrashViewModel
     };
 
     public int TotalCount => Counts.Values.Sum();
+}
+
+// Khách hàng (Giai đoạn 9)
+public class CustomerListViewModel
+{
+    public required PagedResult<CustomerListItem> Result { get; init; }
+    public bool? IsLocked { get; init; }
+    public string? Search { get; init; }
+    public string? SortBy { get; init; }
+    public bool SortDesc { get; init; }
+
+    public bool HasAnyFilter => IsLocked is not null || !string.IsNullOrWhiteSpace(Search);
+
+    public string BuildUrl(int? page = null, string? sortBy = null, bool? sortDesc = null)
+    {
+        var parts = new List<string>();
+
+        if (IsLocked is not null) { parts.Add($"trangThai={(IsLocked.Value ? "khoa" : "hoatDong")}"); }
+        if (!string.IsNullOrWhiteSpace(Search)) { parts.Add($"q={Uri.EscapeDataString(Search)}"); }
+
+        var effectiveSort = sortBy ?? SortBy;
+        if (!string.IsNullOrWhiteSpace(effectiveSort)) { parts.Add($"sap={effectiveSort}"); }
+
+        var effectiveDesc = sortDesc ?? SortDesc;
+        if (effectiveDesc) { parts.Add("giam=true"); }
+
+        var effectivePage = page ?? Result.Page;
+        if (effectivePage > 1) { parts.Add($"page={effectivePage}"); }
+
+        return "/admin/khach-hang" + (parts.Count > 0 ? "?" + string.Join("&", parts) : "");
+    }
+
+    /// <summary>Link đổi thứ tự sắp xếp: bấm lại cùng cột thì đảo chiều tăng/giảm.</summary>
+    public string SortUrl(string column) =>
+        BuildUrl(page: 1, sortBy: column, sortDesc: SortBy == column && !SortDesc);
 }

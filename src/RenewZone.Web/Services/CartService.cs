@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text.Json;
 using RenewZone.Domain.Entities;
 using RenewZone.Domain.Interfaces;
@@ -6,9 +7,19 @@ using RenewZone.Domain.Models;
 namespace RenewZone.Web.Services;
 
 /// <inheritdoc cref="ICartService" />
-public class CartService(IHttpContextAccessor accessor, ICatalogQueryService catalog) : ICartService
+public class CartService(
+    IHttpContextAccessor accessor,
+    ICatalogQueryService catalog,
+    IUserCartStore userCarts) : ICartService
 {
     private const string SessionKey = "rz_cart";
+
+    /// <summary>
+    /// Khóa cache giỏ trong <c>HttpContext.Items</c> (sống đúng một request).
+    /// Một lần tải trang đọc giỏ nhiều lần (badge ở header, mini-cart, view chính); với giỏ
+    /// Session thì miễn phí, nhưng giỏ DB mà không nhớ lại sẽ thành 3 lần SELECT cho mỗi trang.
+    /// </summary>
+    private const string RequestCacheKey = "rz_cart_loaded";
 
     /// <summary>Trần số lượng mỗi dòng — cửa hàng bán lẻ, tránh khách gõ số vô lý.</summary>
     public const int MaxQuantityPerItem = 10;
@@ -18,16 +29,117 @@ public class CartService(IHttpContextAccessor accessor, ICatalogQueryService cat
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    private ISession Session =>
-        accessor.HttpContext?.Session
+    private HttpContext Context =>
+        accessor.HttpContext
         ?? throw new InvalidOperationException("Không có HttpContext — CartService chỉ dùng trong request.");
 
-    public Task<Cart> GetCartAsync() => Task.FromResult(Read());
+    /// <summary>Id tài khoản đang đăng nhập, hoặc null khi là khách vãng lai.</summary>
+    private string? CurrentUserId =>
+        Context.User?.Identity?.IsAuthenticated == true
+            ? Context.User.FindFirstValue(ClaimTypes.NameIdentifier)
+            : null;
+
+    public async Task<Cart> GetCartAsync()
+    {
+        if (Context.Items.TryGetValue(RequestCacheKey, out var cached) && cached is Cart cart)
+        {
+            return cart;
+        }
+
+        var loaded = await LoadAsync();
+        Context.Items[RequestCacheKey] = loaded;
+        return loaded;
+    }
 
     public async Task<CartOpResult> AddAsync(int productId, IReadOnlyList<int> optionValueIds, int quantity)
     {
-        var cart = Read();
+        var cart = await GetCartAsync();
+        var result = await AddToCartAsync(cart, productId, optionValueIds, quantity);
 
+        if (result.Ok)
+        {
+            await SaveAsync(cart);
+        }
+
+        return result;
+    }
+
+    public async Task<CartOpResult> UpdateQuantityAsync(string key, int quantity)
+    {
+        var cart = await GetCartAsync();
+        var item = cart.Find(key);
+
+        if (item is null)
+        {
+            return CartOpResult.Fail(cart, "Sản phẩm không còn trong giỏ hàng.");
+        }
+
+        item.Quantity = Clamp(quantity);
+        await SaveAsync(cart);
+        return CartOpResult.Success(cart, item);
+    }
+
+    public async Task<CartOpResult> RemoveAsync(string key)
+    {
+        var cart = await GetCartAsync();
+        var item = cart.Find(key);
+
+        if (item is null)
+        {
+            return CartOpResult.Fail(cart, "Sản phẩm không còn trong giỏ hàng.");
+        }
+
+        cart.Items.Remove(item);
+        await SaveAsync(cart);
+        return CartOpResult.Success(cart, message: "Đã xóa khỏi giỏ hàng");
+    }
+
+    public async Task ClearAsync()
+    {
+        Context.Session.Remove(SessionKey);
+
+        if (CurrentUserId is { } userId)
+        {
+            await userCarts.ClearAsync(userId);
+        }
+
+        Context.Items[RequestCacheKey] = new Cart();
+    }
+
+    public async Task MergeGuestCartAsync(string userId)
+    {
+        var guest = ReadSession();
+        if (guest.IsEmpty)
+        {
+            // Không có gì để gộp. KHÔNG được ghi đè giỏ đã lưu của tài khoản bằng giỏ rỗng —
+            // đăng nhập trên máy mới sẽ xóa sạch giỏ khách để dành từ hôm trước.
+            return;
+        }
+
+        var target = ParseOrEmpty(await userCarts.LoadAsync(userId));
+
+        // Đi qua đúng AddToCartAsync như khi khách tự bấm ⇒ giá được tính lại theo bảng giá HIỆN
+        // TẠI và dòng trùng biến thể được cộng dồn. Món nào không còn bán thì lặng lẽ bỏ qua:
+        // đăng nhập mà báo lỗi "sản phẩm X đã ngừng bán" là trải nghiệm rất khó hiểu.
+        foreach (var item in guest.Items)
+        {
+            await AddToCartAsync(target, item.ProductId, item.OptionValueIds, item.Quantity);
+        }
+
+        await userCarts.SaveAsync(userId, JsonSerializer.Serialize(target, JsonOptions));
+
+        Context.Session.Remove(SessionKey);
+        Context.Items[RequestCacheKey] = target;
+    }
+
+    /// <summary>
+    /// Phần lõi thêm hàng: THUẦN thao tác trên đối tượng <paramref name="cart"/> truyền vào,
+    /// không tự đọc/ghi kho chứa. Nhờ vậy vừa dùng cho khách bấm "Thêm vào giỏ", vừa dùng cho
+    /// việc gộp giỏ lúc đăng nhập — một đoạn logic duy nhất, không có bản sao để lệch.
+    /// </summary>
+    private async Task<CartOpResult> AddToCartAsync(
+        Cart cart, int productId, IReadOnlyList<int> optionValueIds, int quantity)
+    {
         var product = await catalog.GetProductForCartAsync(productId);
         if (product is null)
         {
@@ -74,51 +186,14 @@ public class CartService(IHttpContextAccessor accessor, ICatalogQueryService cat
         }
         else
         {
-            // Đồng bộ lại tên/giá/ảnh theo dữ liệu mới nhất — giỏ có thể nằm trong session khá lâu.
+            // Đồng bộ lại tên/giá/ảnh theo dữ liệu mới nhất — giỏ có thể đã nằm im khá lâu.
             item.ProductName = product.Name;
             item.Slug = product.Slug;
             item.UnitPrice = unitPrice;
             item.Quantity = Clamp(item.Quantity + qty);
         }
 
-        Save(cart);
         return CartOpResult.Success(cart, item, "Đã thêm vào giỏ hàng");
-    }
-
-    public Task<CartOpResult> UpdateQuantityAsync(string key, int quantity)
-    {
-        var cart = Read();
-        var item = cart.Find(key);
-
-        if (item is null)
-        {
-            return Task.FromResult(CartOpResult.Fail(cart, "Sản phẩm không còn trong giỏ hàng."));
-        }
-
-        item.Quantity = Clamp(quantity);
-        Save(cart);
-        return Task.FromResult(CartOpResult.Success(cart, item));
-    }
-
-    public Task<CartOpResult> RemoveAsync(string key)
-    {
-        var cart = Read();
-        var item = cart.Find(key);
-
-        if (item is null)
-        {
-            return Task.FromResult(CartOpResult.Fail(cart, "Sản phẩm không còn trong giỏ hàng."));
-        }
-
-        cart.Items.Remove(item);
-        Save(cart);
-        return Task.FromResult(CartOpResult.Success(cart, message: "Đã xóa khỏi giỏ hàng"));
-    }
-
-    public Task ClearAsync()
-    {
-        Session.Remove(SessionKey);
-        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -156,9 +231,53 @@ public class CartService(IHttpContextAccessor accessor, ICatalogQueryService cat
 
     private static int Clamp(int quantity) => Math.Clamp(quantity, 1, MaxQuantityPerItem);
 
-    private Cart Read()
+    private async Task<Cart> LoadAsync() =>
+        CurrentUserId is { } userId
+            ? ParseOrEmpty(await userCarts.LoadAsync(userId))
+            : ReadSession();
+
+    private async Task SaveAsync(Cart cart)
     {
-        var raw = Session.GetString(SessionKey);
+        Context.Items[RequestCacheKey] = cart;
+
+        if (CurrentUserId is { } userId)
+        {
+            if (cart.IsEmpty)
+            {
+                await userCarts.ClearAsync(userId);
+                return;
+            }
+
+            await userCarts.SaveAsync(userId, JsonSerializer.Serialize(cart, JsonOptions));
+            return;
+        }
+
+        if (cart.IsEmpty)
+        {
+            Context.Session.Remove(SessionKey);
+            return;
+        }
+
+        Context.Session.SetString(SessionKey, JsonSerializer.Serialize(cart, JsonOptions));
+    }
+
+    private Cart ReadSession()
+    {
+        var raw = Context.Session.GetString(SessionKey);
+        var cart = ParseOrEmpty(raw);
+
+        // Dữ liệu session cũ/hỏng (vd đổi cấu trúc CartItem giữa 2 lần deploy) ⇒ dọn luôn cho
+        // khỏi vấp lại ở mỗi request sau.
+        if (cart.IsEmpty && !string.IsNullOrEmpty(raw))
+        {
+            Context.Session.Remove(SessionKey);
+        }
+
+        return cart;
+    }
+
+    private static Cart ParseOrEmpty(string? raw)
+    {
         if (string.IsNullOrEmpty(raw))
         {
             return new Cart();
@@ -170,20 +289,7 @@ public class CartService(IHttpContextAccessor accessor, ICatalogQueryService cat
         }
         catch (JsonException)
         {
-            // Dữ liệu session cũ/hỏng (vd đổi cấu trúc CartItem giữa 2 lần deploy) ⇒ bỏ, coi như giỏ mới.
-            Session.Remove(SessionKey);
             return new Cart();
         }
-    }
-
-    private void Save(Cart cart)
-    {
-        if (cart.IsEmpty)
-        {
-            Session.Remove(SessionKey);
-            return;
-        }
-
-        Session.SetString(SessionKey, JsonSerializer.Serialize(cart, JsonOptions));
     }
 }

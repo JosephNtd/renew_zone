@@ -1,7 +1,10 @@
+@using Microsoft.Extensions.Options
 @using RenewZone.Domain.Entities
 @using RenewZone.Domain.Interfaces
 @using RenewZone.Web.Models
+@using RenewZone.Web.Models.Options
 @inject ISiteContentService SiteContent
+@inject IOptions<SeoOptions> SeoOptions
 @model SeoData
 @*
     Khối <head> SEO dùng chung: title, description, canonical, robots, Open Graph, Twitter card.
@@ -16,7 +19,7 @@
         return string.IsNullOrWhiteSpace(v) ? fallback : v;
     }
 
-    var storeName = Setting(SettingKeys.StoreName, "RenewZone");
+    var storeName = Setting(SettingKeys.StoreName, "Apple Store Uyên NTT");
     var tagline = Setting(SettingKeys.Tagline, "Thu cũ đổi mới - Lên đời đơn giản");
 
     var title = string.IsNullOrWhiteSpace(Model.Title) ? storeName : $"{Model.Title} - {storeName}";
@@ -39,11 +42,16 @@
     var ogImage = Absolute(string.IsNullOrWhiteSpace(Model.OgImage)
         ? "/images/placeholder-product.svg"
         : Model.OgImage);
+
+    // Môi trường demo (Seo:AllowIndexing = false) ⇒ noindex TOÀN SITE, đè lên mọi trang.
+    // Cần thẻ này BÊN CẠNH robots.txt: robots.txt chỉ ngăn thu thập, trang được link từ nơi
+    // khác vẫn có thể lọt vào index nếu thiếu meta robots.
+    var noIndex = Model.NoIndex || !SeoOptions.Value.AllowIndexing;
 }
 <title>@title</title>
 <meta name="description" content="@description" />
 <link rel="canonical" href="@canonical" />
-<meta name="robots" content="@(Model.NoIndex ? "noindex, nofollow" : "index, follow")" />
+<meta name="robots" content="@(noIndex ? "noindex, nofollow" : "index, follow")" />
 
 @* Open Graph (Facebook / Zalo) *@
 <meta property="og:site_name" content="@storeName" />

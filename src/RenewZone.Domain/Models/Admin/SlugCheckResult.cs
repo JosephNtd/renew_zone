@@ -13,20 +13,31 @@ namespace RenewZone.Domain.Models.Admin;
 /// Bản ghi đang giữ slug nằm trong Thùng rác. Trường hợp này rất dễ gây hoang mang:
 /// admin không thấy nó ở đâu cả nhưng unique index của DB vẫn tính ⇒ phải báo riêng.
 /// </param>
+/// <param name="IsReserved">
+/// Slug trùng một ĐƯỜNG DẪN CỐ ĐỊNH của website (<c>/gio-hang</c>, <c>/dang-nhap</c>...).
+/// Không bảng nào giữ nó nên 3 kiểm tra ở trên đều báo "trống", nhưng route tĩnh luôn thắng
+/// fallback <c>{slug}</c> ⇒ lưu được mà trang thì VĨNH VIỄN không mở ra được. Lỗi thầm lặng
+/// nhất trong nhóm, phải chặn ngay tại form.
+/// </param>
 public record SlugCheckResult(
     bool IsAvailable,
     SlugTargetType? TakenBy,
     string? TakenByName,
-    bool IsInTrash)
+    bool IsInTrash,
+    bool IsReserved = false)
 {
     public static SlugCheckResult Available() => new(true, null, null, false);
+
+    public static SlugCheckResult Reserved() => new(false, null, null, false, true);
 
     /// <summary>Thông báo tiếng Việt hoàn chỉnh để hiện thẳng lên form (null khi slug hợp lệ).</summary>
     public string? Message => IsAvailable
         ? null
-        : IsInTrash
-            ? $"Slug này đang thuộc về {TypeLabel} «{TakenByName}» trong Thùng rác. Hãy xóa vĩnh viễn mục đó hoặc chọn slug khác."
-            : $"Slug này đã được dùng bởi {TypeLabel} «{TakenByName}».";
+        : IsReserved
+            ? "Slug này trùng với một đường dẫn có sẵn của website (giỏ hàng, đăng nhập, tìm kiếm...). Trang sẽ không bao giờ mở được — hãy chọn slug khác."
+            : IsInTrash
+                ? $"Slug này đang thuộc về {TypeLabel} «{TakenByName}» trong Thùng rác. Hãy xóa vĩnh viễn mục đó hoặc chọn slug khác."
+                : $"Slug này đã được dùng bởi {TypeLabel} «{TakenByName}».";
 
     private string TypeLabel => TakenBy switch
     {

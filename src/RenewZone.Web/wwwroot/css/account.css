@@ -1,0 +1,463 @@
+/*  account.css — Khu tài khoản khách hàng + trang đăng nhập/đăng ký (Giai đoạn 9).
+    Chỉ nạp ở /dang-nhap, /dang-ky và /tai-khoan/*.
+
+    ⚠️ Phần dùng chung (nút tài khoản trên header, hộp thoại đăng nhập, nút tim) KHÔNG nằm ở
+    đây mà ở site.css mục 23 — chúng render trong _Layout nên phải có mặt ở MỌI trang.  */
+
+/*  1. TRANG ĐĂNG NHẬP / ĐĂNG KÝ  */
+.auth-page {
+  min-height: 62vh;
+  display: grid;
+  place-items: center;
+  padding: 44px 0 64px;
+}
+.auth-card {
+  width: 100%;
+  max-width: 468px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-md);
+  overflow: hidden;
+}
+.auth-card-head {
+  padding: 26px 28px 20px;
+  background: linear-gradient(135deg, var(--brand-50), #fff);
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+}
+.auth-card-icon {
+  width: 52px; height: 52px;
+  margin: 0 auto 12px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--grad-brand);
+  color: #fff;
+  font-size: 1.5rem;
+  box-shadow: var(--sh-brand);
+}
+.auth-card-title { font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; margin: 0 0 4px; }
+.auth-card-sub { margin: 0; font-size: .875rem; color: var(--ink-500); }
+.auth-card-body { padding: 24px 28px 28px; }
+.auth-card-body .rz-field + .rz-field { margin-top: 15px; }
+.auth-card-body .btn-buy { margin-top: 20px; }
+.auth-foot {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: .875rem;
+  color: var(--ink-500);
+}
+.auth-foot a { color: var(--brand-600); font-weight: 700; }
+
+/* Ô nhớ đăng nhập + link phụ trên một hàng */
+.auth-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  font-size: .85rem;
+}
+.auth-note {
+  margin-top: 16px;
+  padding: 11px 13px;
+  border-radius: var(--r-sm);
+  background: var(--brand-50);
+  color: var(--brand-800);
+  font-size: .8rem;
+  line-height: 1.5;
+}
+
+/*  2. BỐ CỤC KHU TÀI KHOẢN  */
+.acc-wrap { padding: 26px 0 60px; }
+.acc-layout {
+  display: grid;
+  grid-template-columns: 268px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.acc-side {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-sm);
+  overflow: hidden;
+  position: sticky;
+  top: calc(var(--header-h-shrink) + 14px);
+}
+.acc-side-head {
+  padding: 20px 18px;
+  background: var(--grad-brand);
+  color: #fff;
+}
+.acc-side-avatar {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .22);
+  display: grid; place-items: center;
+  font-size: 1.35rem;
+  margin-bottom: 10px;
+}
+.acc-side-name { font-weight: 800; font-size: 1rem; line-height: 1.3; }
+.acc-side-phone { font-size: .8rem; opacity: .85; }
+
+.acc-side-nav { padding: 8px; }
+.acc-side-link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 13px;
+  border-radius: var(--r-sm);
+  color: var(--ink-700);
+  font-weight: 600;
+  font-size: .9rem;
+  transition: background var(--t-base), color var(--t-base);
+}
+.acc-side-link:hover { background: var(--brand-50); color: var(--brand-700); }
+.acc-side-link.is-active { background: var(--brand-500); color: #fff; box-shadow: var(--sh-brand); }
+.acc-side-link .bi { font-size: 1.05rem; width: 20px; }
+.acc-side-link .acc-side-count {
+  margin-left: auto;
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: var(--r-pill);
+  background: var(--brand-100);
+  color: var(--brand-700);
+  font-size: .72rem;
+  font-weight: 800;
+  text-align: center;
+}
+.acc-side-link.is-active .acc-side-count { background: rgba(255, 255, 255, .25); color: #fff; }
+.acc-side-logout { color: var(--red-600); }
+.acc-side-logout:hover { background: #FEF2F2; color: var(--red-700); }
+
+/*  3. THẺ NỘI DUNG  */
+.acc-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-sm);
+  padding: 22px 24px;
+}
+.acc-card + .acc-card { margin-top: 20px; }
+.acc-card-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.acc-card-title .bi { color: var(--brand-500); }
+.acc-card-sub { margin: 0 0 18px; font-size: .85rem; color: var(--ink-500); }
+
+.acc-page-head { margin-bottom: 18px; }
+.acc-page-title { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; margin: 0 0 4px; }
+.acc-page-sub { margin: 0; color: var(--ink-500); font-size: .9rem; }
+
+/* Thông báo sau khi lưu (TempData) */
+.acc-flash {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 15px;
+  border-radius: var(--r-md);
+  font-size: .88rem;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+.acc-flash.is-ok { background: #ECFDF5; border: 1px solid #A7F3D0; color: #047857; }
+.acc-flash.is-err { background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C; }
+
+/*  4. Ô SỐ LIỆU TỔNG QUAN  */
+.acc-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.acc-stat {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-sm);
+  padding: 16px 17px;
+}
+.acc-stat-icon {
+  width: 36px; height: 36px;
+  border-radius: var(--r-sm);
+  display: grid; place-items: center;
+  background: var(--brand-50);
+  color: var(--brand-600);
+  font-size: 1.05rem;
+  margin-bottom: 10px;
+}
+.acc-stat-value { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; line-height: 1.2; }
+.acc-stat-label { font-size: .78rem; color: var(--ink-500); font-weight: 600; }
+
+/*  5. DÒNG ĐƠN HÀNG  */
+.acc-order {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+}
+.acc-order:last-child { border-bottom: 0; padding-bottom: 0; }
+.acc-order-thumb {
+  width: 62px; height: 62px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 4px;
+  flex-shrink: 0;
+}
+/* Ảnh sản phẩm là "vật thể" ⇒ contain, không cắt (nhóm CONTAIN — CLAUDE.md mục 4.13) */
+.acc-order-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.acc-order-main { min-width: 0; flex: 1; }
+.acc-order-code { font-weight: 800; color: var(--ink-900); font-size: .95rem; }
+.acc-order-code:hover { color: var(--brand-600); }
+.acc-order-name {
+  font-size: .85rem;
+  color: var(--ink-500);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.acc-order-meta { font-size: .78rem; color: var(--ink-400); margin-top: 2px; }
+.acc-order-side { text-align: right; flex-shrink: 0; }
+.acc-order-total { font-family: var(--font-display); font-weight: 800; color: var(--red-500); }
+
+/* Nhãn trạng thái — màu theo từng chặng để liếc là biết đơn đang ở đâu */
+.acc-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  font-size: .75rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.acc-status.is-new { background: #EFF6FF; color: #1D4ED8; }
+.acc-status.is-confirmed { background: #F5F3FF; color: #6D28D9; }
+.acc-status.is-shipping { background: #FFFBEB; color: #B45309; }
+.acc-status.is-completed { background: #ECFDF5; color: #047857; }
+.acc-status.is-cancelled { background: #F4F4F5; color: #71717A; }
+
+/*  6. CHI TIẾT ĐƠN  */
+.acc-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+.acc-line {
+  display: flex;
+  gap: 13px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.acc-line:last-child { border-bottom: 0; }
+.acc-line-thumb {
+  width: 66px; height: 66px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 4px;
+  background: #fff;
+}
+.acc-line-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.acc-line-name { font-weight: 700; font-size: .92rem; color: var(--ink-900); }
+.acc-line-name:hover { color: var(--brand-600); }
+.acc-line-variant { font-size: .8rem; color: var(--ink-500); }
+.acc-line-qty { font-size: .8rem; color: var(--ink-400); }
+.acc-line-total { margin-left: auto; text-align: right; font-weight: 800; white-space: nowrap; }
+
+.acc-sum-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  font-size: .9rem;
+}
+.acc-sum-row.is-total {
+  border-top: 1px dashed var(--line);
+  margin-top: 6px;
+  padding-top: 13px;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+.acc-sum-row.is-total span:last-child { color: var(--red-500); font-family: var(--font-display); }
+
+.acc-info-row { display: flex; gap: 10px; padding: 6px 0; font-size: .88rem; }
+.acc-info-row .bi { color: var(--brand-500); margin-top: 2px; }
+.acc-info-label { color: var(--ink-500); }
+
+/* Nhật ký xử lý — dòng thời gian dọc, cùng ngôn ngữ hình ảnh với timeline bên admin */
+.acc-timeline { position: relative; padding-left: 26px; }
+.acc-timeline::before {
+  content: "";
+  position: absolute;
+  left: 6px; top: 6px; bottom: 6px;
+  width: 2px;
+  background: var(--line);
+}
+.acc-tl-item { position: relative; padding: 0 0 16px; }
+.acc-tl-item:last-child { padding-bottom: 0; }
+.acc-tl-item::before {
+  content: "";
+  position: absolute;
+  left: -26px; top: 5px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--brand-500);
+  border: 3px solid var(--paper);
+  box-shadow: 0 0 0 2px var(--brand-200);
+}
+.acc-tl-title { font-weight: 700; font-size: .9rem; }
+.acc-tl-meta { font-size: .78rem; color: var(--ink-400); }
+.acc-tl-note {
+  margin-top: 5px;
+  padding: 8px 11px;
+  border-radius: var(--r-sm);
+  background: var(--page);
+  font-size: .82rem;
+  color: var(--ink-700);
+}
+
+/*  7. SỔ ĐỊA CHỈ  */
+.addr-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.addr-card {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 16px 17px;
+  background: var(--paper);
+  transition: border-color var(--t-base), box-shadow var(--t-base);
+}
+.addr-card:hover { border-color: var(--brand-300); box-shadow: var(--sh-sm); }
+.addr-card.is-default { border-color: var(--brand-400); background: var(--brand-50); }
+.addr-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
+  background: var(--brand-500);
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.addr-name { font-weight: 800; font-size: .95rem; }
+.addr-line { font-size: .86rem; color: var(--ink-500); margin-top: 3px; }
+.addr-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.addr-action {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: var(--r-pill);
+  padding: 4px 12px;
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--ink-700);
+  transition: border-color var(--t-base), color var(--t-base);
+}
+.addr-action:hover { border-color: var(--brand-400); color: var(--brand-600); }
+.addr-action.is-danger:hover { border-color: var(--red-500); color: var(--red-500); }
+
+/* Thẻ chọn nhanh địa chỉ ở trang đặt hàng */
+.addr-pick {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-md);
+  background: #fff;
+  padding: 12px 14px;
+  transition: border-color var(--t-base), background var(--t-base);
+}
+.addr-pick:hover { border-color: var(--brand-300); }
+.addr-pick.is-picked { border-color: var(--brand-500); background: var(--brand-50); }
+
+/*  8. YÊU THÍCH  */
+.wish-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/*  9. TRẠNG THÁI RỖNG  */
+.acc-empty { text-align: center; padding: 40px 20px; }
+.acc-empty-icon {
+  width: 72px; height: 72px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--brand-50);
+  color: var(--brand-400);
+  font-size: 2rem;
+}
+.acc-empty-title { font-weight: 800; font-size: 1.05rem; margin-bottom: 5px; }
+.acc-empty-text { color: var(--ink-500); font-size: .88rem; margin-bottom: 16px; }
+
+/*  10. RESPONSIVE  */
+@media (max-width: 1199.98px) {
+  .acc-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wish-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 991.98px) {
+  /* Thanh bên nằm trên nội dung, thành LƯỚI 2 CỘT.
+     Trước đây là hàng chip cuộn ngang: 4/7 mục nằm ngoài màn hình và không có gì báo cho
+     người dùng biết là còn nữa — họ chỉ thấy "khu tài khoản có 3 mục". Lưới thì thấy hết,
+     một chạm là tới, và không phải mở-ra-đóng-vào như kiểu menu gập. */
+  .acc-layout { grid-template-columns: minmax(0, 1fr); }
+  .acc-side { position: static; }
+  .acc-side-head { display: none; }
+
+  .acc-side-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  /* Đăng xuất nằm trong <form> nên là ô lưới thứ 7 — cho nó chiếm trọn hàng cuối, vừa cân
+     đối vừa tách khỏi nhóm điều hướng (đây là hành động, không phải một mục để xem). */
+  .acc-side-nav > form { grid-column: 1 / -1; }
+
+  .acc-side-link {
+    /* Nhãn dài ("Thông tin cá nhân") không được đẩy vỡ ô — cắt bằng dấu … */
+    min-width: 0;
+    overflow: hidden;
+  }
+  .acc-side-link > span:not(.acc-side-count) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .acc-detail-grid { grid-template-columns: minmax(0, 1fr); }
+  .wish-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 767.98px) {
+  .addr-grid { grid-template-columns: minmax(0, 1fr); }
+  .acc-card { padding: 18px 16px; }
+  .acc-order { flex-wrap: wrap; }
+  .acc-order-side { width: 100%; text-align: left; display: flex; align-items: center; gap: 10px; }
+}
+
+@media (max-width: 575.98px) {
+  .acc-stats { gap: 10px; }
+  .acc-stat { padding: 13px 13px; }
+  .acc-stat-value { font-size: 1.1rem; }
+
+  /* Điện thoại hẹp: bóp padding + cỡ chữ để "Thông tin cá nhân" vẫn đọc được nguyên chữ,
+     thay vì bị cắt thành "Thông tin c…" ngay ở mục quan trọng nhất của trang hồ sơ. */
+  .acc-side-nav { gap: 6px; }
+  .acc-side-link { padding: 10px 9px; font-size: .82rem; gap: 8px; }
+  .acc-side-link .bi { font-size: .98rem; width: 17px; }
+  .wish-grid { grid-template-columns: minmax(0, 1fr); }
+  .auth-card-body { padding: 20px 18px 24px; }
+  .auth-card-head { padding: 22px 18px 18px; }
+}

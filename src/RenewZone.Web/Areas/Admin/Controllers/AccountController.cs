@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -25,10 +26,15 @@ public class AccountController(
 {
     [AllowAnonymous]
     [HttpGet("/admin/login")]
-    public IActionResult Login(string? returnUrl = null)
+    public async Task<IActionResult> Login(string? returnUrl = null)
     {
-        // Đã đăng nhập rồi mà vẫn mở trang login ⇒ đưa thẳng vào dashboard, đừng bắt gõ lại
-        if (User.Identity?.IsAuthenticated == true)
+        // ⚠️ KHÔNG dùng `User` ở đây: action này [AllowAnonymous] nên `User` là principal của
+        // scheme MẶC ĐỊNH — tức tài khoản KHÁCH HÀNG nếu người đó đang mua sắm ở tab khác.
+        // Phải hỏi thẳng scheme quản trị.
+        var admin = await HttpContext.AuthenticateAsync(AppAuthSchemes.Admin);
+
+        // Đã có phiên quản trị hợp lệ ⇒ vào thẳng dashboard, đừng bắt gõ lại
+        if (admin.Succeeded && admin.Principal.IsInRole(AppRoles.Admin))
         {
             return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
         }
@@ -49,6 +55,11 @@ public class AccountController(
 
         if (user is not null)
         {
+            // Ghi cookie vào scheme QUẢN TRỊ thay vì scheme mặc định. SignInManager là dịch vụ
+            // scoped nên đổi thuộc tính này chỉ ảnh hưởng đúng request hiện tại — và vẫn giữ
+            // trọn logic của Identity (băm mật khẩu, đếm lần sai, khóa tài khoản, security stamp).
+            signInManager.AuthenticationScheme = AppAuthSchemes.Admin;
+
             // lockoutOnFailure: true ⇒ Identity tự khóa sau 5 lần sai trong 10 phút (cấu hình ở Giai đoạn 0)
             var result = await signInManager.PasswordSignInAsync(
                 user, model.Password, model.RememberMe, lockoutOnFailure: true);
@@ -59,7 +70,9 @@ public class AccountController(
                 // đăng nhập đúng mật khẩu vẫn không được lọt vào khu quản trị
                 if (!await userManager.IsInRoleAsync(user, AppRoles.Admin))
                 {
-                    await signInManager.SignOutAsync();
+                    // Chỉ thu hồi cookie QUẢN TRỊ vừa cấp. signInManager.SignOutAsync() sẽ đụng
+                    // cả scheme mặc định ⇒ đá luôn phiên mua hàng của người đó ở tab khác.
+                    await HttpContext.SignOutAsync(AppAuthSchemes.Admin);
                     logger.LogWarning("Tài khoản {User} đăng nhập đúng mật khẩu nhưng không có quyền Admin", model.UserName);
                     ModelState.AddModelError(string.Empty, "Tài khoản này không có quyền truy cập trang quản trị.");
                     return View(model);
@@ -89,11 +102,15 @@ public class AccountController(
         return View(model);
     }
 
+    /// <summary>
+    /// Đăng xuất khỏi khu quản trị. CHỈ thoát phiên quản trị — phiên mua hàng (nếu người đó
+    /// cũng đang đăng nhập ở web khách) phải còn nguyên, đó chính là điểm của việc tách hai scheme.
+    /// </summary>
     [HttpPost("/admin/logout")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = AppAuthSchemes.Admin)]
     public async Task<IActionResult> Logout()
     {
-        await signInManager.SignOutAsync();
+        await HttpContext.SignOutAsync(AppAuthSchemes.Admin);
         return RedirectToAction(nameof(Login));
     }
 

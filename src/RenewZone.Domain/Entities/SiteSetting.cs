@@ -16,6 +16,24 @@ public static class SettingKeys
 {
     public const string StoreName = "StoreName";
     public const string Tagline = "Tagline";
+
+    /// <summary>
+    /// Ảnh logo dùng trên nền SÁNG (header). Để trống ⇒ web khách hiện logo chữ dựng từ
+    /// <see cref="StoreName"/> — thiếu ảnh không bao giờ được làm vỡ header (luật fallback, mục 4.7).
+    /// </summary>
+    public const string LogoUrl = "LogoUrl";
+
+    /// <summary>
+    /// Ảnh logo dùng trên nền TỐI (chân trang, menu điện thoại). Tách riêng vì logo chữ sẫm màu
+    /// sẽ chìm hẳn vào nền tối. Để trống ⇒ hiện logo chữ như cũ.
+    /// </summary>
+    public const string LogoDarkUrl = "LogoDarkUrl";
+
+    /// <summary>
+    /// Phần chữ được tô màu thương hiệu trong logo chữ (vd tên "Apple Store Uyên NTT" tô "Uyên NTT").
+    /// Để trống hoặc không khớp tên cửa hàng ⇒ tô cả tên. Chỉ có tác dụng khi KHÔNG dùng ảnh logo.
+    /// </summary>
+    public const string LogoHighlight = "LogoHighlight";
     public const string Hotline = "Hotline";
     public const string Address = "Address";
     public const string OpenHours = "OpenHours";

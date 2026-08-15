@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using RenewZone.Domain.Entities;
+using RenewZone.Infrastructure.Identity;
 
 namespace RenewZone.Infrastructure.Data.Configurations;
 
@@ -9,6 +10,7 @@ public class ProductReviewConfiguration : IEntityTypeConfiguration<ProductReview
     public void Configure(EntityTypeBuilder<ProductReview> builder)
     {
         builder.Property(x => x.AuthorName).HasMaxLength(150).IsRequired();
+        builder.Property(x => x.Phone).HasMaxLength(30); // tùy chọn — SĐT VN + khoảng cách/dấu ngăn
         builder.Property(x => x.Content).HasMaxLength(2000).IsRequired();
         builder.Property(x => x.AdminReply).HasMaxLength(2000);
 
@@ -21,5 +23,16 @@ public class ProductReviewConfiguration : IEntityTypeConfiguration<ProductReview
             .WithMany(x => x.Reviews)
             .HasForeignKey(x => x.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Tác giả đánh giá. SetNull chứ không Cascade: xóa tài khoản không được làm biến mất
+        // đánh giá đã duyệt (điểm trung bình sản phẩm sẽ nhảy số vô cớ) — AuthorName là snapshot
+        // nên nội dung vẫn hiển thị đầy đủ.
+        builder.HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Kiểm "tài khoản này đã đánh giá sản phẩm đó chưa" + màn "Đánh giá của tôi"
+        builder.HasIndex(x => new { x.UserId, x.ProductId });
     }
 }

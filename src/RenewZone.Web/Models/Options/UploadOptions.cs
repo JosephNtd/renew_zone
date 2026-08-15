@@ -15,6 +15,7 @@ public class UploadOptions
     public UploadProfileOptions News { get; set; } = new() { FolderPath = "uploads/news" };
     public UploadProfileOptions Banner { get; set; } = new() { FolderPath = "uploads/banners" };
     public UploadProfileOptions Editor { get; set; } = new() { FolderPath = "uploads/editor" };
+    public UploadProfileOptions Logo { get; set; } = new() { FolderPath = "uploads/logo" };
 }
 
 /// <summary>Giới hạn của một chỗ upload cụ thể.</summary>

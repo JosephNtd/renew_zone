@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using RenewZone.Domain.Enums;
 using RenewZone.Domain.Interfaces;
@@ -16,12 +17,18 @@ public class SlugController : Controller
     private readonly ISlugResolver _resolver;
     private readonly ICatalogQueryService _catalog;
     private readonly IContentQueryService _content;
+    private readonly ICustomerOrderService _customerOrders;
 
-    public SlugController(ISlugResolver resolver, ICatalogQueryService catalog, IContentQueryService content)
+    public SlugController(
+        ISlugResolver resolver,
+        ICatalogQueryService catalog,
+        IContentQueryService content,
+        ICustomerOrderService customerOrders)
     {
         _resolver = resolver;
         _catalog = catalog;
         _content = content;
+        _customerOrders = customerOrders;
     }
 
     // GET /{slug}?series=&page=
@@ -62,6 +69,18 @@ public class SlugController : Controller
             return NotFound();
         }
 
+        // Tăng lượt xem SAU khi chắc chắn tìm thấy (không đếm 404). +1 mỗi lần tải trang.
+        await _catalog.IncrementProductViewAsync(id);
+
+        // Có được mở form đánh giá hay không (Giai đoạn 9). Đây CHỈ là để hiện/ẩn giao diện cho
+        // đúng — chốt chặn thật nằm ở ReviewController, nó tự hỏi lại HasPurchasedAsync nên gọi
+        // thẳng bằng curl vẫn bị từ chối.
+        if (User.Identity?.IsAuthenticated == true
+            && User.FindFirstValue(ClaimTypes.NameIdentifier) is { Length: > 0 } userId)
+        {
+            ViewData["CanReview"] = await _customerOrders.HasPurchasedAsync(userId, id);
+        }
+
         return View("Product", detail);
     }
 
@@ -72,6 +91,11 @@ public class SlugController : Controller
         {
             return NotFound();
         }
+
+        await _content.IncrementNewsViewAsync(id);
+        // Trang tin CÓ hiển thị lượt xem cho khách; entity là AsNoTracking nên +1 in-memory để
+        // khách thấy đúng số đã bao gồm lượt xem hiện tại (không cần query lại DB).
+        detail.Article.ViewCount++;
 
         return View("NewsDetail", detail);
     }

@@ -1,5 +1,5 @@
 /*
-   RenewZone Clone — site.css
+   Apple Store Uyên NTT — site.css
    Base + component layout dùng chung của WEB KHÁCH.
 */
 
@@ -83,6 +83,18 @@ img { max-width: 100%; }
   white-space: nowrap;
 }
 .site-header.scrolled .brand-tag { display: none; }
+
+/* Ảnh logo (admin tải lên ở trang Cấu hình) — thay chỗ logo chữ ở trên.
+   Khống chế bằng CHIỀU CAO + max-width: ảnh nào cũng vừa khung, không phải upload đúng
+   kích thước; contain nên không bao giờ bị cắt hay méo. Thu nhỏ theo header khi cuộn. */
+.brand-logo {
+  height: 46px;
+  width: auto;
+  max-width: 210px;
+  object-fit: contain;
+  transition: height var(--t-base) var(--ease-out);
+}
+.site-header.scrolled .brand-logo { height: 36px; }
 
 /* --- Search pill --- */
 .search-pill {
@@ -305,6 +317,8 @@ img { max-width: 100%; }
   color: #fff;
 }
 .mobile-menu .offcanvas-header .btn-close { filter: invert(1); }
+/* Ảnh logo bản nền tối — đầu menu điện thoại (nền gradient hồng đậm) */
+.mm-brand-logo { height: 34px; width: auto; max-width: 190px; object-fit: contain; }
 .mobile-menu .offcanvas-body { padding: 8px; }
 .mm-link {
   display: flex;
@@ -360,6 +374,8 @@ img { max-width: 100%; }
 .f-brand-word { font-size: 1.45rem; font-weight: 800; color: #fff; font-family: var(--font-display); }
 .f-brand-word .text-brand { color: var(--brand-400); }
 .f-brand-word .brand-dot { color: var(--red-500); }
+/* Ảnh logo bản nền tối — chân trang */
+.f-brand-logo { display: block; height: 52px; width: auto; max-width: 230px; object-fit: contain; }
 .f-link {
   display: block;
   color: #B9B3BC;
@@ -509,7 +525,7 @@ img { max-width: 100%; }
 
 /*  10. BADGES (theo DESIGN 3.5)  */
 .badge-installment {
-  display: inline-block;
+  display: inline-flex;
   background: var(--grad-cta);
   color: #fff;
   font-size: .68rem;
@@ -1274,10 +1290,184 @@ select.rz-input { appearance: none; padding-right: 38px; cursor: pointer; backgr
   50% { transform: translateY(-7px); }
 }
 
+/*  23. TÀI KHOẢN — PHẦN GLOBAL (Giai đoạn 9)
+    Nút tài khoản trên header + hộp thoại đăng nhập + nút tim.
+    ĐẶT Ở ĐÂY chứ không ở account.css: cả ba thứ đều nằm trong _Layout / partial dùng chung,
+    mà trang chủ và trang sản phẩm KHÔNG nạp account.css — đúng bài học Giai đoạn 4
+    (.rz-breadcrumb từng nằm nhầm trong product.css làm vỡ trang giỏ hàng). */
+
+/* --- Nút + menu tài khoản trên header --- */
+.acc-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-700);
+  font-weight: 700;
+  font-size: .875rem;
+  flex-shrink: 0;
+  max-width: 190px;
+  transition: background var(--t-base), color var(--t-base);
+}
+.acc-btn:hover, .acc-btn[aria-expanded="true"] { background: var(--brand-50); color: var(--brand-700); }
+.acc-btn .bi-person-circle { font-size: 1.35rem; }
+.acc-btn-text {
+  max-width: 118px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.acc-caret { font-size: .7rem; opacity: .6; }
+
+.acc-dropdown {
+  --bs-dropdown-min-width: 236px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-lg);
+  padding: 6px;
+}
+/* Cầu nối vô hình lấp khe hở giữa nút và panel: menu mở bằng hover (site.js mục 0) nên nếu
+   để hở, chuột đi từ nút xuống panel sẽ lọt qua "khoảng không" và menu chớp tắt. */
+.acc-dropdown::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  top: -8px;
+  height: 8px;
+}
+.acc-dropdown .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: var(--r-sm);
+  padding: 9px 12px;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--ink-700);
+}
+.acc-dropdown .dropdown-item:hover { background: var(--brand-50); color: var(--brand-700); }
+.acc-dropdown .dropdown-item .bi { font-size: 1rem; width: 18px; }
+.acc-dropdown form { margin: 0; }
+.acc-dropdown form .dropdown-item { width: 100%; border: 0; background: none; text-align: left; }
+
+/* --- Hộp thoại đăng nhập/đăng ký --- */
+.auth-modal .modal-content {
+  border: 0;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--sh-lg);
+}
+.auth-modal-head {
+  position: relative;
+  padding: 22px 24px 16px;
+  background: linear-gradient(135deg, var(--brand-50), #fff);
+  border-bottom: 1px solid var(--line);
+}
+.auth-modal-title { font-size: 1.2rem; font-weight: 800; margin: 0 0 4px; color: var(--ink-900); }
+.auth-modal-sub { margin: 0; font-size: .85rem; color: var(--ink-500); padding-right: 30px; }
+.auth-modal-head .btn-close { position: absolute; top: 16px; right: 16px; }
+
+.auth-tabs { display: flex; border-bottom: 1px solid var(--line); background: #fff; }
+.auth-tab {
+  flex: 1;
+  border: 0;
+  background: none;
+  padding: 13px 8px;
+  font-weight: 700;
+  font-size: .92rem;
+  color: var(--ink-500);
+  position: relative;
+  transition: color var(--t-base);
+}
+.auth-tab:hover { color: var(--brand-600); }
+.auth-tab.is-active { color: var(--brand-600); }
+.auth-tab.is-active::after {
+  content: "";
+  position: absolute;
+  left: 18%; right: 18%; bottom: -1px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--brand-500);
+}
+
+/* Chỉ khung đang chọn được hiển thị — cả hai form luôn có trong DOM để đổi tab không mất chữ đã gõ */
+.auth-pane { display: none; }
+.auth-pane.is-active { display: block; }
+.auth-pane .rz-field + .rz-field { margin-top: 14px; }
+.auth-pane .btn-buy { margin-top: 18px; }
+
+/* Honeypot — _AuthModal render trong _Layout (mọi trang) nên phải định nghĩa ở đây,
+   không thể chỉ dựa vào product.css/contact.css (không phải trang nào cũng nạp 2 file đó). */
+.hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+.auth-alert {
+  margin-bottom: 14px;
+  padding: 10px 13px;
+  border-radius: var(--r-sm);
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #B91C1C;
+  font-size: .85rem;
+  font-weight: 600;
+}
+
+.auth-pass { position: relative; }
+.auth-pass .rz-input { padding-right: 44px; }
+.auth-pass-toggle {
+  position: absolute;
+  right: 4px; top: 50%;
+  transform: translateY(-50%);
+  width: 36px; height: 36px;
+  border: 0;
+  background: none;
+  color: var(--ink-500);
+  border-radius: var(--r-sm);
+}
+.auth-pass-toggle:hover { color: var(--brand-600); background: var(--brand-50); }
+
+.auth-switch { margin: 14px 0 0; text-align: center; font-size: .85rem; color: var(--ink-500); }
+.auth-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--brand-600);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* --- Nút tim yêu thích (card sản phẩm + PDP) --- */
+.js-wishlist {
+  display: grid;
+  place-items: center;
+  width: 38px; height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .92);
+  color: var(--ink-500);
+  font-size: 1.05rem;
+  transition: color var(--t-base), background var(--t-base), transform var(--t-base);
+}
+.js-wishlist:hover { color: var(--red-500); border-color: var(--red-500); transform: scale(1.08); }
+.js-wishlist.is-on { color: var(--red-500); border-color: var(--red-500); background: #FFF1F2; }
+
+/* Trên card: nổi góc DƯỚI-phải khung ảnh. Góc trên-phải đã có badge giảm giá (.p-badge-tr) —
+   để chung một góc thì sản phẩm đang sale sẽ chồng hai thứ lên nhau.
+   z-index cao hơn .stretched-link là bắt buộc: nếu không, lớp phủ của card nuốt mất cú bấm
+   và khách bấm tim lại bị mở sang trang sản phẩm. */
+.p-card-fav { position: absolute; bottom: 10px; right: 10px; z-index: 3; }
+
+/* Trên trang chi tiết: đứng cạnh nút mua, không nổi trên ảnh */
+.pdp-fav { width: 46px; height: 46px; flex-shrink: 0; }
+
 /*  22. RESPONSIVE  */
 @media (max-width: 991.98px) {
   :root { --header-h: 64px; --header-h-shrink: 58px; }
   .brand-word { font-size: 1.35rem; }
+  .brand-logo { height: 38px; max-width: 160px; }
+  .site-header.scrolled .brand-logo { height: 32px; }
   .brand-tag { display: none; }
   .header-inner { gap: 12px; }
   .site-footer { margin-top: 40px; }
@@ -1292,6 +1482,9 @@ select.rz-input { appearance: none; padding-right: 38px; cursor: pointer; backgr
   .toast-stack { left: 12px; right: 12px; }
   .rz-toast { min-width: 0; max-width: none; }
   .mini-cart { width: 100%; }
+
+  /* Màn hẹp: nút tài khoản co lại còn đúng cái icon (chữ vốn đã d-none d-md-inline) */
+  .acc-btn { padding: 9px 8px; }
 }
 
 /* Hover chỉ áp dụng cho thiết bị có chuột */

@@ -41,7 +41,7 @@
     <div class="adm-search">
         <i class="bi bi-search" aria-hidden="true"></i>
         <input class="adm-input" type="search" name="q" value="@Model.Search"
-               placeholder="Tìm theo tên khách, nội dung, tên sản phẩm..." aria-label="Tìm đánh giá" />
+               placeholder="Tìm theo tên khách, SĐT, nội dung, tên sản phẩm..." aria-label="Tìm đánh giá" />
     </div>
     <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">
         <i class="bi bi-funnel" aria-hidden="true"></i>
@@ -83,6 +83,13 @@ else
                 <a class="adm-review-product" href="/@rv.ProductSlug" target="_blank" rel="noopener">
                     <i class="bi bi-box-seam" aria-hidden="true"></i> @rv.ProductName
                 </a>
+
+                @if (!string.IsNullOrWhiteSpace(rv.Phone))
+                {
+                    <a class="adm-review-phone" href="tel:@rv.Phone" title="Gọi cho khách">
+                        <i class="bi bi-telephone" aria-hidden="true"></i> @rv.Phone
+                    </a>
+                }
 
                 <p class="adm-review-content">@rv.Content</p>
 

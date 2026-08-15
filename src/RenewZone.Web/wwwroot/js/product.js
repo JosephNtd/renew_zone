@@ -175,15 +175,20 @@
         reviewForm.addEventListener("submit", function (e) {
             e.preventDefault();
 
-            var nameEl = document.getElementById("rvName");
+            var phoneEl = document.getElementById("rvPhone");
             var contentEl = document.getElementById("rvContent");
             var hpEl = reviewForm.querySelector('input[name="rvWebsite"]');
             var submitBtn = document.getElementById("reviewSubmit");
 
-            // Kiểm nhanh phía client cho phản hồi tức thì; server luôn kiểm lại
+            // Kiểm nhanh phía client cho phản hồi tức thì; server luôn kiểm lại.
+            // Giai đoạn 9: không còn ô "tên hiển thị" — tên lấy từ hồ sơ tài khoản ở server.
             if (chosen < 1) { reviewToast("Vui lòng chọn số sao.", "error"); return; }
-            if (!nameEl || nameEl.value.trim().length < 2) { reviewToast("Vui lòng nhập tên hiển thị.", "error"); return; }
             if (!contentEl || contentEl.value.trim().length < 10) { reviewToast("Nội dung cần ít nhất 10 ký tự.", "error"); return; }
+            // SĐT tùy chọn: chỉ chặn khi khách có nhập nhưng sai định dạng số VN
+            var phoneVal = phoneEl ? phoneEl.value.trim() : "";
+            if (phoneVal.length > 0 && !/^(0|\+84)\d{9,10}$/.test(phoneVal)) {
+                reviewToast("Số điện thoại không hợp lệ. Để trống hoặc nhập đúng số VN.", "error"); return;
+            }
 
             var tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
             if (submitBtn) submitBtn.disabled = true;
@@ -197,7 +202,7 @@
                 body: JSON.stringify({
                     productId: parseInt(reviewSection.getAttribute("data-product-id"), 10),
                     productName: document.querySelector(".pdp-name") ? document.querySelector(".pdp-name").textContent.trim() : "",
-                    authorName: nameEl.value,
+                    phone: phoneVal,
                     rating: chosen,
                     content: contentEl.value,
                     website: hpEl ? hpEl.value : ""
@@ -205,6 +210,14 @@
             }).then(function (res) {
                 return res.ok ? res.json() : { ok: false, message: "Có lỗi xảy ra, vui lòng thử lại." };
             }).then(function (data) {
+                // Phiên đăng nhập hết hạn giữa chừng ⇒ mở hộp thoại và gửi lại sau khi đăng nhập
+                if (!data.ok && data.requireLogin && window.RZ && RZ.requireLogin) {
+                    RZ.requireLogin(function () {
+                        reviewForm.dispatchEvent(new Event("submit", { cancelable: true }));
+                    }, "Đăng nhập để gửi đánh giá của bạn.");
+                    return;
+                }
+
                 reviewToast(data.message, data.ok ? "success" : "error");
                 if (data.ok) {
                     reviewForm.reset();

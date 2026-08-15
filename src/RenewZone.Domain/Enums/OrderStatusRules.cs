@@ -34,6 +34,14 @@ public static class OrderStatusRules
     public static bool CanTransition(OrderStatus from, OrderStatus to) =>
         AllowedNext(from).Contains(to);
 
+    /// <summary>
+    /// Khách hàng được TỰ hủy đơn của mình hay không (Giai đoạn 9). Hẹp hơn quyền của admin:
+    /// hàng đã rời kho (<see cref="OrderStatus.Shipping"/>) thì phải gọi shop để phối hợp với
+    /// bên vận chuyển, chứ không được tự bấm hủy. Admin vẫn hủy được ở mọi chặng chưa kết thúc.
+    /// </summary>
+    public static bool CustomerCanCancel(OrderStatus current) =>
+        current is OrderStatus.New or OrderStatus.Confirmed;
+
     /// <summary>Các chặng của thanh timeline (không gồm Cancelled — hủy là nhánh rẽ, không phải chặng).</summary>
     public static readonly OrderStatus[] Pipeline =
     [

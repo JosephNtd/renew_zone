@@ -1,7 +1,11 @@
 @model LoginViewModel
+@inject RenewZone.Domain.Interfaces.ISiteContentService SiteContent
 @{
     ViewData["Title"] = "Đăng nhập";
     Layout = "_LoginLayout";
+
+    // Thẻ đăng nhập nền SÁNG ⇒ dùng bản logo nền sáng. Chưa có ảnh thì hiện ô vuông chữ tắt.
+    var brand = await SiteContent.GetAdminBrandAsync();
 
     // Có lỗi cấp form (sai mật khẩu / bị khóa) ⇒ card lắc nhẹ 300ms
     var hasFormError = ViewData.ModelState[string.Empty]?.Errors.Count > 0;
@@ -9,9 +13,16 @@
 
 <div class="adm-login-card @(hasFormError ? "is-shake" : "")">
     <div class="adm-login-head">
-        <div class="adm-brand-mark">RZ</div>
+        @if (brand.LogoUrl.Length > 0)
+        {
+            <img class="adm-login-logo" src="@brand.LogoUrl" alt="@brand.Name" />
+        }
+        else
+        {
+            <div class="adm-brand-mark">@brand.Initials</div>
+        }
         <h1>Đăng nhập quản trị</h1>
-        <p>RenewZone — khu vực dành cho quản trị viên</p>
+        <p>@brand.Name — khu vực dành cho quản trị viên</p>
     </div>
 
     <form method="post" asp-area="Admin" asp-controller="Account" asp-action="Login" novalidate>

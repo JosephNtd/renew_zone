@@ -1,9 +1,19 @@
+@using RenewZone.Web.Helpers
 @model ProductDetail
 @inject RenewZone.Domain.Interfaces.ISiteContentService SiteContent
+@inject RenewZone.Domain.Interfaces.IWishlistService Wishlist
 @{
     var p = Model.Product;
     ViewData["Title"] = p.Name;
     ViewData["MetaDescription"] = p.ShortDescription;
+
+    // ---- Tài khoản (Giai đoạn 9) ----
+    var isLoggedIn = User.Identity?.IsAuthenticated == true;
+    var isFavorite = (await Wishlist.GetFavoriteIdsAsync(Context)).Contains(p.Id);
+
+    // Controller đã tra "tài khoản này đã mua sản phẩm chưa" (SlugController.ProductView).
+    // Chỉ dùng để hiện/ẩn form cho đúng — chốt chặn thật ở ReviewController.
+    var canReview = ViewData["CanReview"] as bool? ?? false;
 
     var images = p.Images.Count > 0
         ? p.Images.ToList()
@@ -168,6 +178,14 @@
                             data-product-id="@p.Id" data-product-name="@p.Name">
                         Mua ngay
                     </button>
+
+                    @* Nút ♡ (Giai đoạn 9) — khách vãng lai bấm sẽ mở hộp thoại đăng nhập *@
+                    <button class="js-wishlist pdp-fav @(isFavorite ? "is-on" : "")" type="button"
+                            data-product-id="@p.Id"
+                            aria-pressed="@(isFavorite ? "true" : "false")"
+                            aria-label="@(isFavorite ? "Bỏ yêu thích" : "Thêm vào yêu thích")">
+                        <i class="bi @(isFavorite ? "bi-heart-fill" : "bi-heart")"></i>
+                    </button>
                 </div>
 
                 <a class="pdp-hotline-line" href="@hotlineTel">
@@ -236,7 +254,18 @@
                         <div class="rv-item-head">
                             <span class="rv-avatar" aria-hidden="true">@(rv.AuthorName.Trim().Length > 0 ? rv.AuthorName.Trim()[..1].ToUpper() : "?")</span>
                             <div>
-                                <div class="rv-author">@rv.AuthorName</div>
+                                <div class="rv-author">
+                                    @rv.AuthorName
+                                    @if (rv.IsVerifiedPurchase)
+                                    {
+                                        @* Huy hiệu là giá trị cốt lõi của việc bắt đăng nhập:
+                                           người đọc biết đây là nhận xét của người thật sự đã mua.
+                                           Cờ được chốt lúc gửi đánh giá, không tính lại lúc hiển thị. *@
+                                        <span class="rv-verified" title="Đã mua sản phẩm này tại shop">
+                                            <i class="bi bi-patch-check-fill" aria-hidden="true"></i> Đã mua hàng
+                                        </span>
+                                    }
+                                </div>
                                 <div class="rv-meta">
                                     @await Html.PartialAsync("_StarRating", (decimal)rv.Rating)
                                     <span class="rv-date">@rv.CreatedAt.ToString("dd/MM/yyyy")</span>
@@ -256,42 +285,86 @@
             }
         </div>
 
-        @* Form gửi đánh giá — AJAX, kết quả báo qua JS (đánh giá chờ duyệt nên PDP không đổi ngay) *@
-        <form class="rv-form" id="reviewForm">
-            <h3 class="rv-form-title">Viết đánh giá của bạn</h3>
+        @*
+            Form gửi đánh giá — AJAX, kết quả báo qua JS (đánh giá chờ duyệt nên PDP không đổi ngay).
 
-            <div class="rv-field">
-                <span class="rv-label">Đánh giá của bạn</span>
-                <div class="rv-star-input" id="reviewStars" role="radiogroup" aria-label="Chọn số sao">
-                    @for (var i = 1; i <= 5; i++)
-                    {
-                        <button type="button" class="rv-star-btn" data-value="@i" role="radio" aria-checked="false" aria-label="@i sao">
-                            <i class="bi bi-star" aria-hidden="true"></i>
-                        </button>
-                    }
+            Giai đoạn 9: CHỈ hiện cho tài khoản đã MUA XONG sản phẩm này. Ba trạng thái, mỗi
+            trạng thái nói rõ người xem cần làm gì tiếp — thay vì lặng lẽ giấu form đi khiến họ
+            tưởng chức năng bị hỏng.
+        *@
+        @if (canReview)
+        {
+            <form class="rv-form" id="reviewForm">
+                <h3 class="rv-form-title">Viết đánh giá của bạn</h3>
+                <p class="rv-note mt-0 mb-3">
+                    <i class="bi bi-patch-check-fill text-success"></i>
+                    Bạn đã mua sản phẩm này — đánh giá của bạn sẽ có huy hiệu <strong>Đã mua hàng</strong>.
+                </p>
+
+                <div class="rv-field">
+                    <span class="rv-label">Đánh giá của bạn</span>
+                    <div class="rv-star-input" id="reviewStars" role="radiogroup" aria-label="Chọn số sao">
+                        @for (var i = 1; i <= 5; i++)
+                        {
+                            <button type="button" class="rv-star-btn" data-value="@i" role="radio" aria-checked="false" aria-label="@i sao">
+                                <i class="bi bi-star" aria-hidden="true"></i>
+                            </button>
+                        }
+                    </div>
                 </div>
+
+                @* Ô "Tên hiển thị" đã BỎ (Giai đoạn 9): tên lấy từ hồ sơ tài khoản. Cho người gửi
+                   tự khai tên là mở đường mạo danh khách khác dưới một đánh giá đã được duyệt. *@
+
+                <div class="rv-field">
+                    <label class="rv-label" for="rvPhone">Số điện thoại <span class="rv-optional">(không bắt buộc)</span></label>
+                    <input class="rz-input" id="rvPhone" name="phone" type="tel" maxlength="30" inputmode="tel"
+                           placeholder="Để trống sẽ dùng số của tài khoản" autocomplete="tel" />
+                    <span class="rv-hint">Số điện thoại chỉ shop nhìn thấy, không hiển thị công khai.</span>
+                </div>
+
+                <div class="rv-field">
+                    <label class="rv-label" for="rvContent">Nội dung</label>
+                    <textarea class="rz-input" id="rvContent" name="content" rows="4" maxlength="2000"
+                              placeholder="Chia sẻ cảm nhận của bạn về sản phẩm (tối thiểu 10 ký tự)"></textarea>
+                </div>
+
+                @* Honeypot — ẩn bằng CSS, người thật không điền *@
+                <div class="hp-field" aria-hidden="true">
+                    <label>Website<input type="text" name="rvWebsite" tabindex="-1" autocomplete="off" /></label>
+                </div>
+
+                <p class="rv-note">Đánh giá sẽ hiển thị sau khi được shop duyệt.</p>
+
+                <button class="btn-rz btn-buy rv-submit" type="submit" id="reviewSubmit">Gửi đánh giá</button>
+            </form>
+        }
+        else if (isLoggedIn)
+        {
+            <div class="rv-form rv-locked">
+                <h3 class="rv-form-title"><i class="bi bi-lock"></i> Chỉ khách đã mua mới đánh giá được</h3>
+                <p class="rv-note mb-0">
+                    Shop chỉ nhận đánh giá từ người đã mua và nhận sản phẩm này, để những nhận xét
+                    ở đây luôn là trải nghiệm thật. Nếu bạn vừa nhận hàng, hãy đợi shop cập nhật
+                    đơn sang <strong>“Hoàn thành”</strong> rồi quay lại nhé.
+                </p>
+                <a class="btn-rz btn-cart-outline mt-3" href="/tai-khoan/don-hang">
+                    <i class="bi bi-receipt"></i> Xem đơn hàng của tôi
+                </a>
             </div>
-
-            <div class="rv-field">
-                <label class="rv-label" for="rvName">Tên hiển thị</label>
-                <input class="rz-input" id="rvName" name="authorName" type="text" maxlength="150" placeholder="Tên của bạn" autocomplete="name" />
+        }
+        else
+        {
+            <div class="rv-form rv-locked">
+                <h3 class="rv-form-title"><i class="bi bi-person-circle"></i> Đăng nhập để đánh giá</h3>
+                <p class="rv-note mb-0">
+                    Đăng nhập bằng tài khoản đã mua sản phẩm này để chia sẻ cảm nhận của bạn.
+                </p>
+                <button class="btn-rz btn-buy js-auth-open mt-3" type="button">
+                    <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+                </button>
             </div>
-
-            <div class="rv-field">
-                <label class="rv-label" for="rvContent">Nội dung</label>
-                <textarea class="rz-input" id="rvContent" name="content" rows="4" maxlength="2000"
-                          placeholder="Chia sẻ cảm nhận của bạn về sản phẩm (tối thiểu 10 ký tự)"></textarea>
-            </div>
-
-            @* Honeypot — ẩn bằng CSS, người thật không điền *@
-            <div class="hp-field" aria-hidden="true">
-                <label>Website<input type="text" name="rvWebsite" tabindex="-1" autocomplete="off" /></label>
-            </div>
-
-            <p class="rv-note">Đánh giá sẽ hiển thị sau khi được shop duyệt.</p>
-
-            <button class="btn-rz btn-buy rv-submit" type="submit" id="reviewSubmit">Gửi đánh giá</button>
-        </form>
+        }
     </section>
 
     @* SẢN PHẨM LIÊN QUAN *@

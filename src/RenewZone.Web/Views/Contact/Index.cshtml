@@ -5,7 +5,7 @@
     ViewData["Title"] = "Liên hệ";
 
     var settings = await SiteContent.GetSettingsAsync();
-    var storeName = settings.Get(SettingKeys.StoreName, "RenewZone");
+    var storeName = settings.Get(SettingKeys.StoreName, "Apple Store Uyên NTT");
     var hotline = settings.Get(SettingKeys.Hotline, "0900.000.000");
     var hotlineTel = "tel:" + hotline.Replace(".", "").Replace(" ", "");
     var address = settings.Get(SettingKeys.Address);
