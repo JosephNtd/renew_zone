@@ -10,6 +10,18 @@
          ⚠️ v3+ dùng Six Labors Split License: MIỄN PHÍ cho nguồn mở/cá nhân/doanh thu nhỏ; nếu
          THƯƠNG MẠI HÓA thật phải rà lại license hoặc đổi sang Magick.NET/SkiaSharp (Lưu ý 6.22). -->
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+
+    <!-- 6 lỗ hổng NuGet báo (NU1902/NU1903) ở ImageSharp 3.1.12. Bản vá (3.2.0, 4.1.2) bắt buộc license key
+         Six Labors khi build Release ⇒ nâng lên thì dotnet publish lỗi nếu chưa có key. Trong project này các
+         lỗi không chạm tới được: MediaService chỉ decode JPEG/PNG/WebP (TIFF bị chặn), không encode TIFF,
+         không dùng HistogramEqualization, không đọc IccProfile.Entries (encoder chỉ chép nguyên byte ICC).
+         Gỡ các dòng này khi nâng lên bản đã vá. -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-gwg2-r3hj-4w44" /> <!-- ICC CLUT -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-wmxv-xphr-5c9g" /> <!-- BigTIFF IFD -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-j3p4-wp97-rph4" /> <!-- HistogramEqualization -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-j9gm-c75j-xc9q" /> <!-- TIFF CCITT T4 encoder -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-jjfr-hcj7-qf5w" /> <!-- TIFF CCITT T6 encoder -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-v76p-62qx-wwq2" /> <!-- tiled fax TIFF -->
   </ItemGroup>
 
   <ItemGroup>

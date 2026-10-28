@@ -20,6 +20,21 @@ public class MediaService(IWebHostEnvironment env, IOptions<UploadOptions> optio
     /// <summary>Thư mục gốc chứa mọi file người dùng tải lên — <see cref="Delete"/> không đụng ra ngoài đây.</summary>
     private const string UploadRoot = "uploads";
 
+    /// <summary>
+    /// Chỉ bật decoder cho đúng các đuôi đi qua <see cref="SaveProcessedImageAsync"/> (JPEG/PNG/WebP).
+    /// ImageSharp nhận dạng định dạng theo NỘI DUNG chứ không theo đuôi, nên với Configuration.Default
+    /// một file TIFF đổi tên thành .jpg vẫn được decode — dính các lỗ hổng TIFF của bản 3.1.12 (xem ghi
+    /// chú NuGetAuditSuppress trong RenewZone.Web.csproj). Giờ file như vậy ném UnknownImageFormatException
+    /// và bị từ chối giống file ảnh hỏng.
+    /// </summary>
+    private static readonly DecoderOptions UploadDecoderOptions = new()
+    {
+        Configuration = new Configuration(
+            new JpegConfigurationModule(),
+            new PngConfigurationModule(),
+            new WebpConfigurationModule())
+    };
+
     public UploadProfileOptions GetOptions(UploadProfile profile) => profile switch
     {
         UploadProfile.Contact => _options.Contact,
@@ -168,7 +183,7 @@ public class MediaService(IWebHostEnvironment env, IOptions<UploadOptions> optio
         try
         {
             await using var input = file.OpenReadStream();
-            using var image = await Image.LoadAsync(input);
+            using var image = await Image.LoadAsync(UploadDecoderOptions, input);
 
             // Sàn dưới: ảnh nhỏ hơn vùng hiển thị sẽ bị phóng to → vỡ/mờ. Kiểm SAU khi decode nên
             // vẫn nằm trong lớp bảo vệ của catch (file giả đuôi ảnh không decode được đã bị chặn trước).
