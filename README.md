@@ -1,6 +1,6 @@
 # RenewZone
 
-Website thương mại điện tử bán lẻ sản phẩm Apple (mới & đã qua sử dụng) — website thương mại điện tử bán lẻ sản phẩm Apple mới được thực hiện bởi Nguyễn Thị Tố Uyên phục vụ mục đích **bán hàng online**. Xây bằng **ASP.NET Core MVC (.NET 9)** theo kiến trúc 3 tầng, gồm **web khách hàng đầy đủ** (có tài khoản, giỏ hàng, đặt hàng, đánh giá) + **trang quản trị 24 màn** cho chủ shop tự vận hành.
+Website thương mại điện tử bán lẻ sản phẩm Apple (mới & đã qua sử dụng) — website thương mại điện tử bán lẻ sản phẩm Apple mới được thực hiện bởi Nhóm 13 phục vụ mục đích **bán hàng online**. Xây bằng **ASP.NET Core MVC (.NET 9)** theo kiến trúc 3 tầng, gồm **web khách hàng đầy đủ** (có tài khoản, giỏ hàng, đặt hàng, đánh giá) + **trang quản trị 24 màn** cho chủ shop tự vận hành.
 
 > **Dự án học tập** — clone cấu trúc/bố cục/tính năng, KHÔNG dùng ảnh, logo, nội dung hay thông tin doanh nghiệp thật. Toàn bộ dữ liệu mẫu là giả lập (hotline `0900.000.000`, "RenewZone"…).
 
