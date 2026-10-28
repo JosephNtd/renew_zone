@@ -103,6 +103,7 @@ public static class DependencyInjection
         services.AddScoped<IOrderAdminService, OrderAdminService>();
         services.AddScoped<ICategoryAdminService, CategoryAdminService>();
         services.AddScoped<IProductAdminService, ProductAdminService>();
+        services.AddScoped<IProductAttributeAdminService, ProductAttributeAdminService>();
         services.AddScoped<INewsAdminService, NewsAdminService>();
         services.AddScoped<IPageAdminService, PageAdminService>();
         services.AddScoped<INavigationAdminService, NavigationAdminService>();

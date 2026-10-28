@@ -58,6 +58,14 @@ public class ProductAdminService(
             ("gia", true) => query.OrderByDescending(p => p.SalePrice ?? p.OriginalPrice),
             ("luotxem", false) => query.OrderBy(p => p.ViewCount),
             ("luotxem", true) => query.OrderByDescending(p => p.ViewCount),
+            ("yeuthich", false) => query.OrderBy(p => db.WishlistItems.Count(w => w.ProductId == p.Id)),
+            ("yeuthich", true) => query.OrderByDescending(p => db.WishlistItems.Count(w => w.ProductId == p.Id)),
+            ("daban", false) => query.OrderBy(p => db.OrderItems
+                .Where(i => i.ProductId == p.Id && i.Order.Status == OrderStatus.Completed)
+                .Sum(i => (int?)i.Quantity) ?? 0),
+            ("daban", true) => query.OrderByDescending(p => db.OrderItems
+                .Where(i => i.ProductId == p.Id && i.Order.Status == OrderStatus.Completed)
+                .Sum(i => (int?)i.Quantity) ?? 0),
             ("ngay", false) => query.OrderBy(p => p.CreatedAt),
             _ => query.OrderByDescending(p => p.CreatedAt) // mặc định: mới thêm lên đầu
         };
@@ -71,7 +79,12 @@ public class ProductAdminService(
                     ?? p.Images.OrderBy(i => i.DisplayOrder).Select(i => i.Url).FirstOrDefault(),
                 p.OriginalPrice, p.SalePrice, p.IsContactPrice,
                 p.IsActive, p.IsFeatured, p.IsBestSeller, p.IsInstallment0Percent,
-                p.ViewCount, p.Images.Count))
+                p.ViewCount, p.Images.Count,
+                db.WishlistItems.Count(w => w.ProductId == p.Id),
+                // "Đã bán" chỉ tính đơn Hoàn thành: đơn đang xử lý còn có thể bị hủy
+                db.OrderItems
+                    .Where(i => i.ProductId == p.Id && i.Order.Status == OrderStatus.Completed)
+                    .Sum(i => (int?)i.Quantity) ?? 0))
             .ToListAsync();
 
         return new PagedResult<ProductListItem>
@@ -87,7 +100,7 @@ public class ProductAdminService(
         await db.Products
             .Include(p => p.Images.OrderBy(i => i.DisplayOrder))
             .Include(p => p.OptionGroups.OrderBy(g => g.DisplayOrder))
-                .ThenInclude(g => g.Values)
+                .ThenInclude(g => g.Values.OrderBy(v => v.DisplayOrder))
             .AsSplitQuery() // 2 collection cùng lúc ⇒ tránh tích Descartes (bài học Giai đoạn 3)
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == id);
@@ -192,12 +205,62 @@ public class ProductAdminService(
             return AdminResult.Fail("Giá khuyến mãi không được cao hơn giá gốc.");
         }
 
-        // Nhóm biến thể phải có ít nhất 1 giá trị, nếu không PDP hiện một nhóm trống vô nghĩa
-        foreach (var group in input.OptionGroups)
+        return await ValidateOptionGroupsAsync(input.OptionGroups);
+    }
+
+    /// <summary>
+    /// Biến thể chỉ được CHỌN từ danh sách chung (Giai đoạn 10): mọi id thuộc tính/giá trị form gửi lên
+    /// phải có thật và giá trị phải đúng thuộc tính của nhóm — không tin dữ liệu form (có thể bị sửa tay).
+    /// </summary>
+    private async Task<AdminResult?> ValidateOptionGroupsAsync(IReadOnlyList<OptionGroupInput> groups)
+    {
+        if (groups.Count == 0)
         {
+            return null;
+        }
+
+        var attributeIds = groups.Select(g => g.AttributeId).Distinct().ToList();
+        var attributes = await db.ProductAttributes.AsNoTracking()
+            .Where(a => attributeIds.Contains(a.Id))
+            .ToDictionaryAsync(a => a.Id, a => a.Name);
+
+        var valueIds = groups.SelectMany(g => g.Values).Select(v => v.AttributeValueId).Distinct().ToList();
+        var valueOwners = await db.ProductAttributeValues.AsNoTracking()
+            .Where(v => valueIds.Contains(v.Id))
+            .ToDictionaryAsync(v => v.Id, v => v.AttributeId);
+
+        var usedAttributes = new HashSet<int>();
+        foreach (var group in groups)
+        {
+            if (!attributes.TryGetValue(group.AttributeId, out var name))
+            {
+                return AdminResult.Fail("Có nhóm biến thể chưa chọn thuộc tính hoặc thuộc tính không còn tồn tại.");
+            }
+
+            // Một sản phẩm chỉ có một nhóm cho mỗi thuộc tính, không thì PDP hiện 2 hàng "Màu sắc"
+            if (!usedAttributes.Add(group.AttributeId))
+            {
+                return AdminResult.Fail($"Thuộc tính “{name}” bị chọn ở 2 nhóm. Mỗi thuộc tính chỉ dùng một nhóm.");
+            }
+
+            // Nhóm biến thể phải có ít nhất 1 giá trị, nếu không PDP hiện một nhóm trống vô nghĩa
             if (group.Values.Count == 0)
             {
-                return AdminResult.Fail($"Nhóm biến thể “{group.Name}” chưa có giá trị nào.");
+                return AdminResult.Fail($"Nhóm biến thể “{name}” chưa có giá trị nào.");
+            }
+
+            var usedValues = new HashSet<int>();
+            foreach (var value in group.Values)
+            {
+                if (!valueOwners.TryGetValue(value.AttributeValueId, out var owner) || owner != group.AttributeId)
+                {
+                    return AdminResult.Fail($"Nhóm “{name}” có giá trị không thuộc danh sách của thuộc tính này.");
+                }
+
+                if (!usedValues.Add(value.AttributeValueId))
+                {
+                    return AdminResult.Fail($"Nhóm “{name}” có một giá trị bị chọn 2 lần.");
+                }
             }
         }
 
@@ -214,17 +277,19 @@ public class ProductAdminService(
 
             var group = new ProductOptionGroup
             {
-                Name = groupInput.Name.Trim(),
+                AttributeId = groupInput.AttributeId,
                 DisplayOrder = i
             };
 
-            foreach (var value in groupInput.Values)
+            for (var v = 0; v < groupInput.Values.Count; v++)
             {
+                var value = groupInput.Values[v];
                 group.Values.Add(new ProductOptionValue
                 {
-                    Value = value.Value.Trim(),
+                    AttributeValueId = value.AttributeValueId,
                     PriceAdjustment = value.PriceAdjustment,
-                    IsDefault = value.IsDefault
+                    IsDefault = value.IsDefault,
+                    DisplayOrder = v
                 });
             }
 
@@ -263,12 +328,12 @@ public class ProductAdminService(
 
             if (group is null)
             {
-                group = new ProductOptionGroup { Name = groupInput.Name.Trim(), DisplayOrder = i };
+                group = new ProductOptionGroup { AttributeId = groupInput.AttributeId, DisplayOrder = i };
                 product.OptionGroups.Add(group);
             }
             else
             {
-                group.Name = groupInput.Name.Trim();
+                group.AttributeId = groupInput.AttributeId;
                 group.DisplayOrder = i;
             }
 
@@ -286,8 +351,9 @@ public class ProductAdminService(
             db.ProductOptionValues.Remove(removed);
         }
 
-        foreach (var valueInput in inputs)
+        for (var i = 0; i < inputs.Count; i++)
         {
+            var valueInput = inputs[i];
             var value = valueInput.Id is { } valueId
                 ? group.Values.FirstOrDefault(v => v.Id == valueId)
                 : null;
@@ -296,16 +362,18 @@ public class ProductAdminService(
             {
                 group.Values.Add(new ProductOptionValue
                 {
-                    Value = valueInput.Value.Trim(),
+                    AttributeValueId = valueInput.AttributeValueId,
                     PriceAdjustment = valueInput.PriceAdjustment,
-                    IsDefault = valueInput.IsDefault
+                    IsDefault = valueInput.IsDefault,
+                    DisplayOrder = i
                 });
             }
             else
             {
-                value.Value = valueInput.Value.Trim();
+                value.AttributeValueId = valueInput.AttributeValueId;
                 value.PriceAdjustment = valueInput.PriceAdjustment;
                 value.IsDefault = valueInput.IsDefault;
+                value.DisplayOrder = i;
             }
         }
     }

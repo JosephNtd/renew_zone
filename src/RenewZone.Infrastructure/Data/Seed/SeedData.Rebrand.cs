@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 namespace RenewZone.Infrastructure.Data.Seed;
 
 /// <summary>
+/// ĐÃ TẮT từ 22/10/2026: SeedData không còn gọi BackfillRebrandAsync, cửa hàng giữ tên RenewZone.
+///
 /// Đổi thương hiệu hiển thị "RenewZone" → "Apple Store Uyên NTT" trên DB ĐANG CHẠY.
 ///
 /// Vì sao cần backfill mà không chỉ sửa <see cref="SeedData"/>: hàm seed gốc chỉ chạy khi bảng còn

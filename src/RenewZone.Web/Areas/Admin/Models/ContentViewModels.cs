@@ -499,13 +499,13 @@ public class SettingViewModel
                 IsImage: true, DarkPreview: true),
             new(SettingKeys.LogoHighlight, "Phần chữ tô màu hồng",
                 "Chỉ dùng cho logo chữ (khi chưa có ảnh logo): phần tên cửa hàng được tô màu " +
-                "thương hiệu. Ví dụ tên “Apple Store Uyên NTT”, tô “Uyên NTT”. " +
+                "thương hiệu. Ví dụ tên “RenewZone”, tô “Zone”. " +
                 "Để trống hoặc gõ không khớp thì tô cả tên.")
         ]),
 
         new("Thông tin cửa hàng", "bi-shop",
         [
-            new(SettingKeys.StoreName, "Tên cửa hàng", Placeholder: "Apple Store Uyên NTT"),
+            new(SettingKeys.StoreName, "Tên cửa hàng", Placeholder: "RenewZone"),
             new(SettingKeys.Tagline, "Câu khẩu hiệu", "Hiện ở topbar và thẻ mô tả trang."),
             new(SettingKeys.Hotline, "Hotline", "Hiện ở header, nút gọi và trang liên hệ.",
                 Placeholder: "0900.000.000"),
@@ -566,10 +566,11 @@ public class TrashViewModel
         TrashType.NewsCategory => "Chuyên mục tin",
         TrashType.StaticPage => "Trang tĩnh",
         TrashType.Banner => "Banner",
-        TrashType.Testimonial => "Đánh giá",
+        TrashType.Testimonial => "Nhận xét khách hàng",
         TrashType.MenuItem => "Mục menu",
         TrashType.ContentBlock => "Khối nội dung",
         TrashType.ContactMessage => "Tin liên hệ",
+        TrashType.ProductReview => "Đánh giá sản phẩm",
         _ => type.ToString()
     };
 

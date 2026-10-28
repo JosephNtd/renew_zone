@@ -2,6 +2,17 @@
 @using RenewZone.Domain.Models.Account
 @using RenewZone.Web.Helpers
 @model MyOrderDetail
+@{
+    // Nhãn trạng thái đánh giá khách đã viết cho từng dòng hàng
+    static string ReviewLabel(ItemReviewInfo r) => r.IsRemoved
+        ? "Shop đã gỡ đánh giá này"
+        : r.Status switch
+        {
+            ReviewStatus.Approved => "Đã hiển thị trên trang sản phẩm",
+            ReviewStatus.Rejected => "Shop không duyệt đánh giá này",
+            _ => "Đang chờ shop duyệt"
+        };
+}
 
 <div class="acc-page-head d-flex flex-wrap align-items-start justify-content-between gap-3">
     <div>
@@ -74,6 +85,32 @@
                             <div class="acc-line-variant">@item.VariantDescription</div>
                         }
                         <div class="acc-line-qty">@item.UnitPrice.ToVnd() × @item.Quantity</div>
+
+                        @* Đánh giá từng sản phẩm của đơn đã hoàn thành (Giai đoạn 10) — mỗi dòng một lần *@
+                        @if (Model.CanReview)
+                        {
+                            if (Model.ItemReviews.TryGetValue(item.Id, out var written))
+                            {
+                                <div class="od-review-done">
+                                    <span class="od-stars" aria-label="@written.Rating trên 5 sao">
+                                        @for (var s = 1; s <= 5; s++)
+                                        {
+                                            <i class="bi @(s <= written.Rating ? "bi-star-fill" : "bi-star")" aria-hidden="true"></i>
+                                        }
+                                    </span>
+                                    <span>@ReviewLabel(written)</span>
+                                </div>
+                            }
+                            else if (item.ProductSlug is not null)
+                            {
+                                @* Slug null = sản phẩm đã gỡ khỏi shop ⇒ không đánh giá được nữa *@
+                                <button class="addr-action mt-2 js-review-item" type="button"
+                                        data-item-id="@item.Id" data-product-id="@item.ProductId"
+                                        data-product-name="@item.ProductName">
+                                    <i class="bi bi-star"></i> Đánh giá sản phẩm
+                                </button>
+                            }
+                        }
                     </div>
                     <div class="acc-line-total">@item.LineTotal.ToVnd()</div>
                 </div>
@@ -94,6 +131,48 @@
                 </div>
             </div>
         </div>
+
+        @if (Model.CanReview)
+        {
+            <div class="acc-card">
+                <h2 class="acc-card-title"><i class="bi bi-truck"></i>Đánh giá giao hàng</h2>
+                @if (Model.DeliveryReview is { } delivery)
+                {
+                    <div class="od-review-done">
+                        <span class="od-stars" aria-label="@delivery.Rating trên 5 sao">
+                            @for (var s = 1; s <= 5; s++)
+                            {
+                                <i class="bi @(s <= delivery.Rating ? "bi-star-fill" : "bi-star")" aria-hidden="true"></i>
+                            }
+                        </span>
+                        <span>Bạn đã đánh giá lúc @delivery.CreatedAt.ToString("HH:mm dd/MM/yyyy")</span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(delivery.Comment))
+                    {
+                        <p class="acc-card-sub mb-0 mt-2">“@delivery.Comment”</p>
+                    }
+                }
+                else
+                {
+                    @* Chỉ shop xem, không hiện công khai nên không cần duyệt *@
+                    <p class="acc-card-sub">Shop giao hàng cho bạn thế nào? Đánh giá chỉ shop xem để cải thiện dịch vụ.</p>
+                    <form id="deliveryForm" data-code="@Model.Code">
+                        <div class="od-star-input js-stars" role="radiogroup" aria-label="Chọn số sao giao hàng">
+                            @for (var s = 1; s <= 5; s++)
+                            {
+                                <button type="button" class="od-star-btn" data-value="@s" role="radio"
+                                        aria-checked="false" aria-label="@s sao">
+                                    <i class="bi bi-star" aria-hidden="true"></i>
+                                </button>
+                            }
+                        </div>
+                        <textarea class="rz-input mt-2" id="deliveryComment" rows="2" maxlength="1000"
+                                  placeholder="Ghi chú thêm (không bắt buộc), vd giao nhanh, đóng gói kỹ"></textarea>
+                        <button class="btn-rz btn-buy mt-2" type="submit">Gửi đánh giá giao hàng</button>
+                    </form>
+                }
+            </div>
+        }
 
         <div class="acc-card">
             <h2 class="acc-card-title"><i class="bi bi-clock-history"></i>Lịch sử xử lý</h2>
@@ -170,7 +249,146 @@
     </div>
 </div>
 
+@if (Model.CanReview)
+{
+    @* Hộp thoại đánh giá một sản phẩm của đơn — gửi tới cùng endpoint với form ở trang sản phẩm *@
+    <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content" id="reviewItemForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h2 class="acc-card-title mb-0" id="reviewModalTitle">Đánh giá sản phẩm</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="acc-line-name mb-2" id="reviewProductName"></p>
+                    <div class="od-star-input js-stars" role="radiogroup" aria-label="Chọn số sao">
+                        @for (var s = 1; s <= 5; s++)
+                        {
+                            <button type="button" class="od-star-btn" data-value="@s" role="radio"
+                                    aria-checked="false" aria-label="@s sao">
+                                <i class="bi bi-star" aria-hidden="true"></i>
+                            </button>
+                        }
+                    </div>
+                    <textarea class="rz-input mt-3" id="reviewContent" rows="4" maxlength="2000"
+                              placeholder="Chia sẻ cảm nhận của bạn về sản phẩm (tối thiểu 10 ký tự)"></textarea>
+                    <p class="acc-card-sub mt-2 mb-0">Đánh giá sẽ hiển thị ở trang sản phẩm sau khi shop duyệt.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="addr-action" type="button" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn-rz btn-buy" type="submit" id="reviewSubmit">Gửi đánh giá</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
 @section Scripts {
+    <script>
+        // Đánh giá sản phẩm + giao hàng (Giai đoạn 10). Chốt chặn thật ở server: ReviewController kiểm
+        // dòng đơn có đúng của tài khoản, đơn đã hoàn thành và chưa đánh giá; service đơn hàng kiểm phần giao hàng.
+        (function () {
+            function token() {
+                var el = document.querySelector('input[name="__RequestVerificationToken"]');
+                return el ? el.value : "";
+            }
+
+            function toast(message, ok) {
+                if (window.RZ && RZ.toast) RZ.toast(message, ok ? "success" : "error");
+            }
+
+            function post(url, body, button) {
+                button.disabled = true;
+                return fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "RequestVerificationToken": token() },
+                    body: JSON.stringify(body)
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        toast(data.message, data.ok);
+                        if (data.ok) { setTimeout(function () { window.location.reload(); }, 900); }
+                        else { button.disabled = false; }
+                    })
+                    .catch(function () {
+                        button.disabled = false;
+                        toast("Có lỗi xảy ra, vui lòng thử lại.", false);
+                    });
+            }
+
+            // Ô chọn sao dùng chung: lưu số sao đã chọn vào data-value của khung
+            function initStars(wrap) {
+                var buttons = Array.prototype.slice.call(wrap.querySelectorAll(".od-star-btn"));
+                wrap.dataset.value = "0";
+                function paint(upto) {
+                    buttons.forEach(function (b, i) {
+                        b.querySelector("i").className = i < upto ? "bi bi-star-fill" : "bi bi-star";
+                        b.setAttribute("aria-checked", String(i + 1) === wrap.dataset.value ? "true" : "false");
+                    });
+                }
+                buttons.forEach(function (b, i) {
+                    b.addEventListener("click", function () { wrap.dataset.value = String(i + 1); paint(i + 1); });
+                    b.addEventListener("mouseenter", function () { paint(i + 1); });
+                });
+                wrap.addEventListener("mouseleave", function () { paint(parseInt(wrap.dataset.value, 10)); });
+                wrap.reset = function () { wrap.dataset.value = "0"; paint(0); };
+            }
+
+            document.querySelectorAll(".js-stars").forEach(initStars);
+
+            // Đánh giá một sản phẩm của đơn
+            var modalEl = document.getElementById("reviewModal");
+            var itemForm = document.getElementById("reviewItemForm");
+            if (modalEl && itemForm && window.bootstrap) {
+                var modal = new bootstrap.Modal(modalEl);
+                var stars = itemForm.querySelector(".js-stars");
+                var current = null;
+
+                document.addEventListener("click", function (e) {
+                    var btn = e.target.closest(".js-review-item");
+                    if (!btn) return;
+                    current = btn;
+                    document.getElementById("reviewProductName").textContent = btn.dataset.productName;
+                    document.getElementById("reviewContent").value = "";
+                    stars.reset();
+                    modal.show();
+                });
+
+                itemForm.addEventListener("submit", function (e) {
+                    e.preventDefault();
+                    if (!current) return;
+                    var rating = parseInt(stars.dataset.value, 10);
+                    var content = document.getElementById("reviewContent").value.trim();
+                    if (rating < 1) { toast("Vui lòng chọn số sao.", false); return; }
+                    if (content.length < 10) { toast("Nội dung cần ít nhất 10 ký tự.", false); return; }
+
+                    post("/danh-gia/gui", {
+                        productId: parseInt(current.dataset.productId, 10),
+                        orderItemId: parseInt(current.dataset.itemId, 10),
+                        productName: current.dataset.productName,
+                        rating: rating,
+                        content: content
+                    }, document.getElementById("reviewSubmit"));
+                });
+            }
+
+            // Đánh giá giao hàng của cả đơn
+            var deliveryForm = document.getElementById("deliveryForm");
+            if (deliveryForm) {
+                deliveryForm.addEventListener("submit", function (e) {
+                    e.preventDefault();
+                    var rating = parseInt(deliveryForm.querySelector(".js-stars").dataset.value, 10);
+                    if (rating < 1) { toast("Vui lòng chọn số sao.", false); return; }
+
+                    post("/tai-khoan/don-hang/" + encodeURIComponent(deliveryForm.dataset.code) + "/danh-gia-giao-hang", {
+                        rating: rating,
+                        comment: document.getElementById("deliveryComment").value.trim()
+                    }, deliveryForm.querySelector("button[type=submit]"));
+                });
+            }
+        })();
+    </script>
     <script>
         // Hủy đơn: AJAX để giữ nguyên trang, có xác nhận + ô lý do (không bắt buộc).
         // Chốt chặn thật nằm ở CustomerOrderService — nó kiểm cả quyền sở hữu lẫn trạng thái.

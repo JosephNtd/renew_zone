@@ -97,6 +97,9 @@ public class OrderAdminService(AppDbContext db, ILogger<OrderAdminService> logge
                     i.UnitPrice,
                     i.Quantity
                 }).ToList(),
+                Delivery = o.DeliveryReview == null
+                    ? null
+                    : new { o.DeliveryReview.Rating, o.DeliveryReview.Comment, o.DeliveryReview.CreatedAt },
                 // Nhật ký trạng thái, cũ → mới để view vẽ timeline theo dòng thời gian tự nhiên
                 History = o.StatusHistory
                     .OrderBy(h => h.ChangedAt)
@@ -120,7 +123,10 @@ public class OrderAdminService(AppDbContext db, ILogger<OrderAdminService> logge
                 i.Id, i.ProductId, i.ProductName, i.ProductSlug, i.ImageUrl,
                 i.VariantDescription, i.UnitPrice, i.Quantity))],
             [.. order.History.Select(h => new OrderStatusHistoryEntry(
-                h.FromStatus, h.ToStatus, h.ChangedBy, h.Note, h.ChangedAt))]);
+                h.FromStatus, h.ToStatus, h.ChangedBy, h.Note, h.ChangedAt))],
+            order.Delivery is null
+                ? null
+                : new DeliveryReviewInfo(order.Delivery.Rating, order.Delivery.Comment, order.Delivery.CreatedAt));
     }
 
     public async Task<IReadOnlyDictionary<OrderStatus, int>> GetStatusCountsAsync() =>

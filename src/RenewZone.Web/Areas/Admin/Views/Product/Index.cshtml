@@ -115,6 +115,20 @@ else
                                aria-hidden="true"></i>
                         </a>
                     </th>
+                    <th scope="col" class="adm-col-right">
+                        <a href="@Model.SortUrl("yeuthich")" class="@(Model.IsSortedBy("yeuthich") ? "is-sorted" : "")">
+                            Yêu thích
+                            <i class="bi @(Model.IsSortedBy("yeuthich") && Model.SortDesc ? "bi-sort-down" : "bi-sort-up")"
+                               aria-hidden="true"></i>
+                        </a>
+                    </th>
+                    <th scope="col" class="adm-col-right">
+                        <a href="@Model.SortUrl("daban")" class="@(Model.IsSortedBy("daban") ? "is-sorted" : "")">
+                            Đã bán
+                            <i class="bi @(Model.IsSortedBy("daban") && Model.SortDesc ? "bi-sort-down" : "bi-sort-up")"
+                               aria-hidden="true"></i>
+                        </a>
+                    </th>
                     <th scope="col">Đang bán</th>
                     <th scope="col" class="adm-col-actions">Thao tác</th>
                 </tr>
@@ -168,6 +182,9 @@ else
                             }
                         </td>
                         <td data-label="Lượt xem" class="adm-col-right adm-num">@product.ViewCount</td>
+                        <td data-label="Yêu thích" class="adm-col-right adm-num">@product.WishlistCount</td>
+                        @* Đã bán = tổng số lượng trong các đơn đã Hoàn thành *@
+                        <td data-label="Đã bán" class="adm-col-right adm-num">@product.SoldCount</td>
                         <td data-label="Đang bán">
                             <label class="adm-switch">
                                 <input type="checkbox" class="js-toggle-active" checked="@product.IsActive"

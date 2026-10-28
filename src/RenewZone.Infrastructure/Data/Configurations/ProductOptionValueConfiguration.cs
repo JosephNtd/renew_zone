@@ -8,12 +8,17 @@ public class ProductOptionValueConfiguration : IEntityTypeConfiguration<ProductO
 {
     public void Configure(EntityTypeBuilder<ProductOptionValue> builder)
     {
-        builder.Property(x => x.Value).HasMaxLength(100).IsRequired();
         builder.Property(x => x.PriceAdjustment).HasPrecision(18, 0);
 
         builder.HasOne(x => x.Group)
             .WithMany(x => x.Values)
             .HasForeignKey(x => x.GroupId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Chữ hiển thị lấy từ danh sách chung; giá trị còn sản phẩm dùng thì không xóa được.
+        builder.HasOne(x => x.AttributeValue)
+            .WithMany()
+            .HasForeignKey(x => x.AttributeValueId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

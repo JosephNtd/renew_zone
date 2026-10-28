@@ -34,6 +34,9 @@ public class CacheInvalidator(IServiceScopeFactory scopeFactory, ILogger<CacheIn
         [typeof(ProductImage)] = CacheScope.Home,
         [typeof(ProductOptionGroup)] = CacheScope.Home,
         [typeof(ProductOptionValue)] = CacheScope.Home,
+        // Danh sách thuộc tính chung: đổi tên giá trị thì chữ trên PDP/card đổi theo
+        [typeof(ProductAttribute)] = CacheScope.Home,
+        [typeof(ProductAttributeValue)] = CacheScope.Home,
 
         // Đánh giá đổi ⇒ điểm sao trên card (trang chủ) có thể đổi. Thực tế phần lớn thao tác
         // duyệt/xóa còn ghi thẳng Product.AvgRating (đã tự xóa Home|Slugs), đây là lớp phòng thủ.

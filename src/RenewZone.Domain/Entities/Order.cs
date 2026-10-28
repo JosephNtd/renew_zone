@@ -40,4 +40,7 @@ public class Order : AuditableEntity
 
     /// <summary>Nhật ký các lần đổi trạng thái (append-only) — xem <see cref="OrderStatusHistory"/>.</summary>
     public ICollection<OrderStatusHistory> StatusHistory { get; set; } = [];
+
+    /// <summary>Đánh giá giao hàng của khách (chỉ có khi đơn đã Hoàn thành và khách đã chấm).</summary>
+    public DeliveryReview? DeliveryReview { get; set; }
 }

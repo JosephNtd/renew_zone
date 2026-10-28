@@ -178,7 +178,7 @@ public class CartService(
                 Slug = product.Slug,
                 ImageUrl = product.Images.FirstOrDefault()?.Url ?? "/images/placeholder-product.svg",
                 UnitPrice = unitPrice,
-                VariantDescription = chosen.Count > 0 ? string.Join(" · ", chosen.Select(v => v.Value)) : null,
+                VariantDescription = chosen.Count > 0 ? string.Join(" · ", chosen.Select(v => v.AttributeValue.Value)) : null,
                 OptionValueIds = chosenIds.Order().ToList(),
                 Quantity = qty
             };

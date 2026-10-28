@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using RenewZone.Domain.Entities;
+using RenewZone.Infrastructure.Identity;
 
 namespace RenewZone.Infrastructure.Data.Configurations;
 
@@ -18,5 +19,13 @@ public class ContactMessageConfiguration : IEntityTypeConfiguration<ContactMessa
 
         // Admin lọc "liên hệ chưa đọc" ở dashboard
         builder.HasIndex(x => x.IsRead);
+
+        // Người gửi (nếu đang đăng nhập). SetNull: xóa tài khoản không được làm mất tin nhắn đã nhận.
+        builder.HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(x => x.UserId);
     }
 }

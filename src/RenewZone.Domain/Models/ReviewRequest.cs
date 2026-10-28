@@ -19,6 +19,9 @@ public class ReviewRequest
     /// <summary>Đã đối chiếu được đơn hoàn thành chứa sản phẩm này tại thời điểm gửi.</summary>
     public bool IsVerifiedPurchase { get; init; }
 
+    /// <summary>Dòng đơn hàng được đánh giá (Giai đoạn 10) — mỗi dòng chỉ đánh giá một lần.</summary>
+    public int? OrderItemId { get; init; }
+
     public required string AuthorName { get; init; }
     public required int Rating { get; init; }
     public required string Content { get; init; }

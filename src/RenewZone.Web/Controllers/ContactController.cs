@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using RenewZone.Domain.Entities;
 using RenewZone.Domain.Interfaces;
@@ -75,7 +76,12 @@ public class ContactController : Controller
             return View(await BuildViewModelAsync(input, justSent: false));
         }
 
-        await _contact.SubmitAsync(input.ToRequest(attachmentPath));
+        // Khách đang đăng nhập thì gắn tin nhắn vào tài khoản để admin mở được hồ sơ khách (Giai đoạn 10)
+        var userId = User.Identity?.IsAuthenticated == true
+            ? User.FindFirstValue(ClaimTypes.NameIdentifier)
+            : null;
+
+        await _contact.SubmitAsync(input.ToRequest(attachmentPath, userId));
 
         HttpContext.Session.SetString(LastSubmitSessionKey, DateTime.Now.Ticks.ToString());
 

@@ -5,9 +5,9 @@ using RenewZone.Domain.Enums;
 namespace RenewZone.Infrastructure.Data.Seed;
 
 /// <summary>
-/// Dá»¯ liá»‡u máº«u mÃ´ phá»ng catalog site gá»‘c (tÃªn/giÃ¡ tham kháº£o thá»‹ trÆ°á»ng) â€” mÃ´ táº£ Tá»° VIáº¾T,
-/// áº£nh placeholder, thÃ´ng tin cá»­a hÃ ng GIáº¢ Láº¬P (xem CLAUDE.md LÆ°u Ã½ 6.2).
-/// Má»—i hÃ m seed tá»± kiá»ƒm tra báº£ng trá»‘ng trÆ°á»›c khi chÃ¨n â†’ idempotent.
+/// Dữ liệu mẫu mô phỏng catalog site gốc (tên/giá tham khảo thị trường) — mô tả TỰ VIẾT,
+/// ảnh placeholder, thông tin cửa hàng GIẢ LẬP (xem CLAUDE.md Lưu ý 6.2).
+/// Mỗi hàm seed tự kiểm tra bảng trống trước khi chèn → idempotent.
 /// </summary>
 public static partial class SeedData
 {
@@ -29,14 +29,14 @@ public static partial class SeedData
         await SeedContentBlocksAsync(db);
         await BackfillPhase5Async(db);
         await BackfillDetailedContentAsync(db);
-        // Chạy CUỐI: đổi tên thương hiệu cũ còn sót trên DB đã seed từ trước (local + hosting).
-        // Phải sau BackfillDetailedContentAsync vì hàm đó ghi nội dung mới vào Products/NewsArticles.
-        await BackfillRebrandAsync(db);
+        await BackfillImagesAsync(db);
+        // Đã TẮT BackfillRebrandAsync (SeedData.Rebrand.cs) từ 22/10/2026: cửa hàng giữ tên RenewZone,
+        // không tự đổi thương hiệu trên DB đang chạy nữa.
     }
 
-    // Cáº¥u hÃ¬nh site (thÃ´ng tin GIáº¢ Láº¬P cho demo).
-    // Idempotent á»Ÿ má»©c Tá»ªNG KEY: DB Ä‘Ã£ cÃ³ settings cÅ© váº«n nháº­n Ä‘Æ°á»£c key má»›i cá»§a giai Ä‘oáº¡n sau
-    // (náº¿u check "báº£ng trá»‘ng" thÃ¬ thÃªm key má»›i sáº½ khÃ´ng bao giá» Ä‘Æ°á»£c seed vÃ o DB Ä‘ang cháº¡y).
+    // Cấu hình site (thông tin GIẢ LẬP cho demo).
+    // Idempotent ở mức TỪNG KEY: DB đã có settings cũ vẫn nhận được key mới của giai đoạn sau
+    // (nếu check "bảng trống" thì thêm key mới sẽ không bao giờ được seed vào DB đang chạy).
     private static async Task SeedSiteSettingsAsync(AppDbContext db)
     {
         var existingKeys = await db.SiteSettings.Select(s => s.Key).ToListAsync();
@@ -44,60 +44,60 @@ public static partial class SeedData
 
         var defaults = new List<SiteSetting>();
         defaults.AddRange([
-            new SiteSetting { Key = SettingKeys.StoreName, Value = "Apple Store Uyên NTT" },
+            new SiteSetting { Key = SettingKeys.StoreName, Value = "RenewZone" },
             // Chưa có ảnh logo (LogoUrl/LogoDarkUrl để trống) ⇒ web khách hiện logo CHỮ,
             // và đây là phần được tô màu thương hiệu trong tên cửa hàng ở trên.
-            new SiteSetting { Key = SettingKeys.LogoHighlight, Value = "Uyên NTT" },
-            new SiteSetting { Key = SettingKeys.Tagline, Value = "Thu cÅ© Ä‘á»•i má»›i - LÃªn Ä‘á»i dá»… dÃ ng" },
+            new SiteSetting { Key = SettingKeys.LogoHighlight, Value = "Zone" },
+            new SiteSetting { Key = SettingKeys.Tagline, Value = "Thu cũ đổi mới - Lên đời dễ dàng" },
             new SiteSetting { Key = SettingKeys.Hotline, Value = "0900.000.000" },
-            new SiteSetting { Key = SettingKeys.Address, Value = "123 ÄÆ°á»ng Sá»‘ 1, PhÆ°á»ng Demo, TP.HCM" },
+            new SiteSetting { Key = SettingKeys.Address, Value = "123 Đường Số 1, Phường Demo, TP.HCM" },
             new SiteSetting { Key = SettingKeys.OpenHours, Value = "8h30 - 21h30 (T2 - CN)" },
-            new SiteSetting { Key = SettingKeys.Email, Value = "lienhe@applestoreuyenntt.local" },
+            new SiteSetting { Key = SettingKeys.Email, Value = "lienhe@renewzone.local" },
             new SiteSetting { Key = SettingKeys.TaxCode, Value = "0000000000" },
             new SiteSetting { Key = SettingKeys.FacebookUrl, Value = "https://facebook.com/" },
             new SiteSetting { Key = SettingKeys.MessengerUrl, Value = "https://m.me/" },
             new SiteSetting { Key = SettingKeys.ZaloUrl, Value = "https://zalo.me/" },
             new SiteSetting { Key = SettingKeys.MapUrl, Value = "https://maps.google.com/" },
-            // Báº£n Ä‘á»“ chung chung (trung tÃ¢m TP.HCM) â€” Ä‘á»‹a chá»‰ cá»­a hÃ ng lÃ  giáº£ láº­p nÃªn khÃ´ng nhÃºng toáº¡ Ä‘á»™ tháº­t
+            // Bản đồ chung chung (trung tâm TP.HCM) — địa chỉ cửa hàng là giả lập nên không nhúng toạ độ thật
             new SiteSetting
             {
                 Key = SettingKeys.MapEmbedUrl,
                 Value = "https://www.google.com/maps?q=Ho+Chi+Minh+City&output=embed"
             },
 
-            // Chuyá»ƒn khoáº£n GIáº¢ Láº¬P (LÆ°u Ã½ 6.2 â€” tuyá»‡t Ä‘á»‘i khÃ´ng dÃ¹ng tÃ i khoáº£n tháº­t)
-            new SiteSetting { Key = SettingKeys.BankName, Value = "Demo Bank (ngÃ¢n hÃ ng giáº£ láº­p)" },
+            // Chuyển khoản GIẢ LẬP (Lưu ý 6.2 — tuyệt đối không dùng tài khoản thật)
+            new SiteSetting { Key = SettingKeys.BankName, Value = "Demo Bank (ngân hàng giả lập)" },
             new SiteSetting { Key = SettingKeys.BankAccountNumber, Value = "0000 0000 0000" },
-            new SiteSetting { Key = SettingKeys.BankAccountName, Value = "APPLE STORE UYEN NTT" },
+            new SiteSetting { Key = SettingKeys.BankAccountName, Value = "RENEWZONE" },
             new SiteSetting { Key = SettingKeys.BankTransferNoteTemplate, Value = "Thanh toan don {0}" },
 
-            new SiteSetting { Key = SettingKeys.ShippingNote, Value = "Shop bÃ¡o khi xÃ¡c nháº­n" },
+            new SiteSetting { Key = SettingKeys.ShippingNote, Value = "Shop báo khi xác nhận" },
             new SiteSetting
             {
                 Key = SettingKeys.ContactSubjects,
-                Value = "TÆ° váº¥n mua hÃ ng|Thu cÅ© Ä‘á»•i má»›i|Báº£o hÃ nh|Sá»­a chá»¯a|Khiáº¿u náº¡i|KhÃ¡c"
+                Value = "Tư vấn mua hàng|Thu cũ đổi mới|Bảo hành|Sửa chữa|Khiếu nại|Khác"
             },
             new SiteSetting
             {
                 Key = SettingKeys.ContactIntro,
-                Value = "Báº¡n cáº§n tÆ° váº¥n chá»n mÃ¡y, bÃ¡o giÃ¡ thu cÅ© Ä‘á»•i má»›i hay há»— trá»£ báº£o hÃ nh? " +
-                        "Äá»ƒ láº¡i thÃ´ng tin bÃªn dÆ°á»›i, shop pháº£n há»“i ngay trong giá» lÃ m viá»‡c."
+                Value = "Bạn cần tư vấn chọn máy, báo giá thu cũ đổi mới hay hỗ trợ bảo hành? " +
+                        "Để lại thông tin bên dưới, shop phản hồi ngay trong giờ làm việc."
             },
-            new SiteSetting { Key = SettingKeys.NewsPageTitle, Value = "Tin cÃ´ng nghá»‡" },
+            new SiteSetting { Key = SettingKeys.NewsPageTitle, Value = "Tin công nghệ" },
             new SiteSetting
             {
                 Key = SettingKeys.NewsPageIntro,
-                Value = "Tin tá»©c, Ä‘Ã¡nh giÃ¡ vÃ  máº¹o dÃ¹ng thiáº¿t bá»‹ Apple â€” cáº­p nháº­t má»—i tuáº§n."
+                Value = "Tin tức, đánh giá và mẹo dùng thiết bị Apple — cập nhật mỗi tuần."
             },
             new SiteSetting
             {
                 Key = SettingKeys.FooterAbout,
-                Value = "ChuyÃªn iPhone, MacBook, iPad, Apple Watch, AirPods chÃ­nh hÃ£ng â€” má»›i & Ä‘Ã£ qua sá»­ dá»¥ng."
+                Value = "Chuyên iPhone, MacBook, iPad, Apple Watch, AirPods chính hãng — mới & đã qua sử dụng."
             },
             new SiteSetting
             {
                 Key = SettingKeys.FooterDisclaimer,
-                Value = "Website há»c táº­p (clone) â€” khÃ´ng pháº£i cá»­a hÃ ng tháº­t, khÃ´ng bÃ¡n hÃ ng."
+                Value = "Website học tập (clone) — không phải cửa hàng thật, không bán hàng."
             }]);
 
         var missing = defaults.Where(s => !existing.Contains(s.Key)).ToList();
@@ -107,20 +107,22 @@ public static partial class SeedData
         await db.SaveChangesAsync();
     }
 
-    // Danh má»¥c 2 cáº¥p + 22 sáº£n pháº©m (kÃ¨m variants cho sáº£n pháº©m chá»§ lá»±c)
+    // Danh mục 2 cấp + 22 sản phẩm (kèm variants cho sản phẩm chủ lực)
     private static async Task SeedCatalogAsync(AppDbContext db)
     {
         if (await db.Categories.AnyAsync()) return;
 
-        // Danh má»¥c cha
+        var attributes = new SeedAttributes();
+
+        // Danh mục cha
         var iphone = Cat("iPhone", "iphone", 1, icon: "bi-phone");
         var macbook = Cat("MacBook", "macbook", 2, icon: "bi-laptop");
         var ipad = Cat("iPad", "ipad", 3, icon: "bi-tablet");
         var watch = Cat("Apple Watch", "apple-watch", 4, icon: "bi-smartwatch");
         var airpods = Cat("AirPods", "airpods", 5, icon: "bi-earbuds");
-        var thanhLy = Cat("HÃ ng thanh lÃ½", "hang-thanh-ly", 6, icon: "bi-box-seam");
+        var thanhLy = Cat("Hàng thanh lý", "hang-thanh-ly", 6, icon: "bi-box-seam");
 
-        // Series con (hiá»ƒn thá»‹ thÃ nh tab lá»c trÃªn trang danh má»¥c)
+        // Series con (hiển thị thành tab lọc trên trang danh mục)
         var ipSeries = new Dictionary<int, Category>();
         for (var v = 11; v <= 17; v++)
         {
@@ -136,16 +138,16 @@ public static partial class SeedData
             mbAir, mbPro, ipadPro, ipadAir, ipadMini);
         db.Categories.AddRange(ipSeries.Values);
 
-        // Sáº£n pháº©m (giÃ¡ VND; sale = null â‡’ bÃ¡n Ä‘Ãºng giÃ¡ niÃªm yáº¿t)
+        // Sản phẩm (giá VND; sale = null ⇒ bán đúng giá niêm yết)
         var p16pm = P(ipSeries[16], "iPhone 16 Pro Max 256GB", "iphone-16-pro-max-256gb", 34_990_000, 30_490_000, featured: true, bestSeller: true);
-        AddOptions(p16pm, "Dung lÆ°á»£ng", 1, ("256GB", 0, true), ("512GB", 3_500_000, false), ("1TB", 7_000_000, false));
-        AddOptions(p16pm, "MÃ u sáº¯c", 2, ("Titan Äen", 0, true), ("Titan Tráº¯ng", 0, false), ("Titan Tá»± NhiÃªn", 0, false), ("Titan Sa Máº¡c", 0, false));
-        AddOptions(p16pm, "TÃ¬nh tráº¡ng", 3, ("99%", 0, true), ("98%", -1_500_000, false));
-        AddOptions(p16pm, "Loáº¡i SIM", 4, ("ChÃ­nh hÃ£ng VN/A", 0, true), ("LL/A (Má»¹)", -800_000, false));
+        AddOptions(attributes, p16pm, "Dung lượng", 1, ("256GB", 0, true), ("512GB", 3_500_000, false), ("1TB", 7_000_000, false));
+        AddOptions(attributes, p16pm, "Màu sắc", 2, ("Titan Đen", 0, true), ("Titan Trắng", 0, false), ("Titan Tự Nhiên", 0, false), ("Titan Sa Mạc", 0, false));
+        AddOptions(attributes, p16pm, "Tình trạng", 3, ("99%", 0, true), ("98%", -1_500_000, false));
+        AddOptions(attributes, p16pm, "Loại SIM", 4, ("Chính hãng VN/A", 0, true), ("LL/A (Mỹ)", -800_000, false));
 
         var p15pm = P(ipSeries[15], "iPhone 15 Pro Max 256GB", "iphone-15-pro-max-256gb", 29_990_000, 20_990_000, bestSeller: true);
-        AddOptions(p15pm, "MÃ u sáº¯c", 1, ("Titan Äen", 0, true), ("Titan Tráº¯ng", 0, false), ("Titan Xanh", 0, false));
-        AddOptions(p15pm, "TÃ¬nh tráº¡ng", 2, ("99%", 0, true), ("98%", -1_200_000, false));
+        AddOptions(attributes, p15pm, "Màu sắc", 1, ("Titan Đen", 0, true), ("Titan Trắng", 0, false), ("Titan Xanh", 0, false));
+        AddOptions(attributes, p15pm, "Tình trạng", 2, ("99%", 0, true), ("98%", -1_200_000, false));
 
         var p17pm = P(ipSeries[17], "iPhone 17 Pro Max 256GB", "iphone-17-pro-max-256gb", 37_990_000, null, featured: true, contactPrice: true);
 
@@ -174,8 +176,8 @@ public static partial class SeedData
             P(airpods, "AirPods Pro 2 (USB-C)", "airpods-pro-2-usb-c", 6_790_000, 5_190_000, bestSeller: true),
             P(airpods, "AirPods 4", "airpods-4", 3_990_000, 3_290_000),
 
-            P(thanhLy, "iPhone 12 64GB - Thanh lÃ½ 97%", "iphone-12-64gb-thanh-ly", 8_990_000, 4_990_000),
-            P(thanhLy, "MacBook Air M1 - Thanh lÃ½ 96%", "macbook-air-m1-thanh-ly", 13_990_000, 10_490_000),
+            P(thanhLy, "iPhone 12 64GB - Thanh lý 97%", "iphone-12-64gb-thanh-ly", 8_990_000, 4_990_000),
+            P(thanhLy, "MacBook Air M1 - Thanh lý 96%", "macbook-air-m1-thanh-ly", 13_990_000, 10_490_000),
         };
 
         db.Products.AddRange(products);
@@ -188,8 +190,8 @@ public static partial class SeedData
         Slug = slug,
         DisplayOrder = order,
         Parent = parent,
-        IconClass = icon, // chá»‰ danh má»¥c cha cáº§n icon (hiá»‡n á»Ÿ menu) â€” con Ä‘á»ƒ null
-        ImageUrl = parent is null ? ProductImg : null // danh má»¥c cha cÃ³ áº£nh cho khá»‘i danh má»¥c trang chá»§
+        IconClass = icon, // chỉ danh mục cha cần icon (hiện ở menu) — con để null
+        ImageUrl = parent is null ? ProductImg : null // danh mục cha có ảnh cho khối danh mục trang chủ
     };
 
     private static Product P(Category category, string name, string slug, decimal original, decimal? sale,
@@ -205,18 +207,18 @@ public static partial class SeedData
             IsContactPrice = contactPrice,
             IsFeatured = featured,
             IsBestSeller = bestSeller,
-            ShortDescription = $"{name} - hÃ ng chÃ­nh hÃ£ng, báº£o hÃ nh dÃ i háº¡n, há»— trá»£ tráº£ gÃ³p 0%, thu cÅ© Ä‘á»•i má»›i trá»£ giÃ¡.",
+            ShortDescription = $"{name} - hàng chính hãng, bảo hành dài hạn, hỗ trợ trả góp 0%, thu cũ đổi mới trợ giá.",
             DescriptionHtml =
-                $"<p><strong>{name}</strong> táº¡i Apple Store Uyên NTT lÃ  sáº£n pháº©m chÃ­nh hÃ£ng, nguá»“n gá»‘c rÃµ rÃ ng, " +
-                "Ä‘Æ°á»£c kiá»ƒm tra ká»¹ trÆ°á»›c khi giao. MÃ¡y Ä‘Ã£ qua sá»­ dá»¥ng Ä‘Æ°á»£c phÃ¢n loáº¡i tÃ¬nh tráº¡ng 98%/99% minh báº¡ch.</p>" +
-                "<p>KhÃ¡ch hÃ ng Ä‘Æ°á»£c há»— trá»£ tráº£ gÃ³p 0% qua tháº» tÃ­n dá»¥ng, thu cÅ© Ä‘á»•i má»›i trá»£ giÃ¡ vÃ  báº£o hÃ nh " +
-                "dÃ i háº¡n táº¡i cá»­a hÃ ng. Ná»™i dung mÃ´ táº£ chi tiáº¿t sáº½ Ä‘Æ°á»£c biÃªn táº­p trong trang quáº£n trá»‹.</p>",
+                $"<p><strong>{name}</strong> tại RenewZone là sản phẩm chính hãng, nguồn gốc rõ ràng, " +
+                "được kiểm tra kỹ trước khi giao. Máy đã qua sử dụng được phân loại tình trạng 98%/99% minh bạch.</p>" +
+                "<p>Khách hàng được hỗ trợ trả góp 0% qua thẻ tín dụng, thu cũ đổi mới trợ giá và bảo hành " +
+                "dài hạn tại cửa hàng. Nội dung mô tả chi tiết sẽ được biên tập trong trang quản trị.</p>",
             SpecsHtml =
                 "<ul>" +
-                "<li><strong>MÃ n hÃ¬nh:</strong> Ä‘ang cáº­p nháº­t</li>" +
-                "<li><strong>Chip:</strong> Ä‘ang cáº­p nháº­t</li>" +
-                "<li><strong>Camera:</strong> Ä‘ang cáº­p nháº­t</li>" +
-                "<li><strong>Pin &amp; sáº¡c:</strong> Ä‘ang cáº­p nháº­t</li>" +
+                "<li><strong>Màn hình:</strong> đang cập nhật</li>" +
+                "<li><strong>Chip:</strong> đang cập nhật</li>" +
+                "<li><strong>Camera:</strong> đang cập nhật</li>" +
+                "<li><strong>Pin &amp; sạc:</strong> đang cập nhật</li>" +
                 "</ul>"
         };
 
@@ -225,14 +227,14 @@ public static partial class SeedData
         return p;
     }
 
-    private static void AddOptions(Product p, string groupName, int order, params (string Value, decimal Adjust, bool IsDefault)[] values)
+    private static void AddOptions(SeedAttributes attributes, Product p, string groupName, int order, params (string Value, decimal Adjust, bool IsDefault)[] values)
     {
-        var group = new ProductOptionGroup { Name = groupName, DisplayOrder = order };
+        var group = new ProductOptionGroup { Attribute = attributes.Attribute(groupName), DisplayOrder = order };
         for (var i = 0; i < values.Length; i++)
         {
             group.Values.Add(new ProductOptionValue
             {
-                Value = values[i].Value,
+                AttributeValue = attributes.Value(groupName, values[i].Value),
                 PriceAdjustment = values[i].Adjust,
                 IsDefault = values[i].IsDefault,
                 DisplayOrder = i
@@ -241,17 +243,51 @@ public static partial class SeedData
         p.OptionGroups.Add(group);
     }
 
-    // ChuyÃªn má»¥c tin tá»©c (slug dÃ¹ng á»Ÿ /tin-tuc?chuyen-muc=)
+    /// <summary>
+    /// Danh sách thuộc tính dùng chung khi seed (Giai đoạn 10): cùng tên nhóm ⇒ cùng một bản ghi
+    /// ProductAttribute, cùng giá trị ⇒ cùng một ProductAttributeValue. EF thêm chúng cùng lúc với sản phẩm.
+    /// </summary>
+    private sealed class SeedAttributes
+    {
+        private readonly Dictionary<string, ProductAttribute> _attributes = new(StringComparer.OrdinalIgnoreCase);
+
+        public ProductAttribute Attribute(string name)
+        {
+            if (!_attributes.TryGetValue(name, out var attribute))
+            {
+                attribute = new ProductAttribute { Name = name, DisplayOrder = _attributes.Count };
+                _attributes[name] = attribute;
+            }
+
+            return attribute;
+        }
+
+        public ProductAttributeValue Value(string attributeName, string value)
+        {
+            var attribute = Attribute(attributeName);
+            var existing = attribute.Values.FirstOrDefault(v => string.Equals(v.Value, value, StringComparison.OrdinalIgnoreCase));
+            if (existing is not null)
+            {
+                return existing;
+            }
+
+            var created = new ProductAttributeValue { Value = value, DisplayOrder = attribute.Values.Count };
+            attribute.Values.Add(created);
+            return created;
+        }
+    }
+
+    // Chuyên mục tin tức (slug dùng ở /tin-tuc?chuyen-muc=)
     private static async Task SeedNewsCategoriesAsync(AppDbContext db)
     {
         if (await db.NewsCategories.AnyAsync()) return;
 
         var categories = new (string Name, string Slug)[]
         {
-            ("Thiáº¿t bá»‹", "thiet-bi"),
-            ("Khoa há»c cÃ´ng nghá»‡", "khoa-hoc-cong-nghe"),
-            ("Thá»§ thuáº­t", "thu-thuat"),
-            ("TÆ° váº¥n", "tu-van"),
+            ("Thiết bị", "thiet-bi"),
+            ("Khoa học công nghệ", "khoa-hoc-cong-nghe"),
+            ("Thủ thuật", "thu-thuat"),
+            ("Tư vấn", "tu-van"),
         };
 
         var order = 1;
@@ -263,24 +299,24 @@ public static partial class SeedData
         await db.SaveChangesAsync();
     }
 
-    // Tin cÃ´ng nghá»‡ (ná»™i dung máº«u Tá»° VIáº¾T)
+    // Tin công nghệ (nội dung mẫu TỰ VIẾT)
     private static async Task SeedNewsAsync(AppDbContext db)
     {
         if (await db.NewsArticles.AnyAsync()) return;
 
-        // ChuyÃªn má»¥c Ä‘Ã£ seed á»Ÿ bÆ°á»›c trÆ°á»›c â€” map slug â†’ Id Ä‘á»ƒ gÃ¡n CategoryId
+        // Chuyên mục đã seed ở bước trước — map slug → Id để gán CategoryId
         var catBySlug = await db.NewsCategories.ToDictionaryAsync(c => c.Slug, c => c.Id);
 
         var articles = new (string Title, string Slug, string CategorySlug, bool Featured, int DaysAgo)[]
         {
-            ("iPhone 17 Pro Max lá»™ diá»‡n: thiáº¿t káº¿ má»›i, camera nÃ¢ng cáº¥p toÃ n diá»‡n", "iphone-17-pro-max-lo-dien-thiet-ke-moi", "thiet-bi", true, 1),
-            ("Apple phÃ¡t hÃ nh báº£n cáº­p nháº­t iOS má»›i: vÃ¡ lá»—i báº£o máº­t quan trá»ng", "apple-phat-hanh-ban-cap-nhat-ios-moi", "khoa-hoc-cong-nghe", true, 3),
-            ("MacBook Air M4 cÃ³ gÃ¬ má»›i? So sÃ¡nh nhanh vá»›i tháº¿ há»‡ M3", "macbook-air-m4-co-gi-moi-so-sanh-m3", "thiet-bi", true, 5),
-            ("5 máº¹o tiáº¿t kiá»‡m pin iPhone ai cÅ©ng nÃªn biáº¿t", "5-meo-tiet-kiem-pin-iphone", "thu-thuat", false, 8),
-            ("NÃªn mua iPhone 15 Pro Max cÅ© 99% hay iPhone 16 má»›i?", "nen-mua-iphone-15-pro-max-cu-hay-iphone-16-moi", "tu-van", false, 12),
-            ("Apple Watch há»— trá»£ theo dÃµi sá»©c khá»e tim máº¡ch nhÆ° tháº¿ nÃ o?", "apple-watch-theo-doi-suc-khoe-tim-mach", "khoa-hoc-cong-nghe", false, 15),
-            ("HÆ°á»›ng dáº«n mua Ä‘iá»‡n thoáº¡i tráº£ gÃ³p 0% Ä‘Æ¡n giáº£n táº¡i TP.HCM", "huong-dan-mua-dien-thoai-tra-gop-0-phan-tram", "tu-van", false, 20),
-            ("AirPods tháº¿ há»‡ má»›i cÃ³ thá»ƒ Ä‘o nhá»‹p tim ngay trÃªn tai nghe?", "airpods-the-he-moi-do-nhip-tim", "thiet-bi", false, 25),
+            ("iPhone 17 Pro Max lộ diện: thiết kế mới, camera nâng cấp toàn diện", "iphone-17-pro-max-lo-dien-thiet-ke-moi", "thiet-bi", true, 1),
+            ("Apple phát hành bản cập nhật iOS mới: vá lỗi bảo mật quan trọng", "apple-phat-hanh-ban-cap-nhat-ios-moi", "khoa-hoc-cong-nghe", true, 3),
+            ("MacBook Air M4 có gì mới? So sánh nhanh với thế hệ M3", "macbook-air-m4-co-gi-moi-so-sanh-m3", "thiet-bi", true, 5),
+            ("5 mẹo tiết kiệm pin iPhone ai cũng nên biết", "5-meo-tiet-kiem-pin-iphone", "thu-thuat", false, 8),
+            ("Nên mua iPhone 15 Pro Max cũ 99% hay iPhone 16 mới?", "nen-mua-iphone-15-pro-max-cu-hay-iphone-16-moi", "tu-van", false, 12),
+            ("Apple Watch hỗ trợ theo dõi sức khỏe tim mạch như thế nào?", "apple-watch-theo-doi-suc-khoe-tim-mach", "khoa-hoc-cong-nghe", false, 15),
+            ("Hướng dẫn mua điện thoại trả góp 0% đơn giản tại TP.HCM", "huong-dan-mua-dien-thoai-tra-gop-0-phan-tram", "tu-van", false, 20),
+            ("AirPods thế hệ mới có thể đo nhịp tim ngay trên tai nghe?", "airpods-the-he-moi-do-nhip-tim", "thiet-bi", false, 25),
         };
 
         var now = DateTime.Now;
@@ -294,38 +330,38 @@ public static partial class SeedData
                 IsFeatured = a.Featured,
                 ThumbnailUrl = NewsImg,
                 PublishedAt = now.AddDays(-a.DaysAgo),
-                Excerpt = $"{a.Title}. BÃ i viáº¿t demo phá»¥c vá»¥ há»c táº­p â€” ná»™i dung chi tiáº¿t sáº½ Ä‘Æ°á»£c biÃªn táº­p trong trang quáº£n trá»‹.",
+                Excerpt = $"{a.Title}. Bài viết demo phục vụ học tập — nội dung chi tiết sẽ được biên tập trong trang quản trị.",
                 ContentHtml =
                     $"<p><strong>{a.Title}</strong></p>" +
-                    "<p>ÄÃ¢y lÃ  ná»™i dung máº«u tá»± viáº¿t cho dá»± Ã¡n há»c táº­p Apple Store Uyên NTT. " +
-                    "BÃ i viáº¿t thá»±c táº¿ sáº½ Ä‘Æ°á»£c admin soáº¡n báº±ng trÃ¬nh soáº¡n tháº£o rich text á»Ÿ Giai Ä‘oáº¡n 6.</p>" +
-                    "<p>Äoáº¡n thá»© hai minh há»a bá»‘ cá»¥c nhiá»u Ä‘oáº¡n vÄƒn cá»§a má»™t bÃ i tin cÃ´ng nghá»‡ thÃ´ng thÆ°á»ng, " +
-                    "giÃºp kiá»ƒm tra hiá»ƒn thá»‹ trang chi tiáº¿t bÃ i viáº¿t khi phÃ¡t triá»ƒn giao diá»‡n.</p>"
+                    "<p>Đây là nội dung mẫu tự viết cho dự án học tập RenewZone. " +
+                    "Bài viết thực tế sẽ được admin soạn bằng trình soạn thảo rich text ở Giai đoạn 6.</p>" +
+                    "<p>Đoạn thứ hai minh họa bố cục nhiều đoạn văn của một bài tin công nghệ thông thường, " +
+                    "giúp kiểm tra hiển thị trang chi tiết bài viết khi phát triển giao diện.</p>"
             });
         }
 
         await db.SaveChangesAsync();
     }
 
-    // Trang tÄ©nh: giá»›i thiá»‡u + chÃ­nh sÃ¡ch (ná»™i dung máº«u Tá»° VIáº¾T)
+    // Trang tĩnh: giới thiệu + chính sách (nội dung mẫu TỰ VIẾT)
     private static async Task SeedStaticPagesAsync(AppDbContext db)
     {
         if (await db.StaticPages.AnyAsync()) return;
 
         var pages = new (string Title, string Slug)[]
         {
-            ("Giá»›i thiá»‡u", "gioi-thieu"),
-            ("ChÃ­nh sÃ¡ch báº£o hÃ nh", "chinh-sach-bao-hanh"),
-            ("ChÃ­nh sÃ¡ch thanh toÃ¡n", "chinh-sach-thanh-toan"),
-            ("ChÃ­nh sÃ¡ch kiá»ƒm hÃ ng", "chinh-sach-kiem-hang"),
-            ("ChÃ­nh sÃ¡ch mua hÃ ng", "chinh-sach-mua-hang"),
-            ("ChÃ­nh sÃ¡ch váº­n chuyá»ƒn", "chinh-sach-van-chuyen"),
-            ("ChÃ­nh sÃ¡ch báº£o máº­t", "chinh-sach-bao-mat"),
-            ("ChÃ­nh sÃ¡ch tráº£ gÃ³p", "chinh-sach-tra-gop"),
-            ("Báº£ng giÃ¡ thu cÅ© Ä‘á»•i má»›i", "bang-gia-thu-cu-doi-moi"),
-            ("MÃ¡y má»›i", "may-moi"),
-            ("MÃ¡y Ä‘Ã£ qua sá»­ dá»¥ng", "may-da-qua-su-dung"),
-            ("Báº£o hÃ nh 20 nÄƒm", "bao-hanh-20-nam"),
+            ("Giới thiệu", "gioi-thieu"),
+            ("Chính sách bảo hành", "chinh-sach-bao-hanh"),
+            ("Chính sách thanh toán", "chinh-sach-thanh-toan"),
+            ("Chính sách kiểm hàng", "chinh-sach-kiem-hang"),
+            ("Chính sách mua hàng", "chinh-sach-mua-hang"),
+            ("Chính sách vận chuyển", "chinh-sach-van-chuyen"),
+            ("Chính sách bảo mật", "chinh-sach-bao-mat"),
+            ("Chính sách trả góp", "chinh-sach-tra-gop"),
+            ("Bảng giá thu cũ đổi mới", "bang-gia-thu-cu-doi-moi"),
+            ("Máy mới", "may-moi"),
+            ("Máy đã qua sử dụng", "may-da-qua-su-dung"),
+            ("Bảo hành 20 năm", "bao-hanh-20-nam"),
         };
 
         foreach (var page in pages)
@@ -336,22 +372,22 @@ public static partial class SeedData
                 Slug = page.Slug,
                 ContentHtml =
                     $"<h2>{page.Title}</h2>" +
-                    "<p>Ná»™i dung máº«u tá»± viáº¿t cho dá»± Ã¡n há»c táº­p Apple Store Uyên NTT. " +
-                    "Ná»™i dung chÃ­nh thá»©c cá»§a trang nÃ y sáº½ Ä‘Æ°á»£c biÃªn táº­p trong trang quáº£n trá»‹ (Giai Ä‘oáº¡n 6).</p>" +
-                    "<p>Trang Ä‘Æ°á»£c render Ä‘á»™ng theo slug tá»« báº£ng StaticPages â€” thÃªm trang má»›i khÃ´ng cáº§n sá»­a code.</p>"
+                    "<p>Nội dung mẫu tự viết cho dự án học tập RenewZone. " +
+                    "Nội dung chính thức của trang này sẽ được biên tập trong trang quản trị (Giai đoạn 6).</p>" +
+                    "<p>Trang được render động theo slug từ bảng StaticPages — thêm trang mới không cần sửa code.</p>"
             });
         }
 
-        // 2 trang sá»­a chá»¯a cÃ³ ná»™i dung dÃ i hÆ¡n (menu trá» tháº³ng tá»›i) â€” ná»™i dung Tá»° VIáº¾T, báº£ng giÃ¡ tham kháº£o giáº£ láº­p
+        // 2 trang sửa chữa có nội dung dài hơn (menu trỏ thẳng tới) — nội dung TỰ VIẾT, bảng giá tham khảo giả lập
         db.StaticPages.Add(new StaticPage
         {
-            Title = "Dá»‹ch vá»¥ sá»­a chá»¯a",
+            Title = "Dịch vụ sửa chữa",
             Slug = "sua-chua",
             ContentHtml = RepairServiceHtml
         });
         db.StaticPages.Add(new StaticPage
         {
-            Title = "Sá»­a chá»¯a pháº§n cá»©ng",
+            Title = "Sửa chữa phần cứng",
             Slug = "sua-chua-phan-cung",
             ContentHtml = RepairHardwareHtml
         });
@@ -360,130 +396,130 @@ public static partial class SeedData
     }
 
     private const string RepairServiceHtml = """
-        <h2>Dá»‹ch vá»¥ sá»­a chá»¯a thiáº¿t bá»‹ Apple</h2>
-        <p>Trung tÃ¢m ká»¹ thuáº­t Apple Store Uyên NTT nháº­n kiá»ƒm tra vÃ  sá»­a chá»¯a iPhone, iPad, MacBook,
-        Apple Watch vÃ  AirPods. MÃ¡y Ä‘Æ°á»£c kiá»ƒm tra miá»…n phÃ­, bÃ¡o giÃ¡ trÆ°á»›c khi sá»­a, khÃ¡ch Ä‘á»“ng Ã½ má»›i tiáº¿n hÃ nh.</p>
+        <h2>Dịch vụ sửa chữa thiết bị Apple</h2>
+        <p>Trung tâm kỹ thuật RenewZone nhận kiểm tra và sửa chữa iPhone, iPad, MacBook,
+        Apple Watch và AirPods. Máy được kiểm tra miễn phí, báo giá trước khi sửa, khách đồng ý mới tiến hành.</p>
 
-        <h3>NhÃ³m dá»‹ch vá»¥ chÃºng tÃ´i nháº­n</h3>
+        <h3>Nhóm dịch vụ chúng tôi nhận</h3>
         <ul>
-          <li><strong>MÃ n hÃ¬nh &amp; cáº£m á»©ng:</strong> thay mÃ n hÃ¬nh, xá»­ lÃ½ sá»c mÃ n, loáº¡n cáº£m á»©ng, Ã¡m mÃ u.</li>
-          <li><strong>Nguá»“n &amp; pin:</strong> thay pin chai, sá»­a lá»—i khÃ´ng lÃªn nguá»“n, sáº­p nguá»“n ngáº«u nhiÃªn.</li>
-          <li><strong>Sáº¡c &amp; káº¿t ná»‘i:</strong> thay chÃ¢n sáº¡c, sá»­a lá»—i sáº¡c cháº­p chá»n, máº¥t Wi-Fi/Bluetooth.</li>
-          <li><strong>Camera &amp; loa mic:</strong> thay cá»¥m camera má»/rung, xá»­ lÃ½ loa rÃ¨, mic khÃ´ng thu tiáº¿ng.</li>
-          <li><strong>Pháº§n má»m:</strong> cÃ i Ä‘áº·t láº¡i há»‡ Ä‘iá»u hÃ nh, cá»©u dá»¯ liá»‡u, xá»­ lÃ½ mÃ¡y treo tÃ¡o.</li>
-          <li><strong>Vá»‡ sinh &amp; báº£o dÆ°á»¡ng:</strong> vá»‡ sinh bo máº¡ch, tra keo táº£n nhiá»‡t MacBook, chá»‘ng áº©m.</li>
+          <li><strong>Màn hình &amp; cảm ứng:</strong> thay màn hình, xử lý sọc màn, loạn cảm ứng, ám màu.</li>
+          <li><strong>Nguồn &amp; pin:</strong> thay pin chai, sửa lỗi không lên nguồn, sập nguồn ngẫu nhiên.</li>
+          <li><strong>Sạc &amp; kết nối:</strong> thay chân sạc, sửa lỗi sạc chập chờn, mất Wi-Fi/Bluetooth.</li>
+          <li><strong>Camera &amp; loa mic:</strong> thay cụm camera mờ/rung, xử lý loa rè, mic không thu tiếng.</li>
+          <li><strong>Phần mềm:</strong> cài đặt lại hệ điều hành, cứu dữ liệu, xử lý máy treo táo.</li>
+          <li><strong>Vệ sinh &amp; bảo dưỡng:</strong> vệ sinh bo mạch, tra keo tản nhiệt MacBook, chống ẩm.</li>
         </ul>
 
-        <h3>Quy trÃ¬nh 4 bÆ°á»›c</h3>
+        <h3>Quy trình 4 bước</h3>
         <ol>
-          <li><strong>Tiáº¿p nháº­n:</strong> ghi nháº­n tÃ¬nh tráº¡ng mÃ¡y, dÃ¡n phiáº¿u vÃ  niÃªm phong trÆ°á»›c máº·t khÃ¡ch.</li>
-          <li><strong>Kiá»ƒm tra:</strong> ká»¹ thuáº­t viÃªn Ä‘o Ä‘áº¡c, xÃ¡c Ä‘á»‹nh lá»—i vÃ  bÃ¡o giÃ¡ cá»¥ thá»ƒ â€” miá»…n phÃ­ kiá»ƒm tra.</li>
-          <li><strong>Sá»­a chá»¯a:</strong> tiáº¿n hÃ nh sau khi khÃ¡ch xÃ¡c nháº­n bÃ¡o giÃ¡; linh kiá»‡n thay ra Ä‘Æ°á»£c tráº£ láº¡i khÃ¡ch.</li>
-          <li><strong>BÃ n giao:</strong> test láº¡i cÃ¹ng khÃ¡ch, xuáº¥t phiáº¿u báº£o hÃ nh theo tá»«ng háº¡ng má»¥c.</li>
+          <li><strong>Tiếp nhận:</strong> ghi nhận tình trạng máy, dán phiếu và niêm phong trước mặt khách.</li>
+          <li><strong>Kiểm tra:</strong> kỹ thuật viên đo đạc, xác định lỗi và báo giá cụ thể — miễn phí kiểm tra.</li>
+          <li><strong>Sửa chữa:</strong> tiến hành sau khi khách xác nhận báo giá; linh kiện thay ra được trả lại khách.</li>
+          <li><strong>Bàn giao:</strong> test lại cùng khách, xuất phiếu bảo hành theo từng hạng mục.</li>
         </ol>
 
-        <h3>Báº£ng giÃ¡ tham kháº£o</h3>
-        <p>GiÃ¡ dÆ°á»›i Ä‘Ã¢y lÃ  <em>má»©c tham kháº£o cho dá»± Ã¡n demo</em>, chi phÃ­ thá»±c táº¿ phá»¥ thuá»™c model vÃ  tÃ¬nh tráº¡ng mÃ¡y.</p>
+        <h3>Bảng giá tham khảo</h3>
+        <p>Giá dưới đây là <em>mức tham khảo cho dự án demo</em>, chi phí thực tế phụ thuộc model và tình trạng máy.</p>
         <table>
           <thead>
-            <tr><th>Háº¡ng má»¥c</th><th>Thá»i gian</th><th>Chi phÃ­ tham kháº£o</th><th>Báº£o hÃ nh</th></tr>
+            <tr><th>Hạng mục</th><th>Thời gian</th><th>Chi phí tham khảo</th><th>Bảo hành</th></tr>
           </thead>
           <tbody>
-            <tr><td>Thay pin iPhone</td><td>30 â€“ 45 phÃºt</td><td>450.000 â€“ 1.200.000Ä‘</td><td>6 thÃ¡ng</td></tr>
-            <tr><td>Thay mÃ n hÃ¬nh iPhone</td><td>45 â€“ 90 phÃºt</td><td>1.200.000 â€“ 6.500.000Ä‘</td><td>6 thÃ¡ng</td></tr>
-            <tr><td>Thay chÃ¢n sáº¡c</td><td>60 phÃºt</td><td>350.000 â€“ 900.000Ä‘</td><td>3 thÃ¡ng</td></tr>
-            <tr><td>Thay pin MacBook</td><td>2 â€“ 4 giá»</td><td>1.500.000 â€“ 3.500.000Ä‘</td><td>6 thÃ¡ng</td></tr>
-            <tr><td>Vá»‡ sinh &amp; tra keo táº£n nhiá»‡t MacBook</td><td>2 giá»</td><td>350.000 â€“ 600.000Ä‘</td><td>1 thÃ¡ng</td></tr>
-            <tr><td>CÃ i Ä‘áº·t láº¡i há»‡ Ä‘iá»u hÃ nh</td><td>1 â€“ 2 giá»</td><td>150.000 â€“ 300.000Ä‘</td><td>â€”</td></tr>
+            <tr><td>Thay pin iPhone</td><td>30 – 45 phút</td><td>450.000 – 1.200.000đ</td><td>6 tháng</td></tr>
+            <tr><td>Thay màn hình iPhone</td><td>45 – 90 phút</td><td>1.200.000 – 6.500.000đ</td><td>6 tháng</td></tr>
+            <tr><td>Thay chân sạc</td><td>60 phút</td><td>350.000 – 900.000đ</td><td>3 tháng</td></tr>
+            <tr><td>Thay pin MacBook</td><td>2 – 4 giờ</td><td>1.500.000 – 3.500.000đ</td><td>6 tháng</td></tr>
+            <tr><td>Vệ sinh &amp; tra keo tản nhiệt MacBook</td><td>2 giờ</td><td>350.000 – 600.000đ</td><td>1 tháng</td></tr>
+            <tr><td>Cài đặt lại hệ điều hành</td><td>1 – 2 giờ</td><td>150.000 – 300.000đ</td><td>—</td></tr>
           </tbody>
         </table>
 
-        <h3>Cam káº¿t cá»§a chÃºng tÃ´i</h3>
+        <h3>Cam kết của chúng tôi</h3>
         <ul>
-          <li>Kiá»ƒm tra vÃ  bÃ¡o giÃ¡ miá»…n phÃ­, khÃ´ng sá»­a váº«n khÃ´ng máº¥t phÃ­.</li>
-          <li>KhÃ´ng thay linh kiá»‡n khi chÆ°a cÃ³ xÃ¡c nháº­n cá»§a khÃ¡ch hÃ ng.</li>
-          <li>Báº£o hÃ nh theo háº¡ng má»¥c, ghi rÃµ trÃªn phiáº¿u bÃ n giao.</li>
-          <li>HoÃ n tiá»n náº¿u khÃ´ng kháº¯c phá»¥c Ä‘Æ°á»£c Ä‘Ãºng lá»—i Ä‘Ã£ nháº­n.</li>
+          <li>Kiểm tra và báo giá miễn phí, không sửa vẫn không mất phí.</li>
+          <li>Không thay linh kiện khi chưa có xác nhận của khách hàng.</li>
+          <li>Bảo hành theo hạng mục, ghi rõ trên phiếu bàn giao.</li>
+          <li>Hoàn tiền nếu không khắc phục được đúng lỗi đã nhận.</li>
         </ul>
         """;
 
-    // ChÃº Ã½: TradeInPriceTableHtml Ä‘Æ°á»£c Ä‘á»‹nh nghÄ©a Ä‘áº§y Ä‘á»§ trong SeedData.Content.cs
+    // Chú ý: TradeInPriceTableHtml được định nghĩa đầy đủ trong SeedData.Content.cs
 
     private const string RepairHardwareHtml = """
-        <h2>Sá»­a chá»¯a pháº§n cá»©ng chuyÃªn sÃ¢u</h2>
-        <p>Vá»›i cÃ¡c lá»—i pháº§n cá»©ng náº·ng â€” vÃ o nÆ°á»›c, rÆ¡i vá»¡, cháº­p nguá»“n, máº¥t tÃ­n hiá»‡u â€” mÃ¡y Ä‘Æ°á»£c Ä‘Æ°a sang
-        khu vá»±c ká»¹ thuáº­t chuyÃªn sÃ¢u Ä‘á»ƒ Ä‘o Ä‘áº¡c trÃªn sÆ¡ Ä‘á»“ máº¡ch trÆ°á»›c khi can thiá»‡p.</p>
+        <h2>Sửa chữa phần cứng chuyên sâu</h2>
+        <p>Với các lỗi phần cứng nặng — vào nước, rơi vỡ, chập nguồn, mất tín hiệu — máy được đưa sang
+        khu vực kỹ thuật chuyên sâu để đo đạc trên sơ đồ mạch trước khi can thiệp.</p>
 
-        <h3>CÃ¡c lá»—i pháº§n cá»©ng thÆ°á»ng gáº·p</h3>
+        <h3>Các lỗi phần cứng thường gặp</h3>
         <ul>
-          <li><strong>VÃ o nÆ°á»›c:</strong> thÃ¡o mÃ¡y, vá»‡ sinh siÃªu Ã¢m, xá»­ lÃ½ oxy hÃ³a chÃ¢n linh kiá»‡n.</li>
-          <li><strong>Lá»—i nguá»“n:</strong> Ä‘o dÃ²ng tiÃªu thá»¥, dÃ² cháº­p, thay IC nguá»“n.</li>
-          <li><strong>Lá»—i sáº¡c:</strong> thay IC sáº¡c, xá»­ lÃ½ Ä‘Æ°á»ng tÃ­n hiá»‡u bá»‹ Ä‘á»©t sau va Ä‘áº­p.</li>
-          <li><strong>Máº¥t sÃ³ng / Wi-Fi:</strong> hÃ n láº¡i hoáº·c thay IC thu phÃ¡t tÃ­n hiá»‡u.</li>
-          <li><strong>Lá»—i mÃ n hÃ¬nh MacBook:</strong> thay cÃ¡p mÃ n, xá»­ lÃ½ lá»—i backlight.</li>
-          <li><strong>Lá»—i bÃ n phÃ­m &amp; trackpad:</strong> thay cá»¥m phÃ­m, xá»­ lÃ½ phÃ­m liá»‡t do vÃ o nÆ°á»›c.</li>
+          <li><strong>Vào nước:</strong> tháo máy, vệ sinh siêu âm, xử lý oxy hóa chân linh kiện.</li>
+          <li><strong>Lỗi nguồn:</strong> đo dòng tiêu thụ, dò chập, thay IC nguồn.</li>
+          <li><strong>Lỗi sạc:</strong> thay IC sạc, xử lý đường tín hiệu bị đứt sau va đập.</li>
+          <li><strong>Mất sóng / Wi-Fi:</strong> hàn lại hoặc thay IC thu phát tín hiệu.</li>
+          <li><strong>Lỗi màn hình MacBook:</strong> thay cáp màn, xử lý lỗi backlight.</li>
+          <li><strong>Lỗi bàn phím &amp; trackpad:</strong> thay cụm phím, xử lý phím liệt do vào nước.</li>
         </ul>
 
-        <h3>Thiáº¿t bá»‹ ká»¹ thuáº­t sá»­ dá»¥ng</h3>
+        <h3>Thiết bị kỹ thuật sử dụng</h3>
         <ul>
-          <li>KÃ­nh hiá»ƒn vi soi máº¡ch vÃ  mÃ¡y khÃ² nhiá»‡t cÃ³ kiá»ƒm soÃ¡t nhiá»‡t Ä‘á»™.</li>
-          <li>MÃ¡y Ä‘o dÃ²ng, nguá»“n phÃ²ng thÃ­ nghiá»‡m Ä‘á»ƒ dÃ² cháº­p trÆ°á»›c khi cáº¥p Ä‘iá»‡n.</li>
-          <li>Bá»ƒ rá»­a siÃªu Ã¢m dÃ¹ng cho mÃ¡y vÃ o nÆ°á»›c.</li>
+          <li>Kính hiển vi soi mạch và máy khò nhiệt có kiểm soát nhiệt độ.</li>
+          <li>Máy đo dòng, nguồn phòng thí nghiệm để dò chập trước khi cấp điện.</li>
+          <li>Bể rửa siêu âm dùng cho máy vào nước.</li>
         </ul>
 
-        <h3>Báº£ng giÃ¡ tham kháº£o</h3>
+        <h3>Bảng giá tham khảo</h3>
         <table>
           <thead>
-            <tr><th>Háº¡ng má»¥c</th><th>Má»©c Ä‘á»™</th><th>Chi phÃ­ tham kháº£o</th><th>Báº£o hÃ nh</th></tr>
+            <tr><th>Hạng mục</th><th>Mức độ</th><th>Chi phí tham khảo</th><th>Bảo hành</th></tr>
           </thead>
           <tbody>
-            <tr><td>Vá»‡ sinh mÃ¡y vÃ o nÆ°á»›c</td><td>Nháº¹</td><td>300.000 â€“ 700.000Ä‘</td><td>1 thÃ¡ng</td></tr>
-            <tr><td>Sá»­a lá»—i nguá»“n (thay IC nguá»“n)</td><td>Náº·ng</td><td>800.000 â€“ 2.500.000Ä‘</td><td>3 thÃ¡ng</td></tr>
-            <tr><td>Sá»­a lá»—i sáº¡c (thay IC sáº¡c)</td><td>Trung bÃ¬nh</td><td>600.000 â€“ 1.500.000Ä‘</td><td>3 thÃ¡ng</td></tr>
-            <tr><td>Kháº¯c phá»¥c máº¥t sÃ³ng / Wi-Fi</td><td>Náº·ng</td><td>900.000 â€“ 2.200.000Ä‘</td><td>3 thÃ¡ng</td></tr>
-            <tr><td>Thay cÃ¡p mÃ n hÃ¬nh MacBook</td><td>Trung bÃ¬nh</td><td>1.200.000 â€“ 2.800.000Ä‘</td><td>6 thÃ¡ng</td></tr>
-            <tr><td>Thay bÃ n phÃ­m MacBook</td><td>Náº·ng</td><td>1.500.000 â€“ 3.900.000Ä‘</td><td>6 thÃ¡ng</td></tr>
+            <tr><td>Vệ sinh máy vào nước</td><td>Nhẹ</td><td>300.000 – 700.000đ</td><td>1 tháng</td></tr>
+            <tr><td>Sửa lỗi nguồn (thay IC nguồn)</td><td>Nặng</td><td>800.000 – 2.500.000đ</td><td>3 tháng</td></tr>
+            <tr><td>Sửa lỗi sạc (thay IC sạc)</td><td>Trung bình</td><td>600.000 – 1.500.000đ</td><td>3 tháng</td></tr>
+            <tr><td>Khắc phục mất sóng / Wi-Fi</td><td>Nặng</td><td>900.000 – 2.200.000đ</td><td>3 tháng</td></tr>
+            <tr><td>Thay cáp màn hình MacBook</td><td>Trung bình</td><td>1.200.000 – 2.800.000đ</td><td>6 tháng</td></tr>
+            <tr><td>Thay bàn phím MacBook</td><td>Nặng</td><td>1.500.000 – 3.900.000đ</td><td>6 tháng</td></tr>
           </tbody>
         </table>
 
-        <h3>LÆ°u Ã½ trÆ°á»›c khi gá»­i mÃ¡y</h3>
+        <h3>Lưu ý trước khi gửi máy</h3>
         <ol>
-          <li>Sao lÆ°u dá»¯ liá»‡u náº¿u mÃ¡y cÃ²n má»Ÿ Ä‘Æ°á»£c â€” sá»­a pháº§n cá»©ng luÃ´n cÃ³ rá»§i ro máº¥t dá»¯ liá»‡u.</li>
-          <li>Táº¯t tÃ­nh nÄƒng tÃ¬m thiáº¿t bá»‹ vÃ  cung cáº¥p máº­t kháº©u má»Ÿ mÃ¡y Ä‘á»ƒ ká»¹ thuáº­t test Ä‘Æ°á»£c Ä‘áº§y Ä‘á»§.</li>
-          <li>MÃ¡y vÃ o nÆ°á»›c nÃªn mang tá»›i cÃ ng sá»›m cÃ ng tá»‘t, khÃ´ng tá»± sáº¥y hoáº·c cáº¯m sáº¡c.</li>
-          <li>MÃ¡y Ä‘Ã£ qua sá»­a chá»¯a á»Ÿ nÆ¡i khÃ¡c váº«n nháº­n, nhÆ°ng thá»i gian xá»­ lÃ½ cÃ³ thá»ƒ lÃ¢u hÆ¡n.</li>
+          <li>Sao lưu dữ liệu nếu máy còn mở được — sửa phần cứng luôn có rủi ro mất dữ liệu.</li>
+          <li>Tắt tính năng tìm thiết bị và cung cấp mật khẩu mở máy để kỹ thuật test được đầy đủ.</li>
+          <li>Máy vào nước nên mang tới càng sớm càng tốt, không tự sấy hoặc cắm sạc.</li>
+          <li>Máy đã qua sửa chữa ở nơi khác vẫn nhận, nhưng thời gian xử lý có thể lâu hơn.</li>
         </ol>
 
-        <p><em>ToÃ n bá»™ ná»™i dung trang nÃ y lÃ  dá»¯ liá»‡u máº«u cá»§a dá»± Ã¡n há»c táº­p, khÃ´ng pháº£i cam káº¿t dá»‹ch vá»¥ tháº­t.</em></p>
+        <p><em>Toàn bộ nội dung trang này là dữ liệu mẫu của dự án học tập, không phải cam kết dịch vụ thật.</em></p>
         """;
 
-    // Banner trang chá»§
+    // Banner trang chủ
     private static async Task SeedBannersAsync(AppDbContext db)
     {
         if (await db.Banners.AnyAsync()) return;
 
         db.Banners.AddRange(
-            new Banner { Title = "iPhone 17 Pro Max - Äáº·t trÆ°á»›c hÃ´m nay", ImageUrl = BannerImg, LinkUrl = "/iphone-17-pro-max-256gb", Position = BannerPosition.HomeSlider, DisplayOrder = 1 },
-            new Banner { Title = "Thu cÅ© Ä‘á»•i má»›i - Trá»£ giÃ¡ Ä‘áº¿n 2 triá»‡u", ImageUrl = BannerImg, LinkUrl = "/bang-gia-thu-cu-doi-moi", Position = BannerPosition.HomeSlider, DisplayOrder = 2 },
-            new Banner { Title = "MacBook sale Ä‘áº¿n 30%", ImageUrl = BannerImg, LinkUrl = "/macbook", Position = BannerPosition.HomeSlider, DisplayOrder = 3 },
-            new Banner { Title = "Æ¯u Ä‘Ã£i iPad", ImageUrl = BannerImg, LinkUrl = "/ipad", Position = BannerPosition.HomeMiddle, DisplayOrder = 1 },
-            new Banner { Title = "HÃ ng thanh lÃ½ giÃ¡ tá»‘t", ImageUrl = BannerImg, LinkUrl = "/hang-thanh-ly", Position = BannerPosition.HomeMiddle, DisplayOrder = 2 });
+            new Banner { Title = "iPhone 17 Pro Max - Đặt trước hôm nay", ImageUrl = BannerImg, LinkUrl = "/iphone-17-pro-max-256gb", Position = BannerPosition.HomeSlider, DisplayOrder = 1 },
+            new Banner { Title = "Thu cũ đổi mới - Trợ giá đến 2 triệu", ImageUrl = BannerImg, LinkUrl = "/bang-gia-thu-cu-doi-moi", Position = BannerPosition.HomeSlider, DisplayOrder = 2 },
+            new Banner { Title = "MacBook sale đến 30%", ImageUrl = BannerImg, LinkUrl = "/macbook", Position = BannerPosition.HomeSlider, DisplayOrder = 3 },
+            new Banner { Title = "Ưu đãi iPad", ImageUrl = BannerImg, LinkUrl = "/ipad", Position = BannerPosition.HomeMiddle, DisplayOrder = 1 },
+            new Banner { Title = "Hàng thanh lý giá tốt", ImageUrl = BannerImg, LinkUrl = "/hang-thanh-ly", Position = BannerPosition.HomeMiddle, DisplayOrder = 2 });
 
         await db.SaveChangesAsync();
     }
 
-    // ÄÃ¡nh giÃ¡ khÃ¡ch hÃ ng (tÃªn giáº£ láº­p)
+    // Đánh giá khách hàng (tên giả lập)
     private static async Task SeedTestimonialsAsync(AppDbContext db)
     {
         if (await db.Testimonials.AnyAsync()) return;
 
         var items = new (string Name, string Content)[]
         {
-            ("Anh Minh - Quáº­n 1", "Mua iPhone 15 Pro Max 99% mÃ  mÃ¡y Ä‘áº¹p nhÆ° má»›i, shop tÆ° váº¥n nhiá»‡t tÃ¬nh, giÃ¡ tá»‘t hÆ¡n nhiá»u nÆ¡i mÃ¬nh kháº£o sÃ¡t."),
-            ("Chá»‹ HÆ°Æ¡ng - GÃ² Váº¥p", "LÃªn Ä‘á»i tá»« iPhone 12 sang 16 Pro Max, Ä‘Æ°á»£c trá»£ giÃ¡ thu cÅ© khÃ¡ cao. Thá»§ tá»¥c tráº£ gÃ³p nhanh gá»n."),
-            ("Anh Tuáº¥n - Thá»§ Äá»©c", "MacBook Air M1 thanh lÃ½ mÃ  pin cÃ²n tá»‘t, ngoáº¡i hÃ¬nh 96% Ä‘Ãºng mÃ´ táº£. Sáº½ á»§ng há»™ tiáº¿p."),
-            ("Chá»‹ Lan - BÃ¬nh Tháº¡nh", "NhÃ¢n viÃªn kiá»ƒm tra mÃ¡y ká»¹ trÆ°á»›c máº·t mÃ¬nh, báº£o hÃ nh rÃµ rÃ ng nÃªn ráº¥t yÃªn tÃ¢m."),
-            ("Anh Khoa - TÃ¢n BÃ¬nh", "Äáº·t hÃ ng online, giao trong ngÃ y, mÃ¡y nguyÃªn seal Ä‘Ãºng cam káº¿t. Ráº¥t hÃ i lÃ²ng."),
+            ("Anh Minh - Quận 1", "Mua iPhone 15 Pro Max 99% mà máy đẹp như mới, shop tư vấn nhiệt tình, giá tốt hơn nhiều nơi mình khảo sát."),
+            ("Chị Hương - Gò Vấp", "Lên đời từ iPhone 12 sang 16 Pro Max, được trợ giá thu cũ khá cao. Thủ tục trả góp nhanh gọn."),
+            ("Anh Tuấn - Thủ Đức", "MacBook Air M1 thanh lý mà pin còn tốt, ngoại hình 96% đúng mô tả. Sẽ ủng hộ tiếp."),
+            ("Chị Lan - Bình Thạnh", "Nhân viên kiểm tra máy kỹ trước mặt mình, bảo hành rõ ràng nên rất yên tâm."),
+            ("Anh Khoa - Tân Bình", "Đặt hàng online, giao trong ngày, máy nguyên seal đúng cam kết. Rất hài lòng."),
         };
 
         var order = 1;
@@ -501,58 +537,58 @@ public static partial class SeedData
         await db.SaveChangesAsync();
     }
 
-    // Äiá»u hÆ°á»›ng: menu chÃ­nh + 2 cá»™t link á»Ÿ footer (thay hardcode trong _Layout)
+    // Điều hướng: menu chính + 2 cột link ở footer (thay hardcode trong _Layout)
     private static async Task SeedMenuAsync(AppDbContext db)
     {
         if (await db.MenuItems.AnyAsync()) return;
 
-        // Menu chÃ­nh.
-        // Má»¥c "Sáº£n pháº©m" lÃ  ProductMega: dropdown sinh Ä‘á»™ng tá»« cÃ¢y Category nÃªn khÃ´ng khai bÃ¡o link con.
+        // Menu chính.
+        // Mục "Sản phẩm" là ProductMega: dropdown sinh động từ cây Category nên không khai báo link con.
         db.MenuItems.AddRange(
-            Menu(MenuGroup.MainMenu, "Trang chá»§", "/", 1, icon: "bi-house-door"),
-            Menu(MenuGroup.MainMenu, "Giá»›i thiá»‡u", "/gioi-thieu", 2),
+            Menu(MenuGroup.MainMenu, "Trang chủ", "/", 1, icon: "bi-house-door"),
+            Menu(MenuGroup.MainMenu, "Giới thiệu", "/gioi-thieu", 2),
             new MenuItem
             {
                 Group = MenuGroup.MainMenu,
                 Type = MenuItemType.ProductMega,
-                Text = "Sáº£n pháº©m",
+                Text = "Sản phẩm",
                 Url = "/san-pham",
                 Icon = "bi-grid",
                 DisplayOrder = 3
             });
 
-        var repair = Menu(MenuGroup.MainMenu, "Sá»­a chá»¯a", "/sua-chua", 4, icon: "bi-tools");
-        repair.Children.Add(Menu(MenuGroup.MainMenu, "Dá»‹ch vá»¥ sá»­a chá»¯a", "/sua-chua", 1, icon: "bi-tools"));
-        repair.Children.Add(Menu(MenuGroup.MainMenu, "Sá»­a chá»¯a pháº§n cá»©ng", "/sua-chua-phan-cung", 2, icon: "bi-cpu"));
+        var repair = Menu(MenuGroup.MainMenu, "Sửa chữa", "/sua-chua", 4, icon: "bi-tools");
+        repair.Children.Add(Menu(MenuGroup.MainMenu, "Dịch vụ sửa chữa", "/sua-chua", 1, icon: "bi-tools"));
+        repair.Children.Add(Menu(MenuGroup.MainMenu, "Sửa chữa phần cứng", "/sua-chua-phan-cung", 2, icon: "bi-cpu"));
 
-        var policy = Menu(MenuGroup.MainMenu, "ChÃ­nh sÃ¡ch", "/chinh-sach-bao-hanh", 5, icon: "bi-shield-check");
-        policy.Children.Add(Menu(MenuGroup.MainMenu, "Báº£ng giÃ¡ thu cÅ© Ä‘á»•i má»›i", "/bang-gia-thu-cu-doi-moi", 1, icon: "bi-shield-check"));
-        policy.Children.Add(Menu(MenuGroup.MainMenu, "MÃ¡y má»›i", "/may-moi", 2, icon: "bi-shield-check"));
-        policy.Children.Add(Menu(MenuGroup.MainMenu, "MÃ¡y Ä‘Ã£ qua sá»­ dá»¥ng", "/may-da-qua-su-dung", 3, icon: "bi-shield-check"));
-        policy.Children.Add(Menu(MenuGroup.MainMenu, "Báº£o hÃ nh 20 nÄƒm", "/bao-hanh-20-nam", 4, icon: "bi-shield-check"));
+        var policy = Menu(MenuGroup.MainMenu, "Chính sách", "/chinh-sach-bao-hanh", 5, icon: "bi-shield-check");
+        policy.Children.Add(Menu(MenuGroup.MainMenu, "Bảng giá thu cũ đổi mới", "/bang-gia-thu-cu-doi-moi", 1, icon: "bi-shield-check"));
+        policy.Children.Add(Menu(MenuGroup.MainMenu, "Máy mới", "/may-moi", 2, icon: "bi-shield-check"));
+        policy.Children.Add(Menu(MenuGroup.MainMenu, "Máy đã qua sử dụng", "/may-da-qua-su-dung", 3, icon: "bi-shield-check"));
+        policy.Children.Add(Menu(MenuGroup.MainMenu, "Bảo hành 20 năm", "/bao-hanh-20-nam", 4, icon: "bi-shield-check"));
 
         db.MenuItems.AddRange(
             repair,
             policy,
-            Menu(MenuGroup.MainMenu, "Tin cÃ´ng nghá»‡", "/tin-tuc", 6, icon: "bi-newspaper"),
-            Menu(MenuGroup.MainMenu, "LiÃªn há»‡", "/lien-he", 7, icon: "bi-envelope"));
+            Menu(MenuGroup.MainMenu, "Tin công nghệ", "/tin-tuc", 6, icon: "bi-newspaper"),
+            Menu(MenuGroup.MainMenu, "Liên hệ", "/lien-he", 7, icon: "bi-envelope"));
 
-        // Footer: cá»™t ChÃ­nh sÃ¡ch
+        // Footer: cột Chính sách
         db.MenuItems.AddRange(
-            Menu(MenuGroup.FooterPolicy, "ChÃ­nh sÃ¡ch báº£o hÃ nh", "/chinh-sach-bao-hanh", 1),
-            Menu(MenuGroup.FooterPolicy, "ChÃ­nh sÃ¡ch thanh toÃ¡n", "/chinh-sach-thanh-toan", 2),
-            Menu(MenuGroup.FooterPolicy, "ChÃ­nh sÃ¡ch váº­n chuyá»ƒn", "/chinh-sach-van-chuyen", 3),
-            Menu(MenuGroup.FooterPolicy, "ChÃ­nh sÃ¡ch kiá»ƒm hÃ ng", "/chinh-sach-kiem-hang", 4),
-            Menu(MenuGroup.FooterPolicy, "ChÃ­nh sÃ¡ch tráº£ gÃ³p", "/chinh-sach-tra-gop", 5),
-            Menu(MenuGroup.FooterPolicy, "ChÃ­nh sÃ¡ch báº£o máº­t", "/chinh-sach-bao-mat", 6));
+            Menu(MenuGroup.FooterPolicy, "Chính sách bảo hành", "/chinh-sach-bao-hanh", 1),
+            Menu(MenuGroup.FooterPolicy, "Chính sách thanh toán", "/chinh-sach-thanh-toan", 2),
+            Menu(MenuGroup.FooterPolicy, "Chính sách vận chuyển", "/chinh-sach-van-chuyen", 3),
+            Menu(MenuGroup.FooterPolicy, "Chính sách kiểm hàng", "/chinh-sach-kiem-hang", 4),
+            Menu(MenuGroup.FooterPolicy, "Chính sách trả góp", "/chinh-sach-tra-gop", 5),
+            Menu(MenuGroup.FooterPolicy, "Chính sách bảo mật", "/chinh-sach-bao-mat", 6));
 
-        // Footer: cá»™t Há»— trá»£
+        // Footer: cột Hỗ trợ
         db.MenuItems.AddRange(
-            Menu(MenuGroup.FooterSupport, "Giá»›i thiá»‡u", "/gioi-thieu", 1),
-            Menu(MenuGroup.FooterSupport, "Tin cÃ´ng nghá»‡", "/tin-tuc", 2),
-            Menu(MenuGroup.FooterSupport, "Sá»­a chá»¯a", "/sua-chua", 3),
-            Menu(MenuGroup.FooterSupport, "Giá» hÃ ng", "/gio-hang", 4),
-            Menu(MenuGroup.FooterSupport, "LiÃªn há»‡", "/lien-he", 5));
+            Menu(MenuGroup.FooterSupport, "Giới thiệu", "/gioi-thieu", 1),
+            Menu(MenuGroup.FooterSupport, "Tin công nghệ", "/tin-tuc", 2),
+            Menu(MenuGroup.FooterSupport, "Sửa chữa", "/sua-chua", 3),
+            Menu(MenuGroup.FooterSupport, "Giỏ hàng", "/gio-hang", 4),
+            Menu(MenuGroup.FooterSupport, "Liên hệ", "/lien-he", 5));
 
         await db.SaveChangesAsync();
     }
@@ -567,7 +603,7 @@ public static partial class SeedData
         DisplayOrder = order
     };
 
-    // Khá»‘i ná»™i dung dÃ¹ng láº¡i: cam káº¿t PDP, tráº¥n an giá»/checkout, kÃªnh liÃªn há»‡
+    // Khối nội dung dùng lại: cam kết PDP, trấn an giỏ/checkout, kênh liên hệ
     private static async Task SeedContentBlocksAsync(AppDbContext db)
     {
         if (await db.ContentBlocks.AnyAsync()) return;
@@ -583,24 +619,24 @@ public static partial class SeedData
             .FirstOrDefaultAsync() ?? "https://maps.google.com/";
 
         db.ContentBlocks.AddRange(
-            // Cam káº¿t á»Ÿ trang chi tiáº¿t sáº£n pháº©m
-            Block(ContentBlockGroups.ProductCommitments, "bi-patch-check-fill", "HÃ ng chÃ­nh hÃ£ng, nguyÃªn seal / Ä‘Ãºng mÃ´ táº£", 1),
-            Block(ContentBlockGroups.ProductCommitments, "bi-arrow-repeat", "Thu cÅ© Ä‘á»•i má»›i, thu giÃ¡ cao", 2),
-            Block(ContentBlockGroups.ProductCommitments, "bi-shield-check", "Báº£o hÃ nh dÃ i háº¡n, 1 Ä‘á»•i 1", 3),
-            Block(ContentBlockGroups.ProductCommitments, "bi-truck", "Giao nhanh ná»™i thÃ nh, kiá»ƒm tra khi nháº­n", 4),
+            // Cam kết ở trang chi tiết sản phẩm
+            Block(ContentBlockGroups.ProductCommitments, "bi-patch-check-fill", "Hàng chính hãng, nguyên seal / đúng mô tả", 1),
+            Block(ContentBlockGroups.ProductCommitments, "bi-arrow-repeat", "Thu cũ đổi mới, thu giá cao", 2),
+            Block(ContentBlockGroups.ProductCommitments, "bi-shield-check", "Bảo hành dài hạn, 1 đổi 1", 3),
+            Block(ContentBlockGroups.ProductCommitments, "bi-truck", "Giao nhanh nội thành, kiểm tra khi nhận", 4),
 
-            // DÃ²ng tráº¥n an á»Ÿ giá» hÃ ng + checkout
-            Block(ContentBlockGroups.CartAssurance, "bi-shield-check", "Thu cÅ© Ä‘á»•i má»›i Â· Báº£o hÃ nh dÃ i háº¡n", 1),
+            // Dòng trấn an ở giỏ hàng + checkout
+            Block(ContentBlockGroups.CartAssurance, "bi-shield-check", "Thu cũ đổi mới · Bảo hành dài hạn", 1),
 
-            // KÃªnh liÃªn há»‡ nhanh á»Ÿ /lien-he
+            // Kênh liên hệ nhanh ở /lien-he
             Block(ContentBlockGroups.ContactChannels, "bi-telephone-fill", "Hotline", 1,
                 subtitle: hotline, linkUrl: "tel:" + hotline.Replace(".", "").Replace(" ", "")),
             Block(ContentBlockGroups.ContactChannels, "bi-chat-dots-fill", "Zalo", 2,
                 subtitle: "Chat ngay", linkUrl: "https://zalo.me/"),
             Block(ContentBlockGroups.ContactChannels, "bi-messenger", "Messenger", 3,
                 subtitle: "Chat ngay", linkUrl: "https://m.me/"),
-            Block(ContentBlockGroups.ContactChannels, "bi-geo-alt-fill", "Cá»­a hÃ ng", 4,
-                subtitle: "Chá»‰ Ä‘Æ°á»ng", linkUrl: mapUrl));
+            Block(ContentBlockGroups.ContactChannels, "bi-geo-alt-fill", "Cửa hàng", 4,
+                subtitle: "Chỉ đường", linkUrl: mapUrl));
 
         await db.SaveChangesAsync();
     }
@@ -616,15 +652,15 @@ public static partial class SeedData
         DisplayOrder = order
     };
 
-    // BÃ¹ dá»¯ liá»‡u cho cÃ¡c Cá»˜T/Báº¢NG má»›i cá»§a Giai Ä‘oáº¡n 5 trÃªn DB Ä‘Ã£ seed tá»« trÆ°á»›c.
-    // CÃ¡c hÃ m seed á»Ÿ trÃªn Ä‘á»u "báº£ng trá»‘ng má»›i cháº¡y" nÃªn DB cÅ© sáº½ khÃ´ng nháº­n Ä‘Æ°á»£c
-    // Category.IconClass hay NewsArticle.CategoryId â€” bÃ¹ riÃªng á»Ÿ Ä‘Ã¢y, váº«n idempotent
-    // (chá»‰ cháº¡m dÃ²ng Ä‘ang thiáº¿u, giá»¯ nguyÃªn Ä‘Æ¡n hÃ ng test Ä‘Ã£ cÃ³).
+    // Bù dữ liệu cho các CỘT/BẢNG mới của Giai đoạn 5 trên DB đã seed từ trước.
+    // Các hàm seed ở trên đều "bảng trống mới chạy" nên DB cũ sẽ không nhận được
+    // Category.IconClass hay NewsArticle.CategoryId — bù riêng ở đây, vẫn idempotent
+    // (chỉ chạm dòng đang thiếu, giữ nguyên đơn hàng test đã có).
     private static async Task BackfillPhase5Async(AppDbContext db)
     {
         var changed = false;
 
-        // Icon danh má»¥c cha
+        // Icon danh mục cha
         var icons = new Dictionary<string, string>
         {
             ["iphone"] = "bi-phone",
@@ -648,7 +684,7 @@ public static partial class SeedData
             }
         }
 
-        // ChuyÃªn má»¥c cho bÃ i viáº¿t Ä‘Ã£ seed trÆ°á»›c khi cÃ³ báº£ng NewsCategories
+        // Chuyên mục cho bài viết đã seed trước khi có bảng NewsCategories
         var articlesWithoutCategory = await db.NewsArticles.Where(a => a.CategoryId == null).ToListAsync();
         if (articlesWithoutCategory.Count > 0)
         {
@@ -677,11 +713,11 @@ public static partial class SeedData
             }
         }
 
-        // 2 trang sá»­a chá»¯a (DB cÅ© Ä‘Ã£ cÃ³ StaticPages nÃªn hÃ m seed trang tÄ©nh khÃ´ng cháº¡y)
+        // 2 trang sửa chữa (DB cũ đã có StaticPages nên hàm seed trang tĩnh không chạy)
         var repairPages = new (string Slug, string Title, string Html)[]
         {
-            ("sua-chua", "Dá»‹ch vá»¥ sá»­a chá»¯a", RepairServiceHtml),
-            ("sua-chua-phan-cung", "Sá»­a chá»¯a pháº§n cá»©ng", RepairHardwareHtml),
+            ("sua-chua", "Dịch vụ sửa chữa", RepairServiceHtml),
+            ("sua-chua-phan-cung", "Sửa chữa phần cứng", RepairHardwareHtml),
         };
 
         foreach (var (slug, title, html) in repairPages)

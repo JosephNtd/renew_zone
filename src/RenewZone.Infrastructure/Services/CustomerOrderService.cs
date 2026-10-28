@@ -99,6 +99,19 @@ public class CustomerOrderService(AppDbContext db, ILogger<CustomerOrderService>
             return null;
         }
 
+        // Đánh giá đã viết cho từng dòng hàng. IgnoreQueryFilters: đánh giá shop đã gỡ (xóa mềm) vẫn
+        // giữ chỗ trong unique index, nên phải hiện "đã gỡ" thay vì hiện lại nút "Đánh giá" bấm không được.
+        var itemIds = order.Items.Select(i => i.Id).ToList();
+        var itemReviews = await db.ProductReviews.IgnoreQueryFilters().AsNoTracking()
+            .Where(r => r.OrderItemId != null && itemIds.Contains(r.OrderItemId.Value))
+            .Select(r => new { OrderItemId = r.OrderItemId!.Value, r.Rating, r.Status, r.IsDeleted })
+            .ToDictionaryAsync(r => r.OrderItemId, r => new ItemReviewInfo(r.Rating, r.Status, r.IsDeleted));
+
+        var delivery = await db.DeliveryReviews.AsNoTracking()
+            .Where(d => d.OrderId == order.Id)
+            .Select(d => new DeliveryReviewInfo(d.Rating, d.Comment, d.CreatedAt))
+            .FirstOrDefaultAsync();
+
         return new MyOrderDetail(
             order.Id, order.Code, order.CustomerName, order.Phone, order.Email, order.Address,
             order.Note, order.PaymentMethod, order.Status, order.TotalAmount, order.CreatedAt,
@@ -106,7 +119,9 @@ public class CustomerOrderService(AppDbContext db, ILogger<CustomerOrderService>
             order.History
                 .Select(h => new MyOrderHistoryEntry(
                     h.FromStatus, h.ToStatus, MaskActor(h.ChangedBy), h.Note, h.ChangedAt))
-                .ToList());
+                .ToList(),
+            itemReviews,
+            delivery);
     }
 
     /// <summary>
@@ -191,6 +206,80 @@ public class CustomerOrderService(AppDbContext db, ILogger<CustomerOrderService>
                            && i.Order.UserId == userId
                            && i.Order.Status == OrderStatus.Completed);
 
+    public async Task<int?> FindReviewableOrderItemAsync(string userId, int productId) =>
+        await ReviewableItems(userId)
+            .Where(i => i.ProductId == productId)
+            .OrderBy(i => i.Order.CreatedAt).ThenBy(i => i.Id)
+            .Select(i => (int?)i.Id)
+            .FirstOrDefaultAsync();
+
+    public Task<bool> CanReviewOrderItemAsync(string userId, int orderItemId, int productId) =>
+        ReviewableItems(userId).AnyAsync(i => i.Id == orderItemId && i.ProductId == productId);
+
+    /// <summary>
+    /// Dòng hàng của tài khoản, trong đơn Hoàn thành, sản phẩm còn tồn tại, và CHƯA có đánh giá nào
+    /// (kể cả đánh giá đã bị shop gỡ — bản ghi xóa mềm vẫn giữ chỗ trong unique index).
+    /// </summary>
+    private IQueryable<OrderItem> ReviewableItems(string userId) =>
+        db.OrderItems.AsNoTracking()
+            .Where(i => i.Order.UserId == userId
+                        && i.Order.Status == OrderStatus.Completed
+                        && i.ProductId != null
+                        && !db.ProductReviews.IgnoreQueryFilters().Any(r => r.OrderItemId == i.Id));
+
+    public async Task<AccountOpResult> SubmitDeliveryReviewAsync(string userId, string code, DeliveryReviewRequest request)
+    {
+        if (request.Rating is < 1 or > 5)
+        {
+            return AccountOpResult.Fail("Vui lòng chọn số sao từ 1 đến 5.");
+        }
+
+        var comment = request.Comment?.Trim();
+        if (comment is { Length: > 1000 })
+        {
+            return AccountOpResult.Fail("Ghi chú tối đa 1000 ký tự.");
+        }
+
+        var order = await db.Orders
+            .Where(o => o.UserId == userId && o.Code == code)
+            .Select(o => new { o.Id, o.Status, HasReview = o.DeliveryReview != null })
+            .FirstOrDefaultAsync();
+
+        if (order is null)
+        {
+            return AccountOpResult.Fail("Không tìm thấy đơn hàng này trong tài khoản của bạn.");
+        }
+
+        if (order.Status != OrderStatus.Completed)
+        {
+            return AccountOpResult.Fail("Chỉ đánh giá giao hàng được khi đơn đã hoàn thành.");
+        }
+
+        if (order.HasReview)
+        {
+            return AccountOpResult.Fail("Bạn đã đánh giá giao hàng cho đơn này rồi.");
+        }
+
+        db.DeliveryReviews.Add(new DeliveryReview
+        {
+            OrderId = order.Id,
+            Rating = request.Rating,
+            Comment = string.IsNullOrEmpty(comment) ? null : comment
+        });
+
+        try
+        {
+            await db.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // Hai lần bấm gửi cùng lúc: unique OrderId của DB chặn bản thứ hai
+            return AccountOpResult.Fail("Bạn đã đánh giá giao hàng cho đơn này rồi.");
+        }
+
+        return AccountOpResult.Success("Cảm ơn bạn đã đánh giá giao hàng!");
+    }
+
     public async Task<IReadOnlyList<ReorderLine>> GetReorderLinesAsync(string userId, string code)
     {
         var items = await db.Orders.AsNoTracking()
@@ -212,7 +301,7 @@ public class CustomerOrderService(AppDbContext db, ILogger<CustomerOrderService>
         var productIds = items.Select(i => i.ProductId).Distinct().ToList();
         var optionValues = await db.ProductOptionValues.AsNoTracking()
             .Where(v => productIds.Contains(v.Group.ProductId))
-            .Select(v => new { v.Id, v.Value, ProductId = v.Group.ProductId })
+            .Select(v => new { v.Id, v.AttributeValue.Value, ProductId = v.Group.ProductId })
             .ToListAsync();
 
         var lines = new List<ReorderLine>();

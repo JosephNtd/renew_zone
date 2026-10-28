@@ -73,7 +73,7 @@ public static partial class SeedData
             """
             <p><strong>iPhone 16 Pro Max</strong> là flagship mạnh nhất của Apple hiện tại, sở hữu khung Titan cấp 5 nhẹ và bền hơn thế hệ trước, cùng màn hình Super Retina XDR 6.9 inch lớn nhất từ trước đến nay trên dòng Pro.</p>
             <p>Chip A18 Pro cho hiệu năng vượt trội, xử lý mượt các tác vụ AI trên máy (Apple Intelligence), trong khi cụm camera 48MP với ống Telephoto 5x giúp chụp xa sắc nét hơn hẳn. Nút Camera Control mới cho phép chụp ảnh nhanh chỉ với một chạm.</p>
-            <p>Máy tại Apple Store Uyên NTT được kiểm tra 90 điểm trước khi giao, đi kèm bảo hành dài hạn, hỗ trợ trả góp 0% và thu cũ đổi mới trợ giá cao cho khách nâng cấp.</p>
+            <p>Máy tại RenewZone được kiểm tra 90 điểm trước khi giao, đi kèm bảo hành dài hạn, hỗ trợ trả góp 0% và thu cũ đổi mới trợ giá cao cho khách nâng cấp.</p>
             """,
             """
             <ul>
@@ -107,9 +107,9 @@ public static partial class SeedData
         ["iphone-17-pro-max-256gb"] = new ProductContent(
             "iPhone 17 Pro Max - thế hệ mới nhất, thiết kế và camera nâng cấp toàn diện. Liên hệ để nhận giá tốt nhất và ưu đãi đặt trước.",
             """
-            <p><strong>iPhone 17 Pro Max</strong> là sản phẩm mới nhất trong dòng iPhone Pro, được nâng cấp toàn diện về thiết kế, hiệu năng và hệ thống camera so với thế hệ trước. Đây là model đang được Apple Store Uyên NTT ưu tiên nhập hàng sớm.</p>
+            <p><strong>iPhone 17 Pro Max</strong> là sản phẩm mới nhất trong dòng iPhone Pro, được nâng cấp toàn diện về thiết kế, hiệu năng và hệ thống camera so với thế hệ trước. Đây là model đang được RenewZone ưu tiên nhập hàng sớm.</p>
             <p>Do mới ra mắt, thông tin cấu hình chi tiết và giá bán sẽ được cập nhật liên tục theo nguồn hàng chính hãng. Quý khách quan tâm vui lòng để lại thông tin hoặc gọi hotline để được tư vấn giá tốt nhất và giữ chỗ đặt trước.</p>
-            <p>Khách đặt trước tại Apple Store Uyên NTT được ưu tiên nhận máy sớm, hỗ trợ trả góp 0% và trợ giá thu cũ đổi mới ngay khi lên đời.</p>
+            <p>Khách đặt trước tại RenewZone được ưu tiên nhận máy sớm, hỗ trợ trả góp 0% và trợ giá thu cũ đổi mới ngay khi lên đời.</p>
             """,
             """
             <ul>
@@ -143,7 +143,7 @@ public static partial class SeedData
             "iPhone 15 Pro 128GB - khung Titan nhẹ bền, chip A17 Pro, camera Telephoto 3x zoom quang học.",
             """
             <p><strong>iPhone 15 Pro</strong> là phiên bản 6.1 inch nhỏ gọn của dòng Pro, dùng khung Titan nhẹ hơn thép không gỉ, trang bị chip A17 Pro và cụm camera zoom quang 3x linh hoạt cho nhu cầu chụp ảnh hàng ngày.</p>
-            <p>Máy đã qua sử dụng được Apple Store Uyên NTT kiểm tra toàn diện, phân loại tình trạng minh bạch, phù hợp khách muốn trải nghiệm dòng Pro với chi phí hợp lý hơn máy mới.</p>
+            <p>Máy đã qua sử dụng được RenewZone kiểm tra toàn diện, phân loại tình trạng minh bạch, phù hợp khách muốn trải nghiệm dòng Pro với chi phí hợp lý hơn máy mới.</p>
             <p>Đi kèm bảo hành dài hạn, hỗ trợ trả góp 0% và trợ giá thu cũ đổi mới.</p>
             """,
             """
@@ -160,7 +160,7 @@ public static partial class SeedData
             "iPhone 15 128GB - Dynamic Island, cổng USB-C, camera chính 48MP. Lựa chọn cân bằng giữa giá và trải nghiệm.",
             """
             <p><strong>iPhone 15</strong> mang Dynamic Island và cổng USB-C - hai nâng cấp được mong chờ nhất - xuống phân khúc phổ thông, cùng camera chính 48MP cho ảnh chụp chi tiết hơn hẳn thế hệ trước.</p>
-            <p>Đây là mẫu bán chạy nhất tại Apple Store Uyên NTT nhờ mức giá hợp lý mà vẫn đầy đủ trải nghiệm iPhone hiện đại, phù hợp số đông người dùng.</p>
+            <p>Đây là mẫu bán chạy nhất tại RenewZone nhờ mức giá hợp lý mà vẫn đầy đủ trải nghiệm iPhone hiện đại, phù hợp số đông người dùng.</p>
             <p>Máy được kiểm tra kỹ, bảo hành dài hạn, hỗ trợ trả góp 0% và thu cũ đổi mới.</p>
             """,
             """
@@ -178,7 +178,7 @@ public static partial class SeedData
             """
             <p><strong>iPhone 14 Pro Max</strong> là chiếc iPhone đầu tiên giới thiệu Dynamic Island và camera chính 48MP, cùng màn hình Always-On hiển thị thông tin liên tục mà không cần chạm mở khóa.</p>
             <p>Sau thời gian sử dụng, máy vẫn giữ hiệu năng ổn định nhờ chip A16 Bionic mạnh mẽ, là lựa chọn tốt cho khách muốn trải nghiệm dòng Pro Max với chi phí thấp hơn đáng kể so với đời mới.</p>
-            <p>Apple Store Uyên NTT kiểm tra pin, màn hình, camera kỹ trước khi bán, bảo hành dài hạn kèm trả góp 0%.</p>
+            <p>RenewZone kiểm tra pin, màn hình, camera kỹ trước khi bán, bảo hành dài hạn kèm trả góp 0%.</p>
             """,
             """
             <ul>
@@ -212,7 +212,7 @@ public static partial class SeedData
             """
             <p><strong>iPhone 11</strong> là lựa chọn tiết kiệm nhất để bắt đầu trải nghiệm hệ sinh thái Apple, với camera kép 12MP chụp ảnh tốt trong tầm giá và chip A13 Bionic vẫn đáp ứng tốt các tác vụ hàng ngày, lướt web, mạng xã hội.</p>
             <p>Phù hợp làm máy phụ, máy cho người lớn tuổi hoặc trẻ em, hay đơn giản là người dùng không đặt nặng cấu hình mạnh.</p>
-            <p>Máy đã qua kiểm tra kỹ tại Apple Store Uyên NTT, bảo hành dài hạn, giá cực kỳ cạnh tranh.</p>
+            <p>Máy đã qua kiểm tra kỹ tại RenewZone, bảo hành dài hạn, giá cực kỳ cạnh tranh.</p>
             """,
             """
             <ul>
@@ -416,7 +416,7 @@ public static partial class SeedData
         ["iphone-12-64gb-thanh-ly"] = new ProductContent(
             "iPhone 12 64GB - hàng thanh lý 97%, đã kiểm tra kỹ pin và ngoại hình, giá cực tốt cho người dùng tiết kiệm.",
             """
-            <p><strong>iPhone 12 64GB</strong> hàng thanh lý được Apple Store Uyên NTT kiểm tra kỹ về pin, màn hình và các cảm biến trước khi lên kệ, ngoại hình đạt tình trạng 97% - vết xước rất nhỏ khó nhận thấy khi sử dụng bình thường.</p>
+            <p><strong>iPhone 12 64GB</strong> hàng thanh lý được RenewZone kiểm tra kỹ về pin, màn hình và các cảm biến trước khi lên kệ, ngoại hình đạt tình trạng 97% - vết xước rất nhỏ khó nhận thấy khi sử dụng bình thường.</p>
             <p>Máy vẫn hỗ trợ MagSafe, camera kép chụp ảnh tốt và chip A14 Bionic đủ mượt cho các nhu cầu hàng ngày, là lựa chọn tiết kiệm nếu bạn muốn dùng iPhone màn OLED với chi phí thấp.</p>
             <p>Hàng thanh lý có bảo hành ngắn hạn tại cửa hàng, hỗ trợ đổi trả trong thời gian quy định nếu phát sinh lỗi kỹ thuật.</p>
             """,
@@ -461,7 +461,7 @@ public static partial class SeedData
             <p>Nguồn tin từ các nhà phân tích chuỗi cung ứng cho biết Apple sẽ đầu tư mạnh vào cảm biến camera chính với độ phân giải cao hơn, cải thiện đáng kể khả năng chụp thiếu sáng và quay video ở độ phân giải cao. Ống kính Telephoto cũng được cho là sẽ có bước nhảy vọt về khả năng zoom quang học.</p>
             <h3>Hiệu năng và thời điểm ra mắt</h3>
             <p>Về hiệu năng, chip xử lý thế hệ mới được kỳ vọng mang lại cải thiện lớn cho các tác vụ trí tuệ nhân tạo trên thiết bị. Theo lịch trình thường niên, Apple nhiều khả năng sẽ công bố sản phẩm vào tháng 9, và người dùng tại Việt Nam có thể đặt mua ngay trong đợt mở bán đầu tiên.</p>
-            <p><em>Apple Store Uyên NTT sẽ cập nhật thông tin giá bán và cấu hình chính thức ngay khi Apple công bố. Khách quan tâm có thể để lại thông tin đặt trước để được ưu tiên nhận máy sớm.</em></p>
+            <p><em>RenewZone sẽ cập nhật thông tin giá bán và cấu hình chính thức ngay khi Apple công bố. Khách quan tâm có thể để lại thông tin đặt trước để được ưu tiên nhận máy sớm.</em></p>
             """),
 
         ["apple-phat-hanh-ban-cap-nhat-ios-moi"] = new NewsContent(
@@ -524,7 +524,7 @@ public static partial class SeedData
         ["nen-mua-iphone-15-pro-max-cu-hay-iphone-16-moi"] = new NewsContent(
             "Cùng tầm giá gần nhau, nhiều khách hàng phân vân giữa iPhone 15 Pro Max cũ 99% và iPhone 16 mới. Bài viết so sánh giúp bạn chọn đúng máy phù hợp nhu cầu.",
             """
-            <p>Đây là câu hỏi mà rất nhiều khách hàng đặt ra khi đến tư vấn tại Apple Store Uyên NTT: nên chọn <strong>iPhone 15 Pro Max cũ 99%</strong> hay <strong>iPhone 16 mới nguyên seal</strong> khi mức giá hai máy khá gần nhau? Câu trả lời phụ thuộc vào nhu cầu sử dụng cụ thể của từng người.</p>
+            <p>Đây là câu hỏi mà rất nhiều khách hàng đặt ra khi đến tư vấn tại RenewZone: nên chọn <strong>iPhone 15 Pro Max cũ 99%</strong> hay <strong>iPhone 16 mới nguyên seal</strong> khi mức giá hai máy khá gần nhau? Câu trả lời phụ thuộc vào nhu cầu sử dụng cụ thể của từng người.</p>
             <h3>Về hiệu năng và camera</h3>
             <p>iPhone 15 Pro Max sở hữu chip A17 Pro cùng camera Telephoto tetraprism zoom quang 5x - vốn là tính năng cao cấp của dòng Pro Max, trong khi iPhone 16 (bản thường) dùng chip A18 nhưng camera không có ống kính zoom xa. Nếu bạn ưu tiên chụp ảnh xa, quay video chuyên nghiệp, 15 Pro Max vẫn có lợi thế.</p>
             <h3>Về độ mới và bảo hành</h3>
@@ -569,7 +569,7 @@ public static partial class SeedData
             </ol>
             <h3>Lưu ý để tránh phát sinh chi phí</h3>
             <p>Trả góp 0% lãi suất qua thẻ tín dụng thường miễn phí chuyển đổi nếu thanh toán đúng hạn hàng tháng, tuy nhiên một số ngân hàng có thể thu phí chuyển đổi trả góp (khoảng 2-3% giá trị đơn hàng). Khách hàng nên hỏi kỹ nhân viên tư vấn về tổng chi phí thực tế trước khi quyết định.</p>
-            <p>Tại Apple Store Uyên NTT, khách hàng được hỗ trợ tư vấn trả góp 0% linh hoạt ngay tại quầy, thủ tục nhanh gọn và minh bạch về chi phí phát sinh (nếu có).</p>
+            <p>Tại RenewZone, khách hàng được hỗ trợ tư vấn trả góp 0% linh hoạt ngay tại quầy, thủ tục nhanh gọn và minh bạch về chi phí phát sinh (nếu có).</p>
             """),
 
         ["airpods-the-he-moi-do-nhip-tim"] = new NewsContent(
@@ -586,16 +586,16 @@ public static partial class SeedData
             </ul>
             <h3>Khi nào sẽ ra mắt?</h3>
             <p>Hiện Apple chưa xác nhận chính thức về tính năng này. Nếu đúng như tin đồn, khả năng cao tính năng đo nhịp tim sẽ xuất hiện trên các mẫu AirPods cao cấp trong tương lai gần, mở ra một hướng phát triển mới cho dòng tai nghe true wireless vốn đã rất phổ biến.</p>
-            <p>Apple Store Uyên NTT sẽ cập nhật thông tin sớm nhất ngay khi Apple công bố chính thức các tính năng sức khỏe mới trên AirPods.</p>
+            <p>RenewZone sẽ cập nhật thông tin sớm nhất ngay khi Apple công bố chính thức các tính năng sức khỏe mới trên AirPods.</p>
             """),
     };
 
     // Bảng giá thu cũ đổi mới — nội dung dài chi tiết với bảng giá từ các model khác nhau.
     // KHÔNG mở đầu bằng <h2> trùng tiêu đề: view StaticPage.cshtml đã render Model.Title thành <h1>.
     private const string TradeInPriceTableHtml = """
-        <p><strong>Nâng cấp lên thiết bị mới chưa bao giờ dễ dàng đến thế!</strong> Apple Store Uyên NTT nhận đánh giá và trợ giá thiết bị cũ của bạn ngay tại chỗ, giúp giảm đáng kể chi phí khi lên đời máy mới. Quy trình minh bạch, định giá công khai, không phí ẩn.</p>
+        <p><strong>Nâng cấp lên thiết bị mới chưa bao giờ dễ dàng đến thế!</strong> RenewZone nhận đánh giá và trợ giá thiết bị cũ của bạn ngay tại chỗ, giúp giảm đáng kể chi phí khi lên đời máy mới. Quy trình minh bạch, định giá công khai, không phí ẩn.</p>
 
-        <h3>Tại sao nên thu cũ đổi mới tại Apple Store Uyên NTT?</h3>
+        <h3>Tại sao nên thu cũ đổi mới tại RenewZone?</h3>
         <ul>
           <li><strong>Giá công bằng:</strong> đánh giá dựa trên tình trạng thực tế máy (98%, 99%, 100%), so sánh thị trường khách quan.</li>
           <li><strong>Quy trình nhanh:</strong> kiểm tra trong 5 phút, báo giá ngay, không chờ đợi lâu.</li>

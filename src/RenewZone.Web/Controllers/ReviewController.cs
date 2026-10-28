@@ -56,13 +56,22 @@ public class ReviewController(
 
         // Chốt chặn THẬT nằm ở đây, không phải ở chỗ ẩn/hiện form trên PDP: gọi thẳng bằng curl
         // với cookie hợp lệ vẫn bị chặn nếu tài khoản chưa có đơn hoàn thành chứa sản phẩm này.
-        if (!await customerOrders.HasPurchasedAsync(userId, request.ProductId))
+        // Giai đoạn 10: mỗi LẦN MUA (một dòng trong đơn Hoàn thành) chỉ đánh giá được một lần.
+        // Gửi từ trang chi tiết đơn thì có sẵn orderItemId; gửi từ PDP thì lấy lần mua cũ nhất chưa đánh giá.
+        int? orderItemId = request.OrderItemId is { } wanted
+            ? (await customerOrders.CanReviewOrderItemAsync(userId, wanted, request.ProductId) ? wanted : null)
+            : await customerOrders.FindReviewableOrderItemAsync(userId, request.ProductId);
+
+        if (orderItemId is null)
         {
+            var purchased = await customerOrders.HasPurchasedAsync(userId, request.ProductId);
             return Json(new
             {
                 ok = false,
-                message = "Chỉ khách đã mua và nhận sản phẩm này mới đánh giá được. "
-                          + "Nếu bạn vừa nhận hàng, hãy đợi shop cập nhật đơn sang “Hoàn thành” nhé."
+                message = purchased
+                    ? "Bạn đã đánh giá sản phẩm này cho mọi lần mua rồi. Cảm ơn bạn!"
+                    : "Chỉ khách đã mua và nhận sản phẩm này mới đánh giá được. "
+                      + "Nếu bạn vừa nhận hàng, hãy đợi shop cập nhật đơn sang “Hoàn thành” nhé."
             });
         }
 
@@ -128,6 +137,7 @@ public class ReviewController(
             // lại lúc hiển thị: đơn có thể bị đổi trạng thái về sau, nhưng huy hiệu "Đã mua hàng"
             // phải phản ánh sự thật TẠI THỜI ĐIỂM đánh giá.
             IsVerifiedPurchase = true,
+            OrderItemId = orderItemId,
             AuthorName = name,
             Phone = phone.Length > 0 ? phone : null,
             Rating = request.Rating,
@@ -136,7 +146,7 @@ public class ReviewController(
 
         if (review is null)
         {
-            return Json(new { ok = false, message = "Sản phẩm không tồn tại hoặc đã ngừng bán." });
+            return Json(new { ok = false, message = "Không gửi được đánh giá: sản phẩm đã ngừng bán hoặc lần mua này vừa được đánh giá." });
         }
 
         HttpContext.Session.SetString(LastSubmitSessionKey, DateTime.Now.Ticks.ToString());
@@ -176,6 +186,12 @@ public class ReviewController(
 public class ReviewSubmitRequest
 {
     public int ProductId { get; set; }
+
+    /// <summary>
+    /// Dòng đơn hàng được đánh giá — có khi khách bấm "Đánh giá" ở trang chi tiết đơn (Giai đoạn 10).
+    /// Bỏ trống (gửi từ PDP) ⇒ server tự chọn lần mua cũ nhất chưa đánh giá. Luôn kiểm lại quyền sở hữu.
+    /// </summary>
+    public int? OrderItemId { get; set; }
 
     // Giai đoạn 9 BỎ trường AuthorName: tên hiển thị lấy từ hồ sơ tài khoản đang đăng nhập.
     // Để client tự khai tên là mở đường mạo danh khách khác dưới một đánh giá đã được duyệt.

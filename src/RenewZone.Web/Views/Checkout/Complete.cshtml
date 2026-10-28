@@ -4,6 +4,7 @@
     var settings = await SiteContent.GetSettingsAsync();
     var hotline = settings.GetValueOrDefault(SettingKeys.Hotline) ?? "";
     var hotlineTel = "tel:" + hotline.Replace(".", "").Replace(" ", "");
+    var storeName = settings.GetValueOrDefault(SettingKeys.StoreName) ?? "RenewZone";
     ViewData["Seo"] = new SeoData { Title = "Đặt hàng thành công", NoIndex = true };
 }
 
@@ -21,7 +22,7 @@
         </svg>
 
         <h1 class="done-title">Đặt hàng thành công!</h1>
-        <p class="done-sub">Cảm ơn bạn đã tin tưởng Apple Store Uyên NTT. Shop sẽ gọi xác nhận trong ít phút.</p>
+        <p class="done-sub">Cảm ơn bạn đã tin tưởng @storeName. Shop sẽ gọi xác nhận trong ít phút.</p>
 
         <div class="done-code-box">
             <span class="done-code-label">Mã đơn hàng</span>

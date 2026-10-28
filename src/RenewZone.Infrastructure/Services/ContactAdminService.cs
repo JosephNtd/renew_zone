@@ -39,7 +39,7 @@ public class ContactAdminService(AppDbContext db) : IContactAdminService
             .Take(request.SafePageSize)
             .Select(c => new ContactListItem(
                 c.Id, c.FullName, c.Phone, c.Email, c.Address,
-                c.Subject, c.Content, c.AttachmentPath, c.IsRead, c.CreatedAt))
+                c.Subject, c.Content, c.AttachmentPath, c.IsRead, c.CreatedAt, c.UserId))
             .ToListAsync();
 
         return new PagedResult<ContactListItem>
@@ -56,7 +56,7 @@ public class ContactAdminService(AppDbContext db) : IContactAdminService
             .Where(c => c.Id == id)
             .Select(c => new ContactListItem(
                 c.Id, c.FullName, c.Phone, c.Email, c.Address,
-                c.Subject, c.Content, c.AttachmentPath, c.IsRead, c.CreatedAt))
+                c.Subject, c.Content, c.AttachmentPath, c.IsRead, c.CreatedAt, c.UserId))
             .FirstOrDefaultAsync();
 
     public async Task<AdminResult> MarkReadAsync(int id, bool isRead = true)

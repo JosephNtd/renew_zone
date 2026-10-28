@@ -1,0 +1,242 @@
+@model IReadOnlyList<AttributeItem>
+@{
+    ViewData["Title"] = "Thuộc tính sản phẩm";
+}
+
+<div class="adm-page-head">
+    <div>
+        <h1>Thuộc tính sản phẩm</h1>
+        <div class="adm-page-sub">
+            Danh sách chung để chọn ở tab Biến thể của form sản phẩm (Dung lượng, Màu sắc, Tình trạng…).
+            Đổi tên một giá trị thì mọi sản phẩm đang dùng sẽ hiện tên mới. Thuộc tính hoặc giá trị
+            còn sản phẩm dùng thì không xóa được.
+        </div>
+    </div>
+    <div class="adm-page-actions">
+        <a class="adm-btn adm-btn-ghost" asp-controller="Product" asp-action="Index">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            <span class="adm-btn-label">Sản phẩm</span>
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-lg-7">
+        @if (Model.Count == 0)
+        {
+            <div class="adm-card">
+                <partial name="_EmptyState" model='new EmptyStateModel {
+                    Icon = "bi-list-check", Title = "Chưa có thuộc tính nào",
+                    Message = "Dùng form bên cạnh để thêm thuộc tính đầu tiên, vd Dung lượng hoặc Màu sắc." }' />
+            </div>
+        }
+
+        @foreach (var attr in Model)
+        {
+            <div class="adm-card mb-3">
+                <div class="adm-card-head">
+                    <h2>@attr.Name</h2>
+                    <span class="adm-small adm-muted ms-2">
+                        @attr.Values.Count giá trị · dùng ở @attr.ProductCount sản phẩm
+                    </span>
+                    <span class="adm-row-actions ms-auto">
+                        <button type="button" class="adm-act js-edit-attr"
+                                data-id="@attr.Id" data-name="@attr.Name" data-order="@attr.DisplayOrder"
+                                title="Sửa “@attr.Name”">
+                            <i class="bi bi-pencil" aria-hidden="true"></i>
+                            <span class="visually-hidden">Sửa</span>
+                        </button>
+                        <form method="post" asp-action="Delete" asp-route-id="@attr.Id" class="d-inline">
+                            <button type="button" class="adm-act is-danger"
+                                    data-confirm="Thuộc tính <b>@attr.Name</b> và @attr.Values.Count giá trị của nó sẽ bị xóa hẳn."
+                                    data-confirm-title="Xóa thuộc tính?" title="Xóa">
+                                <i class="bi bi-trash" aria-hidden="true"></i>
+                                <span class="visually-hidden">Xóa</span>
+                            </button>
+                        </form>
+                    </span>
+                </div>
+
+                @if (attr.Values.Count == 0)
+                {
+                    <p class="adm-small adm-muted mb-0">Chưa có giá trị nào — thêm ở form bên cạnh.</p>
+                }
+                else
+                {
+                    <div class="adm-tree">
+                        @foreach (var value in attr.Values)
+                        {
+                            <div class="adm-tree-row">
+                                <span class="adm-tree-name"><b>@value.Value</b></span>
+                                <span class="adm-tree-count adm-small adm-muted">@value.ProductCount sản phẩm</span>
+                                <span class="adm-row-actions">
+                                    <button type="button" class="adm-act js-edit-value"
+                                            data-id="@value.Id" data-attr="@attr.Id" data-value="@value.Value"
+                                            data-order="@value.DisplayOrder" title="Sửa “@value.Value”">
+                                        <i class="bi bi-pencil" aria-hidden="true"></i>
+                                        <span class="visually-hidden">Sửa</span>
+                                    </button>
+                                    <form method="post" asp-action="DeleteValue" asp-route-id="@value.Id" class="d-inline">
+                                        <button type="button" class="adm-act is-danger"
+                                                data-confirm="Giá trị <b>@value.Value</b> sẽ bị xóa khỏi “@attr.Name”."
+                                                data-confirm-title="Xóa giá trị?" title="Xóa">
+                                            <i class="bi bi-trash" aria-hidden="true"></i>
+                                            <span class="visually-hidden">Xóa</span>
+                                        </button>
+                                    </form>
+                                </span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="col-12 col-lg-5">
+        <div class="adm-card mb-3">
+            <div class="adm-card-head">
+                <h2 id="attrFormTitle">Thêm thuộc tính</h2>
+                <button type="button" class="adm-btn adm-btn-ghost adm-btn-sm ms-auto" id="attrReset" hidden>
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    <span class="adm-btn-label">Hủy sửa</span>
+                </button>
+            </div>
+
+            <form method="post" asp-action="Save" data-adm-form id="attrForm">
+                <input type="hidden" name="Id" id="attrId" />
+
+                <div class="adm-field mb-3">
+                    <label class="adm-label" for="attrName">
+                        Tên thuộc tính<span class="adm-req" aria-hidden="true">*</span>
+                    </label>
+                    <input class="adm-input" name="Name" id="attrName" maxlength="100" autocomplete="off"
+                           placeholder="vd Dung lượng" required />
+                </div>
+
+                <div class="adm-field mb-3">
+                    <label class="adm-label" for="attrOrder">Thứ tự</label>
+                    <input class="adm-input" name="DisplayOrder" id="attrOrder" type="number" min="0" max="9999" value="0" />
+                </div>
+
+                <button type="submit" class="adm-btn adm-btn-primary w-100">
+                    <span class="adm-spinner"></span>
+                    <i class="bi bi-check-lg" aria-hidden="true"></i>
+                    <span class="adm-btn-label">Lưu thuộc tính</span>
+                </button>
+            </form>
+        </div>
+
+        @if (Model.Count > 0)
+        {
+            <div class="adm-card">
+                <div class="adm-card-head">
+                    <h2 id="valueFormTitle">Thêm giá trị</h2>
+                    <button type="button" class="adm-btn adm-btn-ghost adm-btn-sm ms-auto" id="valueReset" hidden>
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                        <span class="adm-btn-label">Hủy sửa</span>
+                    </button>
+                </div>
+
+                <form method="post" asp-action="SaveValue" data-adm-form id="valueForm">
+                    <input type="hidden" name="Id" id="valueId" />
+
+                    <div class="adm-field mb-3">
+                        <label class="adm-label" for="valueAttr">
+                            Thuộc tính<span class="adm-req" aria-hidden="true">*</span>
+                        </label>
+                        <select class="adm-input" name="AttributeId" id="valueAttr" required>
+                            @foreach (var attr in Model)
+                            {
+                                <option value="@attr.Id">@attr.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="adm-field mb-3">
+                        <label class="adm-label" for="valueText">
+                            Giá trị<span class="adm-req" aria-hidden="true">*</span>
+                        </label>
+                        <input class="adm-input" name="Value" id="valueText" maxlength="100" autocomplete="off"
+                               placeholder="vd 256GB, Titan Đen, 99%" required />
+                    </div>
+
+                    <div class="adm-field mb-3">
+                        <label class="adm-label" for="valueOrder">Thứ tự</label>
+                        <input class="adm-input" name="DisplayOrder" id="valueOrder" type="number" min="0" max="9999" value="0" />
+                    </div>
+
+                    <button type="submit" class="adm-btn adm-btn-primary w-100">
+                        <span class="adm-spinner"></span>
+                        <i class="bi bi-check-lg" aria-hidden="true"></i>
+                        <span class="adm-btn-label">Lưu giá trị</span>
+                    </button>
+                </form>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            // Bấm "Sửa" ⇒ đổ dữ liệu vào form tương ứng; "Hủy sửa" ⇒ về chế độ thêm mới
+            function bindForm(cfg) {
+                var form = document.getElementById(cfg.form);
+                if (!form) return;
+                var title = document.getElementById(cfg.title);
+                var reset = document.getElementById(cfg.reset);
+
+                document.addEventListener("click", function (e) {
+                    var btn = e.target.closest(cfg.trigger);
+                    if (!btn) return;
+                    cfg.fill(btn);
+                    title.textContent = cfg.editTitle;
+                    reset.hidden = false;
+                    form.querySelector(cfg.focus).focus();
+                    form.scrollIntoView({ behavior: "smooth", block: "center" });
+                });
+
+                reset.addEventListener("click", function () {
+                    form.reset();
+                    form.querySelector('input[name="Id"]').value = "";
+                    if (cfg.onReset) cfg.onReset();
+                    title.textContent = cfg.addTitle;
+                    reset.hidden = true;
+                });
+            }
+
+            var valueAttr = document.getElementById("valueAttr");
+
+            bindForm({
+                form: "attrForm", title: "attrFormTitle", reset: "attrReset", trigger: ".js-edit-attr",
+                focus: "#attrName", addTitle: "Thêm thuộc tính", editTitle: "Sửa thuộc tính",
+                fill: function (btn) {
+                    document.getElementById("attrId").value = btn.dataset.id;
+                    document.getElementById("attrName").value = btn.dataset.name;
+                    document.getElementById("attrOrder").value = btn.dataset.order;
+                }
+            });
+
+            bindForm({
+                form: "valueForm", title: "valueFormTitle", reset: "valueReset", trigger: ".js-edit-value",
+                focus: "#valueText", addTitle: "Thêm giá trị", editTitle: "Sửa giá trị",
+                fill: function (btn) {
+                    document.getElementById("valueId").value = btn.dataset.id;
+                    valueAttr.value = btn.dataset.attr;
+                    // Giá trị đang sửa không đổi sang thuộc tính khác được (service cũng chặn)
+                    valueAttr.disabled = true;
+                    document.getElementById("valueText").value = btn.dataset.value;
+                    document.getElementById("valueOrder").value = btn.dataset.order;
+                },
+                onReset: function () { valueAttr.disabled = false; }
+            });
+
+            // Ô chọn bị khóa thì không được gửi lên ⇒ mở khóa ngay trước khi submit
+            var valueForm = document.getElementById("valueForm");
+            if (valueForm) {
+                valueForm.addEventListener("submit", function () { valueAttr.disabled = false; });
+            }
+        })();
+    </script>
+}

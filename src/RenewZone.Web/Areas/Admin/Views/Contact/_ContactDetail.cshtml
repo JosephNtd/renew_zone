@@ -43,6 +43,20 @@
         <dt>Địa chỉ</dt>
         <dd>@Model.Address</dd>
     }
+
+    <dt>Tài khoản</dt>
+    <dd>
+        @if (Model.UserId is { } userId)
+        {
+            <a href="/admin/khach-hang/@userId">
+                <i class="bi bi-person-badge" aria-hidden="true"></i> Mở hồ sơ khách hàng
+            </a>
+        }
+        else
+        {
+            <span class="adm-muted">Khách vãng lai (không đăng nhập)</span>
+        }
+    </dd>
 </dl>
 
 <div class="adm-card mt-3" style="background: var(--adm-surface-2);">

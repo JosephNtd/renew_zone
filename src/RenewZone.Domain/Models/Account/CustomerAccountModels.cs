@@ -37,9 +37,14 @@ public record MyOrderDetail(
     decimal TotalAmount,
     DateTime CreatedAt,
     IReadOnlyList<OrderDetailItem> Items,
-    IReadOnlyList<MyOrderHistoryEntry> History)
+    IReadOnlyList<MyOrderHistoryEntry> History,
+    IReadOnlyDictionary<int, ItemReviewInfo> ItemReviews,
+    DeliveryReviewInfo? DeliveryReview)
 {
     public bool CanCancel => OrderStatusRules.CustomerCanCancel(Status);
+
+    /// <summary>Chỉ đơn đã Hoàn thành mới đánh giá được (sản phẩm và giao hàng).</summary>
+    public bool CanReview => Status == OrderStatus.Completed;
 }
 
 /// <summary>

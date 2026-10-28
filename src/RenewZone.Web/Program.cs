@@ -212,7 +212,7 @@ app.UseHttpsRedirection();
 // sẽ 404 nếu thiếu dòng này (Development có fallback quét đĩa nên trước đây không lộ ra).
 // Scope riêng /uploads để không chồng lấn với MapStaticAssets (css/js/lib vẫn hưởng nén+fingerprint).
 var uploadsRoot = Path.Combine(app.Environment.WebRootPath, "uploads");
-Directory.CreateDirectory(uploadsRoot); // wwwroot/uploads bị .gitignore — clone mới chưa có thư mục này
+Directory.CreateDirectory(uploadsRoot); // phòng khi bản publish/clone thiếu thư mục này (uploads/contact vẫn bị .gitignore)
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(uploadsRoot),

@@ -8,6 +8,13 @@ namespace RenewZone.Domain.Entities;
 /// </summary>
 public class ContactMessage : AuditableEntity, ISoftDeletable
 {
+    /// <summary>
+    /// Tài khoản đã gửi tin (khóa ngoại <c>AspNetUsers</c>, không navigation — xem <c>Order.UserId</c>).
+    /// NULL = khách vãng lai gửi, hoặc tài khoản đã bị xóa (SetNull). Nhờ cột này admin biết tin
+    /// của khách nào và mở được hồ sơ khách từ tin nhắn.
+    /// </summary>
+    public string? UserId { get; set; }
+
     public string FullName { get; set; } = null!;
     public string Phone { get; set; } = null!;
     public string? Address { get; set; }

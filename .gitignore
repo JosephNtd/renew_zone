@@ -485,9 +485,13 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
-# File khách upload qua form liên hệ (Giai đoạn 5) — dữ liệu runtime, không commit
-# File người dùng tải lên (form liên hệ + ảnh sản phẩm/tin/banner/editor của admin) — không vào repo
-src/RenewZone.Web/wwwroot/uploads/
+# File khách upload qua form liên hệ (Giai đoạn 5) — dữ liệu runtime, không commit.
+# Ảnh sản phẩm/tin/banner/editor CÓ vào repo: SeedData.Images.cs gán các ảnh này cho DB cài mới.
+src/RenewZone.Web/wwwroot/uploads/contact/
+
+# File nén mã nguồn để nộp (bản sạch nén từ git, không đưa ngược vào repo)
+/*.rar
+/*.zip
 
 # Cấu hình môi trường deploy — chứa BÍ MẬT (chuỗi kết nối DB + mật khẩu admin seed).
 # dotnet publish vẫn đóng gói file này vì nó có thật trên đĩa; chỉ git là không thấy.

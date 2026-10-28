@@ -31,6 +31,13 @@ public class ProductReview : AuditableEntity, ISoftDeletable
     /// </summary>
     public bool IsVerifiedPurchase { get; set; }
 
+    /// <summary>
+    /// Dòng đơn hàng (đơn Hoàn thành) mà đánh giá này thuộc về — mỗi dòng chỉ đánh giá được MỘT lần
+    /// (unique có lọc NULL). Mua 1 lần thì viết được 1 đánh giá, mua 2 đơn thì được 2.
+    /// NULL = đánh giá cũ trước Giai đoạn 10 không ghép được với đơn nào.
+    /// </summary>
+    public int? OrderItemId { get; set; }
+
     /// <summary>Tên khách tự nhập (không xác thực) — chỉ để hiển thị.</summary>
     public string AuthorName { get; set; } = null!;
 
@@ -59,4 +66,5 @@ public class ProductReview : AuditableEntity, ISoftDeletable
     public DateTime? DeletedAt { get; set; }
 
     public Product Product { get; set; } = null!;
+    public OrderItem? OrderItem { get; set; }
 }

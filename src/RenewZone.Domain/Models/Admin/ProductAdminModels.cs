@@ -14,6 +14,8 @@ public class ProductListRequest : AdminListRequest
     public bool? HasDescription { get; init; }
 }
 
+/// <param name="WishlistCount">Số tài khoản đang lưu sản phẩm vào Yêu thích.</param>
+/// <param name="SoldCount">Số lượng đã bán = tổng số lượng trong các đơn đã Hoàn thành.</param>
 public record ProductListItem(
     int Id,
     string Name,
@@ -28,7 +30,9 @@ public record ProductListItem(
     bool IsBestSeller,
     bool IsInstallment0Percent,
     int ViewCount,
-    int ImageCount);
+    int ImageCount,
+    int WishlistCount,
+    int SoldCount);
 
 /// <summary>Dữ liệu tạo/sửa sản phẩm (phần thông tin chung + nội dung).</summary>
 public class ProductInput
@@ -56,7 +60,9 @@ public class OptionGroupInput
 {
     /// <summary>Null ⇒ nhóm mới thêm trên form.</summary>
     public int? Id { get; init; }
-    public required string Name { get; init; }
+
+    /// <summary>Thuộc tính chọn từ danh sách chung (Dung lượng, Màu sắc…) — không còn gõ tay tên nhóm.</summary>
+    public required int AttributeId { get; init; }
     public int DisplayOrder { get; init; }
     public IReadOnlyList<OptionValueInput> Values { get; init; } = [];
 }
@@ -64,7 +70,9 @@ public class OptionGroupInput
 public class OptionValueInput
 {
     public int? Id { get; init; }
-    public required string Value { get; init; }
+
+    /// <summary>Giá trị chọn từ danh sách chung của thuộc tính (256GB, Titan Đen…).</summary>
+    public required int AttributeValueId { get; init; }
 
     /// <summary>Cộng/trừ vào giá bán khi khách chọn — cho phép SỐ ÂM (bản 98% rẻ hơn bản 99%).</summary>
     public decimal PriceAdjustment { get; init; }

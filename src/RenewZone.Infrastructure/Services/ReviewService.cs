@@ -24,6 +24,7 @@ public class ReviewService(AppDbContext db) : IReviewService
             ProductId = request.ProductId,
             UserId = request.UserId,
             IsVerifiedPurchase = request.IsVerifiedPurchase,
+            OrderItemId = request.OrderItemId,
             AuthorName = request.AuthorName,
             Phone = request.Phone,
             Rating = request.Rating,
@@ -33,7 +34,17 @@ public class ReviewService(AppDbContext db) : IReviewService
         };
 
         db.ProductReviews.Add(review);
-        await db.SaveChangesAsync();
+
+        try
+        {
+            await db.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // Hai lần bấm gửi cùng lúc cho cùng một lần mua: unique OrderItemId của DB chặn bản thứ hai
+            db.Entry(review).State = EntityState.Detached;
+            return null;
+        }
 
         return review;
     }

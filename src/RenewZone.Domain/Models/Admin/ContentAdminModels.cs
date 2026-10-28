@@ -130,9 +130,11 @@ public class ContactListRequest : AdminListRequest
     public string? Subject { get; init; }
 }
 
+/// <param name="UserId">Tài khoản đã gửi (Giai đoạn 10) — null khi khách vãng lai gửi.</param>
 public record ContactListItem(
     int Id, string FullName, string Phone, string? Email, string? Address,
-    string? Subject, string Content, string? AttachmentPath, bool IsRead, DateTime CreatedAt);
+    string? Subject, string Content, string? AttachmentPath, bool IsRead, DateTime CreatedAt,
+    string? UserId);
 
 // Thùng rác
 /// <summary>Các loại nội dung có thể nằm trong Thùng rác — dùng làm tab và tham số route.</summary>
@@ -147,7 +149,8 @@ public enum TrashType
     Testimonial,
     MenuItem,
     ContentBlock,
-    ContactMessage
+    ContactMessage,
+    ProductReview
 }
 
 public record TrashItem(int Id, TrashType Type, string Name, string? Extra, DateTime? DeletedAt);

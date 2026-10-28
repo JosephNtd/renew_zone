@@ -53,7 +53,7 @@ public static class DbInitializer
             var admin = new ApplicationUser
             {
                 UserName = adminUserName,
-                Email = "admin@applestoreuyenntt.local",
+                Email = "admin@renewzone.local",
                 FullName = "Quản trị viên",
                 EmailConfirmed = true
             };

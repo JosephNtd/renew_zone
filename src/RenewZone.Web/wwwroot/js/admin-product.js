@@ -34,8 +34,63 @@
         render();
     }
 
-    /* 3. Repeater biến thể */
+    /* 3. Repeater biến thể — nhóm và giá trị CHỌN từ danh sách chung (Giai đoạn 10) */
     var groupList = document.getElementById("groupList");
+    var attributes = readAttributes();
+
+    function readAttributes() {
+        var el = document.getElementById("attrData");
+        if (!el) return {};
+        var map = {};
+        JSON.parse(el.textContent || "[]").forEach(function (a) { map[a.id] = a; });
+        return map;
+    }
+
+    /** Đổ lại ô chọn giá trị theo thuộc tính của nhóm; giữ lựa chọn cũ nếu vẫn thuộc danh sách. */
+    function fillValueSelect(select, attributeId) {
+        var keep = select.value;
+        var attr = attributes[attributeId];
+        select.innerHTML = "";
+
+        var placeholder = document.createElement("option");
+        placeholder.value = "0";
+        placeholder.textContent = attr ? "— Chọn giá trị —" : "— Chọn thuộc tính trước —";
+        select.appendChild(placeholder);
+
+        if (attr) {
+            attr.values.forEach(function (v) {
+                var opt = document.createElement("option");
+                opt.value = v.id;
+                opt.textContent = v.value;
+                select.appendChild(opt);
+            });
+        }
+
+        select.value = select.querySelector('option[value="' + keep + '"]') ? keep : "0";
+    }
+
+    /**
+     * Khóa những lựa chọn đã dùng: một thuộc tính chỉ thuộc một nhóm, một giá trị chỉ chọn một lần
+     * trong nhóm. Server vẫn kiểm lại — đây chỉ để admin không chọn nhầm ngay từ đầu.
+     */
+    function refreshDisabled() {
+        var groups = groupList.querySelectorAll(".js-group");
+        var usedAttrs = Array.prototype.map.call(groups, function (g) { return g.querySelector(".js-group-attr").value; });
+
+        groups.forEach(function (group, gi) {
+            group.querySelectorAll(".js-group-attr option").forEach(function (opt) {
+                opt.disabled = opt.value !== "0" && usedAttrs.some(function (id, i) { return i !== gi && id === opt.value; });
+            });
+
+            var selects = group.querySelectorAll(".js-value-attr");
+            var usedValues = Array.prototype.map.call(selects, function (s) { return s.value; });
+            selects.forEach(function (select, vi) {
+                select.querySelectorAll("option").forEach(function (opt) {
+                    opt.disabled = opt.value !== "0" && usedValues.some(function (id, i) { return i !== vi && id === opt.value; });
+                });
+            });
+        });
+    }
 
     function initRepeater() {
         if (!groupList) return;
@@ -62,6 +117,15 @@
         groupList.addEventListener("change", function (e) {
             if (e.target.closest(".js-value-default")) { syncDefaults(); updatePreview(); }
             if (e.target.closest(".js-value-adj")) { updatePreview(); }
+
+            var attrSelect = e.target.closest(".js-group-attr");
+            if (attrSelect) {
+                attrSelect.closest(".js-group").querySelectorAll(".js-value-attr").forEach(function (select) {
+                    fillValueSelect(select, attrSelect.value);
+                });
+            }
+
+            if (attrSelect || e.target.closest(".js-value-attr")) { refreshDisabled(); }
         });
 
         groupList.addEventListener("input", function (e) {
@@ -73,6 +137,8 @@
         var list = group.querySelector(".js-value-list");
         var node = document.getElementById("tplValue").content.cloneNode(true);
         list.appendChild(node);
+        fillValueSelect(list.lastElementChild.querySelector(".js-value-attr"),
+            group.querySelector(".js-group-attr").value);
 
         // Nhóm chưa có mặc định nào ⇒ dòng đầu tiên tự làm mặc định
         if (list.querySelectorAll(".js-value-default:checked").length === 0) {
@@ -102,12 +168,12 @@
         groupList.querySelectorAll(".js-group").forEach(function (group, gi) {
             group.dataset.index = gi;
             group.querySelector(".js-group-id").name = "OptionGroups[" + gi + "].Id";
-            group.querySelector(".js-group-name").name = "OptionGroups[" + gi + "].Name";
+            group.querySelector(".js-group-attr").name = "OptionGroups[" + gi + "].AttributeId";
 
             group.querySelectorAll(".js-value").forEach(function (row, vi) {
                 row.dataset.index = vi;
                 row.querySelector(".js-value-id").name = "OptionGroups[" + gi + "].Values[" + vi + "].Id";
-                row.querySelector(".js-value-text").name = "OptionGroups[" + gi + "].Values[" + vi + "].Value";
+                row.querySelector(".js-value-attr").name = "OptionGroups[" + gi + "].Values[" + vi + "].AttributeValueId";
                 row.querySelector(".js-value-adj").name = "OptionGroups[" + gi + "].Values[" + vi + "].PriceAdjustment";
                 row.querySelector(".js-value-default-field").name =
                     "OptionGroups[" + gi + "].Values[" + vi + "].IsDefault";
@@ -118,6 +184,7 @@
         });
 
         syncDefaults();
+        refreshDisabled();
     }
 
     function syncDefaults() {

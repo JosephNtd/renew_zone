@@ -38,7 +38,8 @@ public record OrderDetail(
     DateTime CreatedAt,
     DateTime? UpdatedAt,
     IReadOnlyList<OrderDetailItem> Items,
-    IReadOnlyList<OrderStatusHistoryEntry> History)
+    IReadOnlyList<OrderStatusHistoryEntry> History,
+    DeliveryReviewInfo? DeliveryReview)
 {
     /// <summary>Các trạng thái được phép chuyển tiếp — view chỉ hiện đúng những lựa chọn này.</summary>
     public IReadOnlyList<OrderStatus> AllowedNext => OrderStatusRules.AllowedNext(Status);

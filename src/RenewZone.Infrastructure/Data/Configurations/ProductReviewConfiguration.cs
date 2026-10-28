@@ -34,5 +34,19 @@ public class ProductReviewConfiguration : IEntityTypeConfiguration<ProductReview
 
         // Kiểm "tài khoản này đã đánh giá sản phẩm đó chưa" + màn "Đánh giá của tôi"
         builder.HasIndex(x => new { x.UserId, x.ProductId });
+
+        // Mỗi dòng đơn hàng chỉ được đánh giá MỘT lần. Lọc NULL vì đánh giá cũ (trước Giai đoạn 10)
+        // không ghép được với đơn nào. Bản ghi đã xóa mềm vẫn giữ chỗ: admin xóa đánh giá vi phạm
+        // thì khách không viết lại được cho cùng lần mua đó.
+        builder.HasIndex(x => x.OrderItemId)
+            .IsUnique()
+            .HasFilter("[OrderItemId] IS NOT NULL");
+
+        // Restrict (NO ACTION): dòng đơn hàng không bao giờ bị xóa riêng; để Cascade/SetNull ở đây
+        // sẽ tạo nhiều đường xóa dây chuyền từ Products tới ProductReviews, SQL Server từ chối.
+        builder.HasOne(x => x.OrderItem)
+            .WithMany()
+            .HasForeignKey(x => x.OrderItemId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

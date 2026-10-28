@@ -307,9 +307,14 @@ namespace RenewZone.Infrastructure.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("IsRead");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("ContactMessages");
                 });
@@ -412,6 +417,41 @@ namespace RenewZone.Infrastructure.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("CustomerAddresses");
+                });
+
+            modelBuilder.Entity("RenewZone.Domain.Entities.DeliveryReview", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique();
+
+                    b.ToTable("DeliveryReviews", t =>
+                        {
+                            t.HasCheckConstraint("CK_DeliveryReviews_Rating", "[Rating] BETWEEN 1 AND 5");
+                        });
                 });
 
             modelBuilder.Entity("RenewZone.Domain.Entities.MenuItem", b =>
@@ -803,6 +843,57 @@ namespace RenewZone.Infrastructure.Data.Migrations
                     b.ToTable("Products");
                 });
 
+            modelBuilder.Entity("RenewZone.Domain.Entities.ProductAttribute", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("ProductAttributes");
+                });
+
+            modelBuilder.Entity("RenewZone.Domain.Entities.ProductAttributeValue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AttributeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttributeId", "Value")
+                        .IsUnique();
+
+                    b.ToTable("ProductAttributeValues");
+                });
+
             modelBuilder.Entity("RenewZone.Domain.Entities.ProductImage", b =>
                 {
                     b.Property<int>("Id")
@@ -840,18 +931,18 @@ namespace RenewZone.Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("DisplayOrder")
+                    b.Property<int>("AttributeId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AttributeId");
 
                     b.HasIndex("ProductId");
 
@@ -866,6 +957,9 @@ namespace RenewZone.Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AttributeValueId")
+                        .HasColumnType("int");
+
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("int");
 
@@ -879,12 +973,9 @@ namespace RenewZone.Infrastructure.Data.Migrations
                         .HasPrecision(18)
                         .HasColumnType("decimal(18,0)");
 
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("AttributeValueId");
 
                     b.HasIndex("GroupId");
 
@@ -925,6 +1016,9 @@ namespace RenewZone.Infrastructure.Data.Migrations
                     b.Property<bool>("IsVerifiedPurchase")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("OrderItemId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Phone")
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
@@ -948,6 +1042,10 @@ namespace RenewZone.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OrderItemId")
+                        .IsUnique()
+                        .HasFilter("[OrderItemId] IS NOT NULL");
 
                     b.HasIndex("ProductId", "Status");
 
@@ -1248,6 +1346,14 @@ namespace RenewZone.Infrastructure.Data.Migrations
                     b.Navigation("Parent");
                 });
 
+            modelBuilder.Entity("RenewZone.Domain.Entities.ContactMessage", b =>
+                {
+                    b.HasOne("RenewZone.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
             modelBuilder.Entity("RenewZone.Domain.Entities.CustomerAddress", b =>
                 {
                     b.HasOne("RenewZone.Infrastructure.Identity.ApplicationUser", null)
@@ -1255,6 +1361,17 @@ namespace RenewZone.Infrastructure.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("RenewZone.Domain.Entities.DeliveryReview", b =>
+                {
+                    b.HasOne("RenewZone.Domain.Entities.Order", "Order")
+                        .WithOne("DeliveryReview")
+                        .HasForeignKey("RenewZone.Domain.Entities.DeliveryReview", "OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("RenewZone.Domain.Entities.MenuItem", b =>
@@ -1325,6 +1442,17 @@ namespace RenewZone.Infrastructure.Data.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("RenewZone.Domain.Entities.ProductAttributeValue", b =>
+                {
+                    b.HasOne("RenewZone.Domain.Entities.ProductAttribute", "Attribute")
+                        .WithMany("Values")
+                        .HasForeignKey("AttributeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Attribute");
+                });
+
             modelBuilder.Entity("RenewZone.Domain.Entities.ProductImage", b =>
                 {
                     b.HasOne("RenewZone.Domain.Entities.Product", "Product")
@@ -1338,28 +1466,49 @@ namespace RenewZone.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("RenewZone.Domain.Entities.ProductOptionGroup", b =>
                 {
+                    b.HasOne("RenewZone.Domain.Entities.ProductAttribute", "Attribute")
+                        .WithMany()
+                        .HasForeignKey("AttributeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("RenewZone.Domain.Entities.Product", "Product")
                         .WithMany("OptionGroups")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Attribute");
+
                     b.Navigation("Product");
                 });
 
             modelBuilder.Entity("RenewZone.Domain.Entities.ProductOptionValue", b =>
                 {
+                    b.HasOne("RenewZone.Domain.Entities.ProductAttributeValue", "AttributeValue")
+                        .WithMany()
+                        .HasForeignKey("AttributeValueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("RenewZone.Domain.Entities.ProductOptionGroup", "Group")
                         .WithMany("Values")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("AttributeValue");
+
                     b.Navigation("Group");
                 });
 
             modelBuilder.Entity("RenewZone.Domain.Entities.ProductReview", b =>
                 {
+                    b.HasOne("RenewZone.Domain.Entities.OrderItem", "OrderItem")
+                        .WithMany()
+                        .HasForeignKey("OrderItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("RenewZone.Domain.Entities.Product", "Product")
                         .WithMany("Reviews")
                         .HasForeignKey("ProductId")
@@ -1370,6 +1519,8 @@ namespace RenewZone.Infrastructure.Data.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("OrderItem");
 
                     b.Navigation("Product");
                 });
@@ -1419,6 +1570,8 @@ namespace RenewZone.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("RenewZone.Domain.Entities.Order", b =>
                 {
+                    b.Navigation("DeliveryReview");
+
                     b.Navigation("Items");
 
                     b.Navigation("StatusHistory");
@@ -1431,6 +1584,11 @@ namespace RenewZone.Infrastructure.Data.Migrations
                     b.Navigation("OptionGroups");
 
                     b.Navigation("Reviews");
+                });
+
+            modelBuilder.Entity("RenewZone.Domain.Entities.ProductAttribute", b =>
+                {
+                    b.Navigation("Values");
                 });
 
             modelBuilder.Entity("RenewZone.Domain.Entities.ProductOptionGroup", b =>

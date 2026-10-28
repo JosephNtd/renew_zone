@@ -14,6 +14,7 @@
     // Controller đã tra "tài khoản này đã mua sản phẩm chưa" (SlugController.ProductView).
     // Chỉ dùng để hiện/ẩn form cho đúng — chốt chặn thật ở ReviewController.
     var canReview = ViewData["CanReview"] as bool? ?? false;
+    var hasReviewedAll = ViewData["HasReviewedAll"] as bool? ?? false;
 
     var images = p.Images.Count > 0
         ? p.Images.ToList()
@@ -132,17 +133,17 @@
                         @foreach (var g in p.OptionGroups)
                         {
                             var defaultVal = g.Values.FirstOrDefault(v => v.IsDefault) ?? g.Values.FirstOrDefault();
-                            <div class="pdp-optgroup" data-group="@g.Name">
-                                <span class="pdp-optlabel">@g.Name</span>
-                                <div class="pdp-optvalues" role="group" aria-label="@g.Name">
+                            <div class="pdp-optgroup" data-group="@g.Attribute.Name">
+                                <span class="pdp-optlabel">@g.Attribute.Name</span>
+                                <div class="pdp-optvalues" role="group" aria-label="@g.Attribute.Name">
                                     @foreach (var v in g.Values)
                                     {
                                         <button type="button"
                                                 class="pdp-opt @(v == defaultVal ? "is-active" : "")"
                                                 data-value-id="@v.Id"
                                                 data-adjust="@v.PriceAdjustment.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-                                                data-value="@v.Value">
-                                            @v.Value
+                                                data-value="@v.AttributeValue.Value">
+                                            @v.AttributeValue.Value
                                             @if (v.PriceAdjustment != 0)
                                             {
                                                 <span class="pdp-opt-delta">@(v.PriceAdjustment > 0 ? "+" : "")@v.PriceAdjustment.ToVnd()</span>
@@ -338,6 +339,20 @@
 
                 <button class="btn-rz btn-buy rv-submit" type="submit" id="reviewSubmit">Gửi đánh giá</button>
             </form>
+        }
+        else if (hasReviewedAll)
+        {
+            @* Mỗi lần mua chỉ đánh giá một lần (Giai đoạn 10) — mua thêm đơn mới thì lại đánh giá được *@
+            <div class="rv-form rv-locked">
+                <h3 class="rv-form-title"><i class="bi bi-patch-check"></i> Bạn đã đánh giá sản phẩm này</h3>
+                <p class="rv-note mb-0">
+                    Cảm ơn bạn đã chia sẻ! Mỗi lần mua được đánh giá một lần. Bạn xem lại đánh giá
+                    của mình trong trang chi tiết đơn hàng.
+                </p>
+                <a class="btn-rz btn-cart-outline mt-3" href="/tai-khoan/don-hang">
+                    <i class="bi bi-receipt"></i> Xem đơn hàng của tôi
+                </a>
+            </div>
         }
         else if (isLoggedIn)
         {

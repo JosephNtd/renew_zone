@@ -13,6 +13,7 @@ namespace RenewZone.Web.Areas.Admin.Controllers;
 public class ProductController(
     IProductAdminService products,
     ICategoryAdminService categories,
+    IProductAttributeAdminService attributes,
     IMediaService media) : BaseAdminController
 {
     [HttpGet("/admin/san-pham")]
@@ -62,7 +63,8 @@ public class ProductController(
     {
         var model = new ProductFormViewModel
         {
-            CategoryOptions = await BuildCategoryOptionsAsync()
+            CategoryOptions = await BuildCategoryOptionsAsync(),
+            Attributes = await attributes.GetAllAsync()
         };
 
         SetCrumb();
@@ -102,6 +104,7 @@ public class ProductController(
 
         var model = ProductFormViewModel.FromEntity(product);
         model.CategoryOptions = await BuildCategoryOptionsAsync();
+        model.Attributes = await attributes.GetAllAsync();
 
         SetCrumb();
         return View("Form", model);
@@ -242,6 +245,7 @@ public class ProductController(
     private async Task<IActionResult> RedisplayAsync(ProductFormViewModel model)
     {
         model.CategoryOptions = await BuildCategoryOptionsAsync();
+        model.Attributes = await attributes.GetAllAsync();
 
         // Ảnh không nằm trong form (quản lý bằng AJAX riêng) nên phải nạp lại,
         // nếu không thì mỗi lần validate hỏng là tab Hình ảnh trông như mất sạch ảnh

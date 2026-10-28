@@ -16,6 +16,10 @@ public class DashboardSummary
     public required int ActiveProductCount { get; init; }
     public required int UnreadContactCount { get; init; }
 
+    /// <summary>Điểm giao hàng trung bình (1–5) khách chấm cho các đơn đã hoàn thành. Null = chưa có lượt nào.</summary>
+    public decimal? DeliveryRatingAverage { get; init; }
+    public int DeliveryReviewCount { get; init; }
+
     /// <summary>Doanh thu theo từng ngày trong 30 ngày qua — ĐỦ 30 phần tử kể cả ngày không có đơn.</summary>
     public required IReadOnlyList<RevenuePoint> RevenueByDay { get; init; }
 

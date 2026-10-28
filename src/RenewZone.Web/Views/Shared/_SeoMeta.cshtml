@@ -19,7 +19,7 @@
         return string.IsNullOrWhiteSpace(v) ? fallback : v;
     }
 
-    var storeName = Setting(SettingKeys.StoreName, "Apple Store Uyên NTT");
+    var storeName = Setting(SettingKeys.StoreName, "RenewZone");
     var tagline = Setting(SettingKeys.Tagline, "Thu cũ đổi mới - Lên đời đơn giản");
 
     var title = string.IsNullOrWhiteSpace(Model.Title) ? storeName : $"{Model.Title} - {storeName}";

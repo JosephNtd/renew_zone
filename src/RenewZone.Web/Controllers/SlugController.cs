@@ -73,12 +73,15 @@ public class SlugController : Controller
         await _catalog.IncrementProductViewAsync(id);
 
         // Có được mở form đánh giá hay không (Giai đoạn 9). Đây CHỈ là để hiện/ẩn giao diện cho
-        // đúng — chốt chặn thật nằm ở ReviewController, nó tự hỏi lại HasPurchasedAsync nên gọi
-        // thẳng bằng curl vẫn bị từ chối.
+        // đúng — chốt chặn thật nằm ở ReviewController, nó tự kiểm lại nên gọi thẳng bằng curl
+        // vẫn bị từ chối. Giai đoạn 10: còn lần mua nào CHƯA đánh giá thì mới mở form; đã mua
+        // nhưng đánh giá hết rồi thì hiện trạng thái "đã đánh giá".
         if (User.Identity?.IsAuthenticated == true
             && User.FindFirstValue(ClaimTypes.NameIdentifier) is { Length: > 0 } userId)
         {
-            ViewData["CanReview"] = await _customerOrders.HasPurchasedAsync(userId, id);
+            var canReview = await _customerOrders.FindReviewableOrderItemAsync(userId, id) is not null;
+            ViewData["CanReview"] = canReview;
+            ViewData["HasReviewedAll"] = !canReview && await _customerOrders.HasPurchasedAsync(userId, id);
         }
 
         return View("Product", detail);

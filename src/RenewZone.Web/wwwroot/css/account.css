@@ -440,6 +440,21 @@
   .wish-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
+/* Đánh giá sản phẩm + giao hàng ở trang chi tiết đơn (Giai đoạn 10) */
+.od-review-done {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  margin-top: 8px; font-size: .85rem; color: var(--ink-500);
+}
+.od-stars { display: inline-flex; gap: 2px; color: var(--warning); }
+.od-star-input { display: inline-flex; gap: 4px; }
+.od-star-btn {
+  background: none; border: none; cursor: pointer; padding: 2px;
+  font-size: 1.6rem; line-height: 1; color: var(--ink-400);
+  transition: transform var(--t-fast) var(--ease-out), color var(--t-fast);
+}
+.od-star-btn .bi-star-fill { color: var(--warning); }
+.od-star-btn:hover { transform: scale(1.12); }
+
 @media (max-width: 767.98px) {
   .addr-grid { grid-template-columns: minmax(0, 1fr); }
   .acc-card { padding: 18px 16px; }

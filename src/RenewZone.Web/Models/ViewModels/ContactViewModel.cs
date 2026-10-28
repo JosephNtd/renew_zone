@@ -45,8 +45,9 @@ public class ContactInput
     public string? Website { get; set; }
 
     /// <summary>Đường dẫn file đã lưu — tầng Web tự gán sau khi validate, không nhận từ client.</summary>
-    public ContactRequest ToRequest(string? attachmentPath) => new()
+    public ContactRequest ToRequest(string? attachmentPath, string? userId) => new()
     {
+        UserId = userId,
         FullName = FullName.Trim(),
         Phone = Phone.Trim(),
         Email = string.IsNullOrWhiteSpace(Email) ? null : Email.Trim(),

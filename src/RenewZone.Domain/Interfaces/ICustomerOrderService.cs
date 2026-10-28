@@ -33,6 +33,18 @@ public interface ICustomerOrderService
     /// </summary>
     Task<bool> HasPurchasedAsync(string userId, int productId);
 
+    /// <summary>
+    /// Dòng đơn hàng CŨ NHẤT của tài khoản (đơn Hoàn thành) chứa sản phẩm này mà chưa được đánh giá.
+    /// Null ⇒ chưa mua, hoặc đã đánh giá hết các lần mua (Giai đoạn 10: mỗi lần mua một đánh giá).
+    /// </summary>
+    Task<int?> FindReviewableOrderItemAsync(string userId, int productId);
+
+    /// <summary>Dòng đơn này có đúng là của tài khoản, đơn đã Hoàn thành, đúng sản phẩm và chưa đánh giá không.</summary>
+    Task<bool> CanReviewOrderItemAsync(string userId, int orderItemId, int productId);
+
+    /// <summary>Khách chấm sao việc giao hàng của đơn (đơn của họ, đã Hoàn thành, chưa chấm lần nào).</summary>
+    Task<AccountOpResult> SubmitDeliveryReviewAsync(string userId, string code, DeliveryReviewRequest request);
+
     /// <summary>Các dòng hàng của một đơn để dựng lại giỏ ("Mua lại"). Không phải đơn của họ ⇒ rỗng.</summary>
     Task<IReadOnlyList<ReorderLine>> GetReorderLinesAsync(string userId, string code);
 }

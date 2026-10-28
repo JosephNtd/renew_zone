@@ -238,6 +238,16 @@
                     </ul>
                 </div>
             }
+
+            @* Điểm khách chấm cho việc giao hàng của các đơn đã hoàn thành (Giai đoạn 10) *@
+            <div class="d-flex align-items-center gap-2 mt-3 pt-3 border-top">
+                <i class="bi bi-truck" aria-hidden="true"></i>
+                <span>Điểm giao hàng trung bình</span>
+                <b class="ms-auto adm-num">
+                    @(Model.DeliveryRatingAverage is { } avg ? avg.ToString("0.0") + "/5" : "—")
+                </b>
+                <span class="adm-small adm-muted">(@Model.DeliveryReviewCount lượt)</span>
+            </div>
         </div>
     </div>
 </div>

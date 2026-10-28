@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using RenewZone.Domain.Interfaces;
+using RenewZone.Domain.Models;
 using RenewZone.Domain.Models.Account;
 using RenewZone.Infrastructure.Identity;
 using RenewZone.Web.Helpers;
@@ -225,6 +226,19 @@ public class AccountController(
         return Json(new { ok = result.Ok, message = result.Message });
     }
 
+    /// <summary>Khách chấm sao việc giao hàng của đơn đã hoàn thành (Giai đoạn 10). Service tự kiểm quyền.</summary>
+    [HttpPost("/tai-khoan/don-hang/{code}/danh-gia-giao-hang")]
+    public async Task<IActionResult> ReviewDelivery(string code, [FromBody] DeliveryReviewInput? input)
+    {
+        if (input is null)
+        {
+            return Json(new { ok = false, message = "Dữ liệu không hợp lệ." });
+        }
+
+        var result = await orders.SubmitDeliveryReviewAsync(UserId, code, new DeliveryReviewRequest(input.Rating, input.Comment));
+        return Json(new { ok = result.Ok, message = result.Message });
+    }
+
     [HttpPost("/tai-khoan/don-hang/{code}/mua-lai")]
     public async Task<IActionResult> Reorder(string code)
     {
@@ -357,6 +371,13 @@ public class AccountController(
         await signInManager.SignOutAsync();
         return Redirect("/");
     }
+}
+
+/// <summary>Body JSON của POST /tai-khoan/don-hang/{code}/danh-gia-giao-hang.</summary>
+public class DeliveryReviewInput
+{
+    public int Rating { get; set; }
+    public string? Comment { get; set; }
 }
 
 public class CancelOrderRequest

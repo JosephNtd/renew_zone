@@ -74,7 +74,10 @@ public class CatalogQueryService(AppDbContext db) : ICatalogQueryService
             .Include(p => p.Category)
             .Include(p => p.Images.OrderByDescending(i => i.IsMain).ThenBy(i => i.DisplayOrder))
             .Include(p => p.OptionGroups.OrderBy(g => g.DisplayOrder))
+                .ThenInclude(g => g.Attribute)
+            .Include(p => p.OptionGroups.OrderBy(g => g.DisplayOrder))
                 .ThenInclude(g => g.Values.OrderBy(v => v.DisplayOrder))
+                .ThenInclude(v => v.AttributeValue)
             .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.Id == productId && p.IsActive);
 
@@ -147,7 +150,10 @@ public class CatalogQueryService(AppDbContext db) : ICatalogQueryService
         db.Products.AsNoTracking()
             .Include(p => p.Images.Where(i => i.IsMain))
             .Include(p => p.OptionGroups.OrderBy(g => g.DisplayOrder))
+                .ThenInclude(g => g.Attribute)
+            .Include(p => p.OptionGroups.OrderBy(g => g.DisplayOrder))
                 .ThenInclude(g => g.Values.OrderBy(v => v.DisplayOrder))
+                .ThenInclude(v => v.AttributeValue)
             .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.Id == productId && p.IsActive);
 

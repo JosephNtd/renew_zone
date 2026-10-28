@@ -210,6 +210,36 @@
                 </span>
             </div>
         </div>
+
+        @* Khách chấm sao việc giao hàng sau khi đơn hoàn thành (Giai đoạn 10) — chỉ shop xem *@
+        <div class="adm-card">
+            <div class="adm-card-head"><h2>Đánh giá giao hàng</h2></div>
+            @if (Model.DeliveryReview is { } delivery)
+            {
+                <div class="d-flex align-items-center gap-2">
+                    <span style="color: var(--warning);" aria-label="@delivery.Rating trên 5 sao">
+                        @for (var s = 1; s <= 5; s++)
+                        {
+                            <i class="bi @(s <= delivery.Rating ? "bi-star-fill" : "bi-star")" aria-hidden="true"></i>
+                        }
+                    </span>
+                    <b>@delivery.Rating/5</b>
+                    <span class="adm-small adm-muted ms-auto">@delivery.CreatedAt.ToString("HH:mm dd/MM/yyyy")</span>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(delivery.Comment))
+                {
+                    <p class="mt-2 mb-0">“@delivery.Comment”</p>
+                }
+            }
+            else
+            {
+                <p class="adm-small adm-muted mb-0">
+                    @(Model.Status == OrderStatus.Completed
+                        ? "Khách chưa đánh giá giao hàng cho đơn này."
+                        : "Khách đánh giá được sau khi đơn chuyển sang Hoàn thành.")
+                </p>
+            }
+        </div>
     </div>
 </div>
 

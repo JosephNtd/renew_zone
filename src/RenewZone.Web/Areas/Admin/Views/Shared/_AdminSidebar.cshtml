@@ -68,6 +68,10 @@
            asp-area="Admin" asp-controller="Product" asp-action="Index">
             <i class="bi bi-box-seam" aria-hidden="true"></i><span>Sản phẩm</span>
         </a>
+        <a class="adm-nav-item @Active("ProductAttribute")" aria-current="@Current("ProductAttribute")"
+           asp-area="Admin" asp-controller="ProductAttribute" asp-action="Index">
+            <i class="bi bi-list-check" aria-hidden="true"></i><span>Thuộc tính sản phẩm</span>
+        </a>
         <a class="adm-nav-item @Active("Review")" aria-current="@Current("Review")"
            asp-area="Admin" asp-controller="Review" asp-action="Index">
             <i class="bi bi-star" aria-hidden="true"></i><span>Đánh giá sản phẩm</span>

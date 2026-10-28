@@ -33,7 +33,8 @@ public class TrashService(
             [TrashType.Testimonial] = await db.Testimonials.IgnoreQueryFilters().CountAsync(x => x.IsDeleted),
             [TrashType.MenuItem] = await db.MenuItems.IgnoreQueryFilters().CountAsync(x => x.IsDeleted),
             [TrashType.ContentBlock] = await db.ContentBlocks.IgnoreQueryFilters().CountAsync(x => x.IsDeleted),
-            [TrashType.ContactMessage] = await db.ContactMessages.IgnoreQueryFilters().CountAsync(x => x.IsDeleted)
+            [TrashType.ContactMessage] = await db.ContactMessages.IgnoreQueryFilters().CountAsync(x => x.IsDeleted),
+            [TrashType.ProductReview] = await db.ProductReviews.IgnoreQueryFilters().CountAsync(x => x.IsDeleted)
         };
 
     public async Task<IReadOnlyList<TrashItem>> GetItemsAsync(TrashType type) => type switch
@@ -88,6 +89,12 @@ public class TrashService(
             .Where(x => x.IsDeleted)
             .Select(x => new TrashItem(x.Id, TrashType.ContactMessage, x.FullName, x.Subject, x.DeletedAt))
             .ToListAsync(),
+        // IgnoreQueryFilters áp cho cả câu ⇒ tên sản phẩm vẫn lấy được khi sản phẩm cũng đang trong Thùng rác
+        TrashType.ProductReview => await db.ProductReviews.IgnoreQueryFilters().AsNoTracking()
+            .Where(x => x.IsDeleted)
+            .Select(x => new TrashItem(x.Id, TrashType.ProductReview,
+                x.AuthorName + " · " + x.Rating + "★ · " + x.Product.Name, x.Content, x.DeletedAt))
+            .ToListAsync(),
 
         _ => []
     };
@@ -141,6 +148,12 @@ public class TrashService(
         entity.DeletedAt = null;
 
         await db.SaveChangesAsync(); // đi qua SaveChanges ⇒ cache tự xóa
+
+        // Đánh giá đã duyệt quay lại ⇒ điểm sao + số đánh giá của sản phẩm phải tính lại
+        if (entity is ProductReview review)
+        {
+            await db.RecomputeProductRatingAsync(review.ProductId);
+        }
 
         logger.LogInformation("Khôi phục {Type} id {Id}", type, id);
 
@@ -213,6 +226,7 @@ public class TrashService(
         TrashType.MenuItem => await db.MenuItems.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == id),
         TrashType.ContentBlock => await db.ContentBlocks.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == id),
         TrashType.ContactMessage => await db.ContactMessages.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == id),
+        TrashType.ProductReview => await db.ProductReviews.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == id),
         _ => null
     };
 
@@ -238,6 +252,8 @@ public class TrashService(
             .Where(x => x.Id == id).ExecuteDeleteAsync(),
         TrashType.ContactMessage => await db.ContactMessages.IgnoreQueryFilters()
             .Where(x => x.Id == id).ExecuteDeleteAsync(),
+        TrashType.ProductReview => await db.ProductReviews.IgnoreQueryFilters()
+            .Where(x => x.Id == id).ExecuteDeleteAsync(),
         _ => 0
     };
 
@@ -252,6 +268,7 @@ public class TrashService(
         TrashType.Banner or TrashType.Testimonial => CacheScope.Home,
         TrashType.MenuItem => CacheScope.Navigation,
         TrashType.ContentBlock => CacheScope.ContentBlocks,
+        TrashType.ProductReview => CacheScope.Home,
         _ => CacheScope.None
     };
 }

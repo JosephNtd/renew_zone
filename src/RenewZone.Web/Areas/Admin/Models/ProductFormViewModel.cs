@@ -70,6 +70,9 @@ public class ProductFormViewModel
     public IReadOnlyList<CategoryOption> CategoryOptions { get; set; } = [];
     public IReadOnlyList<ProductImageItem> Images { get; set; } = [];
 
+    /// <summary>Danh sách thuộc tính chung (Giai đoạn 10) để đổ vào ô chọn của tab Biến thể.</summary>
+    public IReadOnlyList<AttributeItem> Attributes { get; set; } = [];
+
     public bool IsEdit => Id is not null;
 
     public ProductInput ToInput() => new()
@@ -89,18 +92,19 @@ public class ProductFormViewModel
         IsFeatured = IsFeatured,
         IsBestSeller = IsBestSeller,
         IsActive = IsActive,
+        // Dòng chưa chọn thuộc tính / giá trị (id = 0) coi như bỏ trống, giống ô gõ tay để trống trước đây
         OptionGroups = [.. OptionGroups
-            .Where(g => !string.IsNullOrWhiteSpace(g.Name))
+            .Where(g => g.AttributeId > 0)
             .Select(g => new OptionGroupInput
             {
                 Id = g.Id,
-                Name = g.Name,
+                AttributeId = g.AttributeId,
                 Values = [.. g.Values
-                    .Where(v => !string.IsNullOrWhiteSpace(v.Value))
+                    .Where(v => v.AttributeValueId > 0)
                     .Select(v => new OptionValueInput
                     {
                         Id = v.Id,
-                        Value = v.Value,
+                        AttributeValueId = v.AttributeValueId,
                         PriceAdjustment = v.PriceAdjustment,
                         IsDefault = v.IsDefault
                     })]
@@ -128,11 +132,11 @@ public class ProductFormViewModel
             .Select(g => new OptionGroupViewModel
             {
                 Id = g.Id,
-                Name = g.Name,
-                Values = [.. g.Values.Select(v => new OptionValueViewModel
+                AttributeId = g.AttributeId,
+                Values = [.. g.Values.OrderBy(v => v.DisplayOrder).Select(v => new OptionValueViewModel
                 {
                     Id = v.Id,
-                    Value = v.Value,
+                    AttributeValueId = v.AttributeValueId,
                     PriceAdjustment = v.PriceAdjustment,
                     IsDefault = v.IsDefault
                 })]
@@ -147,8 +151,8 @@ public class OptionGroupViewModel
 {
     public int? Id { get; set; }
 
-    [StringLength(100, ErrorMessage = "Tên nhóm tối đa 100 ký tự.")]
-    public string Name { get; set; } = string.Empty;
+    /// <summary>Thuộc tính chọn từ danh sách chung (0 = chưa chọn).</summary>
+    public int AttributeId { get; set; }
 
     public List<OptionValueViewModel> Values { get; set; } = [];
 }
@@ -157,8 +161,8 @@ public class OptionValueViewModel
 {
     public int? Id { get; set; }
 
-    [StringLength(100, ErrorMessage = "Giá trị tối đa 100 ký tự.")]
-    public string Value { get; set; } = string.Empty;
+    /// <summary>Giá trị chọn từ danh sách của thuộc tính (0 = chưa chọn).</summary>
+    public int AttributeValueId { get; set; }
 
     /// <summary>Cho phép SỐ ÂM: bản 98% thường rẻ hơn giá gốc.</summary>
     [Range(typeof(decimal), "-999999999", "999999999", ErrorMessage = "Chênh lệch giá không hợp lệ.")]

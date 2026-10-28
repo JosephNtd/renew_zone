@@ -37,12 +37,15 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<ProductOptionGroup> ProductOptionGroups => Set<ProductOptionGroup>();
     public DbSet<ProductOptionValue> ProductOptionValues => Set<ProductOptionValue>();
+    public DbSet<ProductAttribute> ProductAttributes => Set<ProductAttribute>();
+    public DbSet<ProductAttributeValue> ProductAttributeValues => Set<ProductAttributeValue>();
     public DbSet<ProductReview> ProductReviews => Set<ProductReview>();
 
     // Bán hàng
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
+    public DbSet<DeliveryReview> DeliveryReviews => Set<DeliveryReview>();
 
     // Nội dung
     public DbSet<NewsArticle> NewsArticles => Set<NewsArticle>();

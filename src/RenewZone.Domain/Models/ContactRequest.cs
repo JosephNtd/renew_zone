@@ -7,6 +7,9 @@ namespace RenewZone.Domain.Models;
 /// </summary>
 public class ContactRequest
 {
+    /// <summary>Tài khoản đang đăng nhập khi gửi (controller lấy từ claim). Null = khách vãng lai.</summary>
+    public string? UserId { get; init; }
+
     public required string FullName { get; init; }
     public required string Phone { get; init; }
     public string? Email { get; init; }

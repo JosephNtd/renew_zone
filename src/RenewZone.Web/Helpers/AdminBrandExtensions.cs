@@ -16,7 +16,7 @@ public record AdminBrand(string Name, string Initials, string LogoUrl, string Lo
 
 public static class AdminBrandExtensions
 {
-    private const string FallbackName = "Apple Store Uyên NTT";
+    private const string FallbackName = "RenewZone";
 
     public static async Task<AdminBrand> GetAdminBrandAsync(this ISiteContentService content)
     {
@@ -42,7 +42,7 @@ public static class AdminBrandExtensions
     }
 
     /// <summary>
-    /// Chữ đầu của 2 từ đầu tiên ("Apple Store Uyên NTT" ⇒ "AS"); tên một từ ⇒ 2 ký tự đầu.
+    /// Chữ đầu của 2 từ đầu tiên ("Renew Zone" ⇒ "RZ"); tên một từ ⇒ 2 ký tự đầu ("RenewZone" ⇒ "RE").
     /// Tự suy ra từ tên cửa hàng nên đổi tên trong Cấu hình là ô vuông đổi theo.
     /// </summary>
     private static string InitialsOf(string name)

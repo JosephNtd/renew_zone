@@ -122,9 +122,12 @@
                     </div>
 
                     <div class="adm-field" style="--col-span: 4;">
+                        @* asp-format="{0:0}": tag helper mặc định in số decimal dạng "29990000.00"; ô tiền (admin.js)
+                           bỏ mọi ký tự không phải số nên sẽ thành 2.999.000.000 và lưu sai gấp 100 lần. Giá VNĐ
+                           luôn là số nguyên nên in thẳng không phần thập phân. *@
                         <label class="adm-label" asp-for="OriginalPrice">Giá gốc</label>
                         <div class="adm-money-wrap">
-                            <input class="adm-input js-price" asp-for="OriginalPrice" data-money
+                            <input class="adm-input js-price" asp-for="OriginalPrice" asp-format="{0:0}" data-money
                                    inputmode="numeric" autocomplete="off" />
                         </div>
                         <span class="adm-error" asp-validation-for="OriginalPrice"></span>
@@ -133,7 +136,7 @@
                     <div class="adm-field" style="--col-span: 4;">
                         <label class="adm-label" asp-for="SalePrice">Giá khuyến mãi</label>
                         <div class="adm-money-wrap">
-                            <input class="adm-input js-price" asp-for="SalePrice" data-money
+                            <input class="adm-input js-price" asp-for="SalePrice" asp-format="{0:0}" data-money
                                    inputmode="numeric" autocomplete="off" />
                         </div>
                         <span class="adm-error" asp-validation-for="SalePrice"></span>
@@ -277,6 +280,29 @@
                     </div>
                 </div>
 
+                <div class="adm-alert adm-alert-info">
+                    <i class="bi bi-list-check" aria-hidden="true"></i>
+                    <div>
+                        Nhóm và giá trị biến thể <b>chọn từ danh sách chung</b>, không gõ tay.
+                        Thiếu màu, dung lượng hay tình trạng nào thì thêm ở
+                        <a asp-controller="ProductAttribute" asp-action="Index" target="_blank">Thuộc tính sản phẩm</a>
+                        rồi tải lại trang này.
+                    </div>
+                </div>
+
+                @if (Model.Attributes.Count == 0)
+                {
+                    <div class="adm-alert adm-alert-warning">
+                        <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                        <div>Chưa có thuộc tính nào. Hãy thêm ở màn Thuộc tính sản phẩm trước.</div>
+                    </div>
+                }
+
+                @* Danh sách thuộc tính cho admin-product.js: đổi thuộc tính của nhóm thì đổ lại ô chọn giá trị *@
+                <script type="application/json" id="attrData">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                    Model.Attributes.Select(a => new { id = a.Id, name = a.Name,
+                        values = a.Values.Select(v => new { id = v.Id, value = v.Value }) })))</script>
+
                 <div id="groupList">
                     @for (var g = 0; g < Model.OptionGroups.Count; g++)
                     {
@@ -286,9 +312,14 @@
 
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <span class="adm-drag-handle" aria-hidden="true"><i class="bi bi-grip-vertical"></i></span>
-                                <input class="adm-input js-group-name" name="OptionGroups[@g].Name"
-                                       value="@group.Name" placeholder="Tên nhóm (vd Dung lượng, Màu sắc)"
-                                       aria-label="Tên nhóm biến thể" />
+                                <select class="adm-input js-group-attr" name="OptionGroups[@g].AttributeId"
+                                        aria-label="Thuộc tính của nhóm biến thể">
+                                    <option value="0">— Chọn thuộc tính —</option>
+                                    @foreach (var attr in Model.Attributes)
+                                    {
+                                        <option value="@attr.Id" selected="@(attr.Id == group.AttributeId)">@attr.Name</option>
+                                    }
+                                </select>
                                 <button type="button" class="adm-act is-danger js-del-group" title="Xóa nhóm này">
                                     <i class="bi bi-trash" aria-hidden="true"></i>
                                     <span class="visually-hidden">Xóa nhóm</span>
@@ -296,15 +327,21 @@
                             </div>
 
                             <div class="js-value-list">
+                                @{ var groupValues = Model.Attributes.FirstOrDefault(a => a.Id == group.AttributeId)?.Values ?? []; }
                                 @for (var v = 0; v < group.Values.Count; v++)
                                 {
                                     var value = group.Values[v];
                                     <div class="adm-repeater-row js-value" data-index="@v">
                                         <input type="hidden" class="js-value-id"
                                                name="OptionGroups[@g].Values[@v].Id" value="@value.Id" />
-                                        <input class="adm-input js-value-text"
-                                               name="OptionGroups[@g].Values[@v].Value" value="@value.Value"
-                                               placeholder="Giá trị (vd 256GB)" aria-label="Giá trị" />
+                                        <select class="adm-input js-value-attr"
+                                                name="OptionGroups[@g].Values[@v].AttributeValueId" aria-label="Giá trị">
+                                            <option value="0">— Chọn giá trị —</option>
+                                            @foreach (var option in groupValues)
+                                            {
+                                                <option value="@option.Id" selected="@(option.Id == value.AttributeValueId)">@option.Value</option>
+                                            }
+                                        </select>
                                         <div class="adm-money-wrap" style="width: 190px;">
                                             <input class="adm-input js-value-adj"
                                                    name="OptionGroups[@g].Values[@v].PriceAdjustment"
@@ -368,8 +405,13 @@
         <input type="hidden" class="js-group-id" value="" />
         <div class="d-flex align-items-center gap-2 mb-2">
             <span class="adm-drag-handle" aria-hidden="true"><i class="bi bi-grip-vertical"></i></span>
-            <input class="adm-input js-group-name" placeholder="Tên nhóm (vd Dung lượng, Màu sắc)"
-                   aria-label="Tên nhóm biến thể" />
+            <select class="adm-input js-group-attr" aria-label="Thuộc tính của nhóm biến thể">
+                <option value="0">— Chọn thuộc tính —</option>
+                @foreach (var attr in Model.Attributes)
+                {
+                    <option value="@attr.Id">@attr.Name</option>
+                }
+            </select>
             <button type="button" class="adm-act is-danger js-del-group" title="Xóa nhóm này">
                 <i class="bi bi-trash" aria-hidden="true"></i>
             </button>
@@ -385,7 +427,10 @@
 <template id="tplValue">
     <div class="adm-repeater-row js-value is-new">
         <input type="hidden" class="js-value-id" value="" />
-        <input class="adm-input js-value-text" placeholder="Giá trị (vd 256GB)" aria-label="Giá trị" />
+        @* Danh sách giá trị do JS đổ vào theo thuộc tính của nhóm *@
+        <select class="adm-input js-value-attr" aria-label="Giá trị">
+            <option value="0">— Chọn giá trị —</option>
+        </select>
         <div class="adm-money-wrap" style="width: 190px;">
             <input class="adm-input js-value-adj" value="0" inputmode="numeric" aria-label="Chênh lệch giá" />
         </div>

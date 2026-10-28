@@ -12,6 +12,7 @@ public class ContactService(AppDbContext db) : IContactService
     {
         var message = new ContactMessage
         {
+            UserId = request.UserId,
             FullName = request.FullName,
             Phone = request.Phone,
             Email = request.Email,

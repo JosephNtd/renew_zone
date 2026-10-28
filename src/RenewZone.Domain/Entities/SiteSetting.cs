@@ -30,7 +30,7 @@ public static class SettingKeys
     public const string LogoDarkUrl = "LogoDarkUrl";
 
     /// <summary>
-    /// Phần chữ được tô màu thương hiệu trong logo chữ (vd tên "Apple Store Uyên NTT" tô "Uyên NTT").
+    /// Phần chữ được tô màu thương hiệu trong logo chữ (vd tên "RenewZone" tô "Zone").
     /// Để trống hoặc không khớp tên cửa hàng ⇒ tô cả tên. Chỉ có tác dụng khi KHÔNG dùng ảnh logo.
     /// </summary>
     public const string LogoHighlight = "LogoHighlight";

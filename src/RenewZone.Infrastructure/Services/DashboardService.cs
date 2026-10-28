@@ -63,8 +63,15 @@ public class DashboardService(AppDbContext db) : IDashboardService
             .Select(c => new RecentContact(c.Id, c.FullName, c.Subject, c.Content, c.CreatedAt))
             .ToListAsync();
 
+        var delivery = await db.DeliveryReviews
+            .GroupBy(_ => 1)
+            .Select(g => new { Count = g.Count(), Average = g.Average(d => (decimal)d.Rating) })
+            .FirstOrDefaultAsync();
+
         return new DashboardSummary
         {
+            DeliveryReviewCount = delivery?.Count ?? 0,
+            DeliveryRatingAverage = delivery is null ? null : Math.Round(delivery.Average, 1),
             NewOrderCount = statusCounts.GetValueOrDefault(OrderStatus.New),
             Revenue30Days = completedInWindow.Sum(o => o.TotalAmount),
             RevenuePrevious30Days = previousRevenue,
